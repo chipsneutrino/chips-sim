@@ -1,0 +1,14 @@
+tput: No value for $TERM and no -T specified
+tput: No value for $TERM and no -T specified
+tput: No value for $TERM and no -T specified
+tput: No value for $TERM and no -T specified
+
+*** G4Exception : NotApplicable
+      issued by : G4GeometryTolerance::SetSurfaceTolerance()
+The tolerance has been already set!
+*** This is just a warning message.
+found a trigger...0
+found a trigger...227
+
+ *** Break *** segmentation violation
+/var/spool/pbs/mom_priv/jobs/5438052.far.SC: line 5: 28289 Killed                  WCSim vectors.mac
