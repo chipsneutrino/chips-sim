@@ -19,6 +19,7 @@
 #include "WCSimRootEvent.hh"
 #include "WCSimRootGeom.hh"
 #include "WCSimPmtInfo.hh"
+#include "WCSimPhotonNtuple.hh"
 
 #include <vector>
 
@@ -103,7 +104,7 @@ void WCSimRunAction::EndOfRunAction(const G4Run*)
 //        << "% through-going (hit Catcher)" << G4endl;
 
   // Close the Root file at the end of the run
-
+  WCSimPhotonNtuple::Close();
   TFile* hfile = WCSimTree->GetCurrentFile();
   hfile->Close();
 

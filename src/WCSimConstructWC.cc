@@ -350,6 +350,28 @@ void WCSimDetectorConstruction::CHIPS_25kton_10inch_HQE_10perCent()
   WCAddGd               = false;
 }
 
+void WCSimDetectorConstruction::GiantPhotonTest()
+{
+  WCPMTName             = "10inchHQE";
+  WCPMTRadius           = .127*m;
+  WCPMTExposeHeight	    = WCPMTRadius - 0.01*m;
+  WCIDDiameter          = 2000.0*m;
+  WCIDHeight            = 2000.0*m;
+  WCBarrelPMTOffset	    = WCPMTRadius;
+  WCPMTperCellHorizontal = 4.0;
+  WCPMTperCellVertical	 = 3.0;
+  WCPMTPercentCoverage	 = 0.0001;
+  WCBarrelNumPMTHorizontal = round(WCIDDiameter*sqrt(pi*WCPMTPercentCoverage)/
+                                    (10.0*WCPMTRadius));
+  WCBarrelNRings        = round(((WCBarrelNumPMTHorizontal*((WCIDHeight-
+                                    2*WCBarrelPMTOffset)/(pi*WCIDDiameter)))/
+                                    WCPMTperCellVertical));
+  WCCapPMTSpacing       = (pi*WCIDDiameter/WCBarrelNumPMTHorizontal);
+  WCCapEdgeLimit        = WCIDDiameter/2.0 - WCPMTRadius;
+  WCPMTGlassThickness   = .55*cm;
+  WCBlackSheetThickness = 2.0*cm;
+  WCAddGd               = false;
+}
 
 //aah
 

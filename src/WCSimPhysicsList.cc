@@ -302,11 +302,11 @@ void WCSimPhysicsList::ConstructOp(){
     if (particleName == "opticalphoton") 
       {
 	pmanager->AddDiscreteProcess(theAbsorptionProcess);
-	//     G4cout << "warning direct light only\n";
-	pmanager->AddDiscreteProcess(theRayleighScatteringProcess);
-	pmanager->AddDiscreteProcess(theWLSProcess);
-	pmanager->AddDiscreteProcess(theMieHGScatteringProcess);
-	pmanager->AddDiscreteProcess(theBoundaryProcess);
+	     G4cout << "warning direct light only\n";
+	//pmanager->AddDiscreteProcess(theRayleighScatteringProcess);
+	//pmanager->AddDiscreteProcess(theWLSProcess);
+	//pmanager->AddDiscreteProcess(theMieHGScatteringProcess);
+	//manager->AddDiscreteProcess(theBoundaryProcess);
 	
       }
   }

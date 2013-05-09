@@ -1,4 +1,5 @@
 #include "WCSimEventAction.hh"
+#include "WCSimPhotonNtuple.hh"
 #include "WCSimTrajectory.hh"
 #include "WCSimRunAction.hh"
 #include "WCSimPrimaryGeneratorAction.hh"
@@ -69,6 +70,7 @@ void WCSimEventAction::EndOfEventAction(const G4Event* evt)
 
   G4int n_trajectories = 0;
   if (trajectoryContainer) n_trajectories = trajectoryContainer->entries();
+  std::cout << "There were " << n_trajectories << " trajectories" << std::endl;
   
   // ----------------------------------------------------------------------
   //  Get Event Information
@@ -253,6 +255,42 @@ void WCSimEventAction::EndOfEventAction(const G4Event* evt)
  	trj->DrawTrajectory(50);
     }
 */
+
+  // Fill photon ntuple
+  for ( G4int i=0; i < n_trajectories; i++ ) {
+    WCSimTrajectory* trj = (WCSimTrajectory*)((*(evt->GetTrajectoryContainer()))[i]);
+
+    // get properties of trajectory
+    G4int trackID = trj->GetTrackID();
+    G4int parentID = trj->GetParentID();
+    G4int processID = trj->GetProcessID();
+    G4int pdgCode = trj->GetPDGEncoding();
+    G4double energy = trj->GetEnergy();
+    G4double lambda = trj->GetWavelength();
+    G4bool opticalPhoton = trj->IsOpticalPhoton();
+    G4bool scatteredPhoton = trj->IsScatteredPhoton();
+    G4double vtxX = trj->GetVtxX();
+    G4double vtxY = trj->GetVtxY();
+    G4double vtxZ = trj->GetVtxZ();
+    G4double vtxTime = trj->GetVtxTime();
+    G4double vtxdirX = trj->GetVtxDirX();
+    G4double vtxdirY = trj->GetVtxDirY();
+    G4double vtxdirZ = trj->GetVtxDirZ();    
+    G4double endX = trj->GetEndX();
+    G4double endY = trj->GetEndY();
+    G4double endZ = trj->GetEndZ();
+    G4double endTime = trj->GetEndTime();
+
+    WCSimPhotonNtuple::Fill( event_id,
+                          pdgCode, trackID, parentID, processID,
+                          energy, lambda,
+                          opticalPhoton, scatteredPhoton,
+                          vtxX, vtxY, vtxZ, vtxTime,
+                          endX, endY, endZ, endTime,
+                          vtxdirX, vtxdirY, vtxdirZ );      
+  }
+
+
    G4cout << " Filling Root Event " << G4endl;
 
 //    G4cout << "event_id: " << &event_id << G4endl;
@@ -478,6 +516,7 @@ void WCSimEventAction::FillRootEvent(G4int event_id,
   G4int n_trajectories = 0;
   if (TC)
     n_trajectories = TC->entries();
+    
 
   // M Fechner : removed this limit to get to the primaries...
   //if (n_trajectories>50)  // there is no need for this limit, but it has
@@ -619,7 +658,7 @@ void WCSimEventAction::FillRootEvent(G4int event_id,
 	}
       }
     }
-  }
+   }
 
   // Add the Cherenkov hits
   wcsimrootevent = wcsimrootsuperevent->GetTrigger(0);

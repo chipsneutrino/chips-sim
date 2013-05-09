@@ -15,5 +15,4 @@
 #pragma link C++ class WCSimRootGeom+;
 #pragma link C++ class WCSimRootPMT+;
 #pragma link C++ class WCSimPmtInfo+;
-
 #endif

@@ -1,6 +1,7 @@
 #include "WCSimTrajectory.hh"
 
 #include "G4TrajectoryPoint.hh"
+#include "G4ParticleTypes.hh"
 #include "G4ParticleTable.hh"
 #include "G4AttDefStore.hh"
 #include "G4AttDef.hh"
@@ -14,10 +15,14 @@
 G4Allocator<WCSimTrajectory> myTrajectoryAllocator;
 
 WCSimTrajectory::WCSimTrajectory()
-  :  positionRecord(0), fTrackID(0), fParentID(0),
+  :  positionRecord(0), fTrackID(0), fParentID(0), fProcessID(0),
      PDGEncoding( 0 ), PDGCharge(0.0), ParticleName(""),
-     initialMomentum( G4ThreeVector() ),SaveIt(false),creatorProcess(""),
-     globalTime(0.0)
+     initialMomentum( G4ThreeVector() ), fEnergy(0.0), 
+     fParticleDirection( G4ThreeVector() ), fParticlePosition( G4ThreeVector() ),
+     fVtxX(0.0), fVtxY(0.0), fVtxZ(0.0),
+     fVtxDirX(0.0), fVtxDirY(0.0), fVtxDirZ(0.0),
+     fIsOpticalPhoton(false), fIsScatteredPhoton(false),
+     SaveIt(false),creatorProcess(""), globalTime(0.0)
 {;}
 
 WCSimTrajectory::WCSimTrajectory(const G4Track* aTrack)
@@ -28,12 +33,35 @@ WCSimTrajectory::WCSimTrajectory(const G4Track* aTrack)
   PDGEncoding = fpParticleDefinition->GetPDGEncoding();
   fTrackID = aTrack->GetTrackID();
   fParentID = aTrack->GetParentID();
+
+  if( aTrack->GetCreatorProcess() )
+  { G4VProcess* theCreatorProcess = (G4VProcess*)(aTrack->GetCreatorProcess());
+    fProcessID = theCreatorProcess->GetProcessType();
+  }
+
   initialMomentum = aTrack->GetMomentum();
+  fParticlePosition = aTrack->GetPosition();
+  fParticleDirection = initialMomentum.unit();
+  
+  
+  fVtxX = fParticlePosition.x();
+  fVtxY = fParticlePosition.y();
+  fVtxZ = fParticlePosition.z();
+  fVtxTime = aTrack->GetGlobalTime();
+
+  fVtxDirX = fParticleDirection.x();
+  fVtxDirY = fParticleDirection.y();
+  fVtxDirZ = fParticleDirection.z();
+
+  fEnergy = aTrack->GetKineticEnergy();
+
+
   positionRecord = new TrajectoryPointContainer();
   // Following is for the first trajectory point
   positionRecord->push_back(new G4TrajectoryPoint(aTrack->GetPosition()));
 
   stoppingPoint  = aTrack->GetPosition();
+
   stoppingVolume = aTrack->GetVolume();
   if ( aTrack->GetUserInformation() != 0 ) 
     SaveIt = true;
@@ -46,6 +74,13 @@ WCSimTrajectory::WCSimTrajectory(const G4Track* aTrack)
     }
   else 
     creatorProcess = "";
+
+  fIsOpticalPhoton = 0;
+  fIsScatteredPhoton = 0;
+  if( fpParticleDefinition && fpParticleDefinition == G4OpticalPhoton::OpticalPhotonDefinition() ) {
+    fIsOpticalPhoton = 1;
+    if( fProcessID==3 ) fIsScatteredPhoton = 1;
+  }
 }
 
 WCSimTrajectory::WCSimTrajectory(WCSimTrajectory & right):G4VTrajectory()
@@ -55,11 +90,23 @@ WCSimTrajectory::WCSimTrajectory(WCSimTrajectory & right):G4VTrajectory()
   PDGEncoding = right.PDGEncoding;
   fTrackID = right.fTrackID;
   fParentID = right.fParentID;
+  fProcessID = right.fProcessID;
   initialMomentum = right.initialMomentum;
   positionRecord = new TrajectoryPointContainer();
+
+  fVtxX = right.fVtxX;
+  fVtxY = right.fVtxY;
+  fVtxZ = right.fVtxZ;
+  fVtxTime = right.fVtxTime;
+
+  fVtxDirX = right.fVtxDirX;
+  fVtxDirY = right.fVtxDirY;
+  fVtxDirZ = right.fVtxDirZ;
+
   
   stoppingPoint  = right.stoppingPoint;
   stoppingVolume = right.stoppingVolume;
+  fEndTime = right.fEndTime;
   SaveIt = right.SaveIt;
   creatorProcess = right.creatorProcess;
 

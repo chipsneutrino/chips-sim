@@ -25,8 +25,8 @@
 #/WCSim/WCgeom 150kTMailbox_10inch_HQE_30perCent
 #/WCSim/WCgeom 100kTMailbox_10perCent
 #/WCSim/WCgeom Mailbox_100x20x30
-/WCSim/WCgeom CHIPS_25kton_10inch_HQE_10perCent
-/WCSim/Construct
+#/WCSim/WCgeom CHIPS_25kton_10inch_HQE_10perCent
+#/WCSim/Construct
 
 # command to choose save or not save the pi0 info 07/03/10 (XQ)
 #/WCSim/SavePi0 true
@@ -37,21 +37,21 @@
 #/mygen/vecfile h2o.2km.001-009x3_G4.kin
 #/mygen/vecfile mu+.out
 #/mygen/vecfile ../genieFluxes/5mradNumu.vec
-/mygen/vecfile ../genieFluxes/nue.vec
+#/mygen/vecfile ../genieFluxes/nue.vec
 
 
 # Or you can use the G4 Particle Gun
-#/mygen/generator normal
+/mygen/generator normal
 #/gun/particle e-
-#/gun/particle mu-
+/gun/particle mu-
 #/gun/particle pi0
-#/gun/energy 1000 MeV
-#/gun/direction 1 0 0 
-#/gun/position 0 0 0 
+/gun/energy 300 MeV
+/gun/direction 1 0 0 
+/gun/position 0 0 0 
 
 ## change the name of the output root file, default = wcsim.root
 #/WCSimIO/RootFile ../mcSamples/muonGun2_3GeV.root
-/WCSimIO/RootFile ./nue.root
+/WCSimIO/RootFile ~/testingtesting123.root
 
-/run/beamOn 2000
+/run/beamOn 5
 #exit

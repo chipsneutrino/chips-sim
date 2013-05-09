@@ -18,7 +18,7 @@ WCSimTrackingAction::WCSimTrackingAction()
   ParticleList.insert(321);
   ParticleList.insert(-321); // kaon-
   ParticleList.insert(311); // kaon0
-  ParticleList.insert(-311); // kaon0 bar
+  ParticleList.insert(-311); // kaon0 bar 
   // don't put gammas there or there'll be too many
 }
 
@@ -26,7 +26,7 @@ WCSimTrackingAction::~WCSimTrackingAction(){;}
 
 void WCSimTrackingAction::PreUserTrackingAction(const G4Track* aTrack)
 {
-  G4float percentageOfCherenkovPhotonsToDraw = 0.0;
+  G4float percentageOfCherenkovPhotonsToDraw = 100.0;
 
   if ( aTrack->GetDefinition() != G4OpticalPhoton::OpticalPhotonDefinition()
        || G4UniformRand() < percentageOfCherenkovPhotonsToDraw )
@@ -61,7 +61,8 @@ void WCSimTrackingAction::PostUserTrackingAction(const G4Track* aTrack)
       ((creatorProcess!=0) && ProcessList.count(creatorProcess->GetProcessName()) ) || 
       (ParticleList.count(aTrack->GetDefinition()->GetPDGEncoding()) )
       || (aTrack->GetDefinition()->GetPDGEncoding()==22 && aTrack->GetTotalEnergy() > 50.0*MeV)
-      )
+      || (aTrack->GetDefinition() == G4OpticalPhoton::OpticalPhotonDefinition())
+    )
   {
     // if so the track is worth saving
     anInfo->WillBeSaved(true);
@@ -93,13 +94,13 @@ void WCSimTrackingAction::PostUserTrackingAction(const G4Track* aTrack)
       for(size_t i=0;i<nSeco;i++)
       { 
 	WCSimTrackInformation* infoSec = new WCSimTrackInformation(anInfo);
-                 infoSec->WillBeSaved(false); // ADDED BY MFECHNER, temporary, 30/8/06
+                 infoSec->WillBeSaved(true); // ADDED BY MFECHNER, temporary, 30/8/06 // Flipped back to true AJP 8/May/13
 	(*secondaries)[i]->SetUserInformation(infoSec);
       }
     } 
   }
 
-  if ( aTrack->GetDefinition() != G4OpticalPhoton::OpticalPhotonDefinition() )
+  if ( aTrack->GetDefinition() != G4OpticalPhoton::OpticalPhotonDefinition() || 1)
     //   if (aTrack->GetDefinition()->GetPDGCharge() == 0) 
   {
     WCSimTrajectory *currentTrajectory = 
@@ -107,13 +108,15 @@ void WCSimTrackingAction::PostUserTrackingAction(const G4Track* aTrack)
 
     G4ThreeVector currentPosition      = aTrack->GetPosition();
     G4VPhysicalVolume* currentVolume   = aTrack->GetVolume();
+    G4double endTime = aTrack->GetGlobalTime();
 
     currentTrajectory->SetStoppingPoint(currentPosition);
+    currentTrajectory->SetEndTime(endTime);
     currentTrajectory->SetStoppingVolume(currentVolume);
 
     if (anInfo->isSaved())
       currentTrajectory->SetSaveFlag(true);// mark it for WCSimEventAction ;
-    else currentTrajectory->SetSaveFlag(false);// mark it for WCSimEventAction ;
+    else currentTrajectory->SetSaveFlag(true);// mark it for WCSimEventAction ;
   }
 }
 
