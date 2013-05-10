@@ -303,10 +303,10 @@ void WCSimPhysicsList::ConstructOp(){
       {
 	pmanager->AddDiscreteProcess(theAbsorptionProcess);
 	     G4cout << "warning direct light only\n";
-	//pmanager->AddDiscreteProcess(theRayleighScatteringProcess);
-	//pmanager->AddDiscreteProcess(theWLSProcess);
-	//pmanager->AddDiscreteProcess(theMieHGScatteringProcess);
-	//manager->AddDiscreteProcess(theBoundaryProcess);
+	pmanager->AddDiscreteProcess(theRayleighScatteringProcess);
+	pmanager->AddDiscreteProcess(theWLSProcess);
+	pmanager->AddDiscreteProcess(theMieHGScatteringProcess);
+	pmanager->AddDiscreteProcess(theBoundaryProcess);
 	
       }
   }
