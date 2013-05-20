@@ -46,12 +46,12 @@
 /gun/particle mu-
 #/gun/particle pi0
 /gun/energy 300 MeV
-/gun/direction 1 0 0 
+/gun/direction -1 0 0 
 /gun/position 0 0 0 
 
 ## change the name of the output root file, default = wcsim.root
 #/WCSimIO/RootFile ../mcSamples/muonGun2_3GeV.root
-/WCSimIO/RootFile ~/testingtesting123.root
+/WCSimIO/RootFile ~/test_out.root
 
 /run/beamOn 5
 #exit
