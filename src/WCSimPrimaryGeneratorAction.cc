@@ -92,6 +92,7 @@ void WCSimPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   // Temporary kludge to turn on/off vector text format 
 
   G4bool useNuanceTextFormat = true;
+  G4bool useXAxisForBeam = true;    // AJP 30/May/13
 
   // Do for every event
 
@@ -133,6 +134,13 @@ void WCSimPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 	    vtx = G4ThreeVector(atof(token[1])*cm,
 				atof(token[2])*cm,
 				atof(token[3])*cm);
+
+        if(useXAxisForBeam)
+        {
+            vtx = G4ThreeVector(atof(token[3])*cm,
+                    atof(token[2])*cm,
+                    atof(token[3])*cm);
+        }
 			
 		std::cerr << " About to do the random vertex " << std::endl;
 		G4bool useRandomVertex = true;
@@ -174,6 +182,12 @@ void WCSimPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 	    beamdir = G4ThreeVector(atof(token[3]),
 				    atof(token[4]),
 				    atof(token[5]));
+        if(useXAxisForBeam)
+        {
+    	    beamdir = G4ThreeVector(atof(token[5]),
+				        atof(token[4]),
+				        atof(token[3]));
+        }
 
 	    // Now read the target line
 
@@ -183,6 +197,12 @@ void WCSimPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 	    targetdir = G4ThreeVector(atof(token[3]),
 				      atof(token[4]),
 				      atof(token[5]));
+        if(useXAxisForBeam)
+        {
+    	    targetdir = G4ThreeVector(atof(token[5]),
+				        atof(token[4]),
+				        atof(token[3]));
+        }
 
 	    // Read the info line, basically a dummy
 	    token=readInLine(inputFile, lineSize, inBuf);
@@ -210,6 +230,13 @@ void WCSimPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 		    G4ThreeVector dir = G4ThreeVector(atof(token[3]),
 						      atof(token[4]),
 						      atof(token[5]));
+            if(useXAxisForBeam)
+            {
+		        G4ThreeVector dir = G4ThreeVector(atof(token[5]),
+				    		      atof(token[4]),
+				    		      atof(token[3]));
+            }
+
 		    particleGun->
 		      SetParticleDefinition(particleTable->
 					    FindParticle(pdgid));

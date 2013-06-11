@@ -50,6 +50,7 @@ private:
   //
   TTree* WCSimTree;
   TTree* geoTree;
+  TFile* hfile;
   WCSimRootEvent* wcsimrootsuperevent;
   WCSimRootGeom* wcsimrootgeom;
   WCSimDetectorConstruction* wcsimdetector;

@@ -21,8 +21,8 @@ WCSimPhotonNtuple::WCSimPhotonNtuple()
 {
   fWCFile = 0;
   fWCTree = 0;  
-  fWCFileName = "/home/ajperch/asdfghjk.root";
-
+  fWCFileName = "/unix/fnu/ajperch/numu_5mrad_LE_1000_photons.root";
+  this->OpenFile(fWCFileName.Data());
   fHalfWidthZ = 0.0;
   fHalfWidthXY = 0.0;
 }

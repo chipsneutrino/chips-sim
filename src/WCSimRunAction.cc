@@ -87,6 +87,9 @@ void WCSimRunAction::BeginOfRunAction(const G4Run* aRun)
   TBranch *geoBranch = geoTree->Branch("wcsimrootgeom", "WCSimRootGeom", &wcsimrootgeom, bufsize,0);
 
   FillGeoTree();
+
+  WCSimPhotonNtuple::Instance();
+
 }
 
 void WCSimRunAction::EndOfRunAction(const G4Run*)
