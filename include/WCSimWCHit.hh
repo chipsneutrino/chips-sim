@@ -112,6 +112,28 @@ class WCSimWCHit : public G4VHit
     return firsttime;
   }
 
+  // low is the trigger time, up is trigger+950ns (end of event)
+  G4float GetLastHitTimeInGate(G4float low,G4float upevent)
+  {
+    G4float lasttime;
+    std::vector<G4float>::reverse_iterator tfirst = time.rbegin();
+    std::vector<G4float>::reverse_iterator tlast = time.rend();
+  
+    std::vector<G4float>::reverse_iterator found = 
+      std::find_if(tlast,tfirst,
+		   compose2(std::logical_and<bool>(),
+			    std::bind2nd(std::greater_equal<G4float>(),low),
+			    std::bind2nd(std::less_equal<G4float>(),upevent)
+			    )
+		   );
+    if ( found != tlast ) {
+      lasttime = *found; // last hit time
+    }
+    else {
+      lasttime = -10000.; //error code.
+    }
+    return lasttime;
+  }
 
   // pmtgate  and evgate are durations, ie not absolute times
 
