@@ -93,7 +93,12 @@ WCSimDetectorMessenger::WCSimDetectorMessenger(WCSimDetectorConstruction* WCSimD
 			    "off ");
   PMTCollEff->AvailableForStates(G4State_PreInit, G4State_Idle);
 
-
+	PMTSim = new G4UIcmdWithAString("/WCSim/PMTSim", this);
+	PMTSim->SetGuidance("Set the PMT Simulation required");
+	PMTSim->SetGuidance("Available options are:\n default (SuperK) \n CHIPS (based on IceCube PMTs)");
+	PMTSim->SetParameterName("PMTSim",false);
+	PMTSim->SetCandidates("default CHIPS chips");
+  PMTSim->AvailableForStates(G4State_PreInit, G4State_Idle);
 
   WCConstruct = new G4UIcmdWithoutParameter("/WCSim/Construct", this);
   WCConstruct->SetGuidance("Update detector construction with new settings.");
@@ -105,7 +110,7 @@ WCSimDetectorMessenger::~WCSimDetectorMessenger()
   delete SavePi0;
   delete PMTQEMethod;
   delete PMTCollEff;
-
+	delete PMTSim;
   delete tubeCmd;
   delete distortionCmd;
   delete WCSimDir;
@@ -233,5 +238,20 @@ void WCSimDetectorMessenger::SetNewValue(G4UIcommand* command,G4String newValue)
 	if(command == WCConstruct) {
 		WCSimDetector->UpdateGeometry();
 	}
+
+	// Leigh: PMT simulation choice
+	if(command == PMTSim){
+		// WCSim default method
+		if (newValue == "default"){
+			WCSimDetector->SetPMTSim(0);
+		}
+		else if (newValue == "CHIPS" || newValue == "chips"){
+			WCSimDetector->SetPMTSim(1);
+		}
+		else{
+			G4cout << "That PMT Sim value does not exist." << std::endl;
+		}
+	}
+
 
 }

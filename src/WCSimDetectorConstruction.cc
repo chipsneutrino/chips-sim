@@ -83,6 +83,11 @@ WCSimDetectorConstruction::WCSimDetectorConstruction(G4int DetConfig,WCSimTuning
    //default NOT to use collection efficiency
   SetPMT_Coll_Eff(0);
 
+	//-----------------------------------------------------
+	// Set the default method as the WCSim default for now
+	//-----------------------------------------------------
+	SetPMTSim(0);
+
   //----------------------------------------------------- 
   // Make the detector messenger to allow changing geometry
   //-----------------------------------------------------

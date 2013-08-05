@@ -45,7 +45,7 @@ WCSimEventAction::WCSimEventAction(WCSimRunAction* myRun,
 {
   G4DigiManager* DMman = G4DigiManager::GetDMpointer();
 
-  WCSimWCDigitizer* WCDM = new WCSimWCDigitizer( "WCReadout");
+  WCSimWCDigitizer* WCDM = new WCSimWCDigitizer( "WCReadout", detectorConstructor);
   DMman->AddNewModule(WCDM);
 }
 
@@ -255,7 +255,7 @@ void WCSimEventAction::EndOfEventAction(const G4Event* evt)
  	trj->DrawTrajectory(50);
     }
 */
-
+/*
   // Fill photon ntuple
   for ( G4int i=0; i < n_trajectories; i++ ) {
     WCSimTrajectory* trj = (WCSimTrajectory*)((*(evt->GetTrajectoryContainer()))[i]);
@@ -289,7 +289,7 @@ void WCSimEventAction::EndOfEventAction(const G4Event* evt)
                           endX, endY, endZ, endTime,
                           vtxdirX, vtxdirY, vtxdirZ );      
   }
-
+*/
 
    G4cout << " Filling Root Event " << G4endl;
 
