@@ -9,12 +9,14 @@
 #include <map>
 #include <vector>
 
+class WCSimDetectorConstruction;
+class WCSimCHIPSPMT;
 
 class WCSimWCDigitizer : public G4VDigitizerModule
 {
 public:
   
-  WCSimWCDigitizer(G4String name);
+  WCSimWCDigitizer(G4String name, WCSimDetectorConstruction* myDet);
   ~WCSimWCDigitizer();
   
   void SetPMTSize(G4float inputSize) {PMTSize = inputSize;}
@@ -26,7 +28,6 @@ public:
   
 public:
   void MakeHitsHistogram(WCSimWCHitsCollection*);
-  void FindNumberOfGates();
   void FindNumberOfGatesFast();
   void DigitizeGate(WCSimWCHitsCollection* WCHC,G4int G);
   void Digitize();
@@ -69,7 +70,6 @@ private:
   static const int GlobalThreshold; //number of hit PMTs within an <=200ns sliding window that decides the global trigger t0
   static const double PMTDarkRate; // kHz
 
-  G4int triggerhisto[20000]; // for finding t0
   G4float RealOffset;  // t0 = offset corrected for trigger start
   G4float MinTime;  // very first hit time
   G4float PMTSize;
@@ -80,6 +80,8 @@ private:
 
   WCSimWCDigitsCollection*  DigitsCollection;  
 
+	WCSimDetectorConstruction* fDet;
+	WCSimCHIPSPMT* fPMTSim;
 
 };
 

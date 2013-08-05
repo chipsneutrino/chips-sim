@@ -113,6 +113,11 @@ public:
   void   SetPMT_QE_Method(G4int choice){PMT_QE_Method = choice;}
   void   SetPMT_Coll_Eff(G4int choice){PMT_Coll_Eff = choice;}
 
+	// Leigh: PMTSim Get and Set methods
+	G4int GetPMTSim() const {return PMTSim_Method;};
+	void SetPMTSim(G4int val) {PMTSim_Method = val;};
+
+
   // Geometry options
   void   SetIsUpright(G4bool choice) {isUpright = choice;}
   void   SetIsMailbox(G4bool choice) {isMailbox = choice;}
@@ -218,6 +223,10 @@ private:
   // 1 to use
   G4int PMT_Coll_Eff;
 
+	// Leigh: Flag to decide which PMT simulation to use
+	// - 0 = WCSim default method
+	// - 1 = CHIPS PMT simulation based on IceCube PMTs
+	G4int PMTSim_Method;
 
   G4double WCLength;
 

@@ -35,6 +35,10 @@ class WCSimDetectorMessenger: public G4UImessenger
   G4UIcmdWithAString* SavePi0;
   G4UIcmdWithAString* PMTQEMethod;
   G4UIcmdWithAString* PMTCollEff;
+	// Leigh: Add new parameter to decide which PMT simulation to use.
+	// - "default" uses the standard one in WCSim
+	// - "CHIPS" uses the more complex method based on the IceCube PMTs.
+  G4UIcmdWithAString* PMTSim;
 
   G4UIcmdWithAString* tubeCmd;
   G4UIcmdWithAString* distortionCmd;
