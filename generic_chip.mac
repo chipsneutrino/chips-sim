@@ -1,0 +1,66 @@
+# Sample setup macro with no visualization
+
+/run/verbose 0
+/tracking/verbose 0
+/hits/verbose 0
+
+## select the geometry
+/WCSim/WCgeom CHIPS_25kton_10inch_HQE_10perCent
+
+# uncomment to use Leigh's pmt simulation
+#/WCSim/PMTSim chips
+
+#Added for the PMT QE option 08/17/10 (XQ)
+# 1. Stacking only mean when the photon is generated
+# the QE is applied to reduce the total number of photons
+# 2. Stacking and sensitivity detector
+# In the stacking part, the maximum QE is applied to reduce 
+# the total number of photons
+# On the detector side, the rest of QE are applied according to QE/QE_max
+# distribution. This option is in particular important for the WLS
+# 3. The last option means all the QE are applied at the detector
+# Good for the low energy running. 
+#/WCSim/PMTQEMethod     Stacking_Only 
+/WCSim/PMTQEMethod     Stacking_And_SensitiveDetector
+#/WCSim/PMTQEMethod     SensitiveDetector_Only
+
+/WCSim/Construct
+
+# command to choose save or not save the pi0 info 07/03/10 (XQ)
+#/WCSim/SavePi0 true
+
+## select the input nuance-formatted vector file
+## you can of course use your own
+#/mygen/vecfile ../genieFluxes/nue.vec
+
+
+# Or you can use the G4 General Particle Source
+# (choose 'laser' to use the particle source instead of gun)
+/mygen/generator laser
+
+#/gps/particle e-
+/gps/particle mu-
+
+# can use some vtx position distribution
+# or just a point source
+/gps/pos/type Point
+/gps/pos/centre 0 0 0 cm 
+
+/gps/energy 1500 MeV
+
+# use direction distribution or fixed values
+/gps/ang/type iso
+#/gps/direction 0 0 1 
+
+/gps/time 0
+
+
+## change the name of the output root file, default = wcsim.root
+#/WCSimIO/RootFile ~/some/absolute/path/file.root
+/WCSimIO/RootFile localfile.root
+
+# seed the random generator with two integers
+/random/setSeeds 100 10
+
+/run/beamOn 100
+#exit
