@@ -24,11 +24,7 @@ G4ClassificationOfNewTrack WCSimStackingAction::ClassifyNewTrack
   G4ParticleDefinition*      particleType      = aTrack->GetDefinition();
   
 
-// The following code implements the PMT quantum efficiency by killing off optical photon tracks
-// by comparing the QE at their wavelength to a uniform random number from 0 to 1
-// I've commented it out here because we need all the photons for tuning
-// Is probably more physical to re-implement this at the PMT so we don't lose possible daughters
-// AJP - 09/May/13
+// The following code implements the PMT quantum efficiency
 
   // Make sure it is an optical photon
   if( particleType == G4OpticalPhoton::OpticalPhotonDefinition() )
