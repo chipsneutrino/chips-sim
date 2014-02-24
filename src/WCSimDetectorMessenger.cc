@@ -235,6 +235,10 @@ void WCSimDetectorMessenger::SetNewValue(G4UIcommand* command,G4String newValue)
 		}else if (newValue == "10inch"){
 				WCSimDetector->GetPMTParams()->SetPMTType("10inch");
 //			WCSimDetector->Set10inchPMTs();
+		}else if (newValue == "10inchHQE"){
+				WCSimDetector->GetPMTParams()->SetPMTType("10inchHQE");
+		}else if (newValue == "12inchHQE"){
+				WCSimDetector->GetPMTParams()->SetPMTType("12inchHQE");
 		}else
 			G4cout << "That PMT size is not defined!" << G4endl;	
 	}
