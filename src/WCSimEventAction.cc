@@ -7,6 +7,7 @@
 #include "WCSimWCDigi.hh"
 #include "WCSimWCDigitizer.hh"
 #include "WCSimDetectorConstruction.hh"
+#include "WCSimPMTParams.hh"
 
 #include "G4Event.hh"
 #include "G4RunManager.hh"
@@ -122,7 +123,7 @@ void WCSimEventAction::EndOfEventAction(const G4Event* evt)
   WCDM->ReInitialize();
 
   // Figure out what size PMTs we are using in the WC detector.
-  G4float PMTSize = detectorConstructor->GetPMTSize();
+  G4float PMTSize = detectorConstructor->GetPMTParams()->GetRadius();
   WCDM->SetPMTSize(PMTSize);
 
   // Digitize the hits

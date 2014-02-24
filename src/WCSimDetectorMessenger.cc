@@ -1,6 +1,8 @@
 #include "WCSimDetectorMessenger.hh"
 
 #include "WCSimDetectorConstruction.hh"
+#include "WCSimPMTParams.hh" 
+
 #include "G4UIdirectory.hh"
 #include "G4UIcommand.hh"
 #include "G4UIparameter.hh"
@@ -229,7 +231,9 @@ void WCSimDetectorMessenger::SetNewValue(G4UIcommand* command,G4String newValue)
 		G4cout << "SET PMT SIZE" << G4endl;
 		if ( newValue == "20inch"){
 //			WCSimDetector->Set20inchPMTs();
+				WCSimDetector->GetPMTParams()->SetPMTType("20inch");
 		}else if (newValue == "10inch"){
+				WCSimDetector->GetPMTParams()->SetPMTType("10inch");
 //			WCSimDetector->Set10inchPMTs();
 		}else
 			G4cout << "That PMT size is not defined!" << G4endl;	

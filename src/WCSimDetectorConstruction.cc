@@ -1,6 +1,7 @@
 #include "WCSimDetectorConstruction.hh"
 #include "WCSimDetectorMessenger.hh"
 #include "WCSimTuningParameters.hh"
+#include "WCSimPMTParams.hh"
 
 #include "G4Material.hh"
 #include "G4Element.hh"
@@ -38,6 +39,9 @@ WCSimDetectorConstruction::WCSimDetectorConstruction(G4int DetConfig,WCSimTuning
 
   myConfiguration = DetConfig;
 
+	// Create the PMT object
+	fPMTParams = new WCSimPMTParams();
+
   //-----------------------------------------------------
   // Create Materials
   //-----------------------------------------------------
@@ -52,7 +56,7 @@ WCSimDetectorConstruction::WCSimDetectorConstruction(G4int DetConfig,WCSimTuning
   //WCSimDetectorConstruction::tubeCylLocation.clear();// (JF) Removed
   WCSimDetectorConstruction::tubeLocationMap.clear();
   totalNumPMTs = 0;
-  WCPMTExposeHeight= 0.;
+//  WCPMTExposeHeight= 0.;
   //-----------------------------------------------------
   // Set the default WC geometry.  This can be changed later.
   //-----------------------------------------------------
@@ -113,6 +117,8 @@ WCSimDetectorConstruction::~WCSimDetectorConstruction(){
     delete fpmts.at(i);
   }
   fpmts.clear();
+
+	delete fPMTParams;
 }
 
 

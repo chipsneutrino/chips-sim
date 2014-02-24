@@ -1,4 +1,5 @@
 #include "WCSimDetectorConstruction.hh"
+#include "WCSimPMTParams.hh"
 
 #include "G4Box.hh"
 #include "G4Sphere.hh"
@@ -16,16 +17,23 @@
 void WCSimDetectorConstruction::ConstructPMT()
 {
 
-  sphereRadius = (WCPMTExposeHeight*WCPMTExposeHeight+ WCPMTRadius*WCPMTRadius)
-  			/(2*WCPMTExposeHeight);
-  PMTOffset =  sphereRadius - WCPMTExposeHeight;
+//  sphereRadius = (WCPMTExposeHeight*WCPMTExposeHeight+ WCPMTRadius*WCPMTRadius)
+//  			/(2*WCPMTExposeHeight);
+//  PMTOffset =  sphereRadius - WCPMTExposeHeight;
+	double tmpRadius = fPMTParams->GetRadius();
+	double tmpExpose = fPMTParams->GetExposeHeight();
+  sphereRadius = (tmpExpose*tmpExpose + tmpRadius*tmpRadius)/(2*tmpExpose);
+  PMTOffset =  sphereRadius - tmpExpose;
+
 
   //All components of the PMT are now contained in a single logical volume logicWCPMT.
   //Origin is on the blacksheet, faces positive z-direction.
   G4Polycone* solidWCPMT;
 
-  G4double PMTHolderZ[2] = {0, WCPMTExposeHeight};
-  G4double PMTHolderR[2] = {WCPMTRadius, WCPMTRadius};
+//  G4double PMTHolderZ[2] = {0, WCPMTExposeHeight};
+//  G4double PMTHolderR[2] = {WCPMTRadius, WCPMTRadius};
+  G4double PMTHolderZ[2] = {0, tmpExpose};
+  G4double PMTHolderR[2] = {tmpRadius, tmpRadius};
   G4double PMTHolderr[2] = {0,0};
 
   solidWCPMT =
@@ -60,7 +68,7 @@ void WCSimDetectorConstruction::ConstructPMT()
   //Create PMT Interior
   G4Sphere* tmpSolidInteriorWCPMT =
   	new G4Sphere(	"tmpInteriorWCPMT",
-				0.0*m,(sphereRadius-WCPMTGlassThickness),
+				0.0*m,(sphereRadius-fPMTParams->GetGlassThickness()),
 				0.0*deg,360.0*deg,
 				0.0*deg,90.0*deg);
 
@@ -88,7 +96,7 @@ void WCSimDetectorConstruction::ConstructPMT()
   //Create PMT Glass Face
   G4Sphere* tmpGlassFaceWCPMT =
   	new G4Sphere(	"tmpGlassFaceWCPMT",
-				(sphereRadius-WCPMTGlassThickness),
+				(sphereRadius-fPMTParams->GetGlassThickness()),
 				sphereRadius,
 				0.0*deg,360.0*deg,
 				0.0*deg,90.0*deg);

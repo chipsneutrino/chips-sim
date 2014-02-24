@@ -35,6 +35,7 @@ class G4VPhysicalVolume;
 class WCSimTuningParameters;
 class WCSimDetectorMessenger;
 class WCSimWCSD;
+class WCSimPMTParams;
 
 namespace __gnu_cxx  {
   template<> struct hash< std::string >
@@ -87,8 +88,8 @@ public:
 
   G4double GetWaterTubeLength()   {return WCLength;}
   G4double GetWaterTubePosition() {return WCPosition;}
-  G4double GetPMTSize()           {return WCPMTRadius;}
-  G4String GetPMTName()			  {return WCPMTName;}
+//  G4double GetPMTSize()           {return WCPMTRadius;}
+//  G4String GetPMTName()			  {return WCPMTName;}
   G4int    GetMyConfiguration()   {return myConfiguration;}
   G4double GetGeo_Dm(G4int);
   G4int    GetTotalNumPmts() {return totalNumPMTs;}
@@ -117,6 +118,8 @@ public:
 	G4int GetPMTSim() const {return PMTSim_Method;};
 	void SetPMTSim(G4int val) {PMTSim_Method = val;};
 
+	// Leigh: Get a pointer to the PMT parameter object
+	WCSimPMTParams* GetPMTParams() {return fPMTParams;};
 
   // Geometry options
   void   SetIsUpright(G4bool choice) {isUpright = choice;}
@@ -131,6 +134,9 @@ public:
   std::vector<WCSimPmtInfo*>* Get_Pmts() {return &fpmts;}
 
 private:
+
+	// WCSimPMTParams object to store the PMT related information
+	WCSimPMTParams* fPMTParams;
 
   // Tuning parameters
 
@@ -233,7 +239,7 @@ private:
   G4double WCPosition;
 
   // WC PMT parameters
-  G4String WCPMTName;
+//  G4String WCPMTName;
   G4double sphereRadius;
   G4double PMTOffset;
   G4LogicalVolume* logicWCPMT;
@@ -241,9 +247,9 @@ private:
 
   // WC geometry parameters
 
-  G4double WCPMTRadius;
-  G4double WCPMTExposeHeight;
-  G4double WCPMTGlassThickness;
+//  G4double WCPMTRadius;
+//  G4double WCPMTExposeHeight;
+//  G4double WCPMTGlassThickness;
   G4double WCBarrelPMTOffset;
 
   G4double WCIDDiameter;

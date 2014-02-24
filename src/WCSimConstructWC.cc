@@ -31,6 +31,7 @@
 
 #include "G4SDManager.hh"
 #include "WCSimWCSD.hh"
+#include "WCSimPMTParams.hh"
 #include "WCSimTuningParameters.hh" //jl145
 
 G4float WCSimDetectorConstruction::GetPMTQE(G4float PhotonWavelength, G4int flag, G4float low_wl, G4float high_wl, G4float ratio){
@@ -66,7 +67,8 @@ G4float WCSimDetectorConstruction::GetPMTQE(G4float PhotonWavelength, G4int flag
   const G4float wavelength[20] = 
     { 280., 300., 320., 340., 360., 380., 400., 420., 440., 460.,  
       480., 500., 520., 540., 560., 580., 600., 620., 640., 660.};
-  
+
+/*
   // (JF) This is the QE for the SuperK 20" tubes.
   const G4float SKQE[20] =
     { 0.00, .0139, .0854, .169, .203, .206, .211, .202, .188, .167, 
@@ -91,6 +93,8 @@ G4float WCSimDetectorConstruction::GetPMTQE(G4float PhotonWavelength, G4int flag
       .2268,  .1971, .1641, .1102, .0727, .0499, .0323, .0178, .0061, 0.00};
   
   const G4float TenInch_maxHQE = 0.3396;
+
+
   
   G4double wavelengthQE = 0;
 
@@ -126,17 +130,43 @@ G4float WCSimDetectorConstruction::GetPMTQE(G4float PhotonWavelength, G4int flag
       {G4cerr << "PMTName is not defined" << G4endl;}
     
   }
-  wavelengthQE = wavelengthQE *ratio;
+*/
+	// Leigh: THIS IS THE FUTURE
+	// Get the quantum efficiency array and max value
+	G4float qEff[20] = {0};
+	fPMTParams->GetEfficiency(qEff,20);
+	const G4float qeMax = fPMTParams->GetMaxEfficiency();
+
+	G4double newWave = 0;
+
+  if (flag == 1){
+    //MF: off by one bug fix.
+    for (int i=0; i<=18; i++){
+      if ( PhotonWavelength <= wavelength[i+1]){
+			  newWave = qEff[i] + 
+	    	(qEff[i+1]-qEff[i])/(wavelength[i+1]-wavelength[i])*
+	    	(PhotonWavelength - wavelength[i]);
+				break;
+      }
+    }
+  }else if (flag == 0){
+      newWave = qeMax; 
+  }
+
+//  wavelengthQE = wavelengthQE *ratio;
+  newWave = newWave *ratio;
   
-  return wavelengthQE;
+//  return wavelengthQE;
+  return newWave;
 }
 
 
 void WCSimDetectorConstruction::SetSuperKGeometry()
 {
-  WCPMTName             ="20inch";
-  WCPMTRadius           =.254*m;  
-  WCPMTExposeHeight     =.18*m; 
+//  WCPMTName             ="20inch";
+//  WCPMTRadius           =.254*m;  
+//  WCPMTExposeHeight     =.18*m; 
+	fPMTParams->SetPMTType("20inch");
   WCIDDiameter          = 33.6815*m; //16.900*2*cos(2*pi*rad/75)*m; //inner detector diameter
   WCIDHeight            = 36.200*m; //"" "" height
   WCBarrelPMTOffset     = 0.0715*m; //offset from vertical
@@ -146,154 +176,167 @@ void WCSimDetectorConstruction::SetSuperKGeometry()
   WCPMTperCellVertical  = 3; 
   WCCapPMTSpacing       = 0.707*m; // distance between centers of top and bottom pmts
   WCCapEdgeLimit        = 16.9*m;
-  WCPMTGlassThickness   = .4*cm;
+//  WCPMTGlassThickness   = .4*cm;
   WCBlackSheetThickness = 2.0*cm;
   WCAddGd               = false;
 }
 
 void WCSimDetectorConstruction::DUSEL_100kton_10inch_40perCent()
 {
-  WCPMTName             = "10inch";
-  WCPMTRadius           = .127*m;
-  WCPMTExposeHeight	    = WCPMTRadius - 0.01*m;
+//  WCPMTName             = "10inch";
+//  WCPMTRadius           = .127*m;
+//  WCPMTExposeHeight	    = WCPMTRadius - 0.01*m;
+	fPMTParams->SetPMTType("10inch");
   WCIDDiameter          = 53.0*m;
   WCIDHeight            = 60.0*m;
-  WCBarrelPMTOffset	    = WCPMTRadius;
+//  WCBarrelPMTOffset	    = WCPMTRadius;
+  WCBarrelPMTOffset	    = fPMTParams->GetRadius();
   WCPMTperCellHorizontal = 4.0;
   WCPMTperCellVertical	 = 3.0;
   WCPMTPercentCoverage	 = 40.0;
   WCBarrelNumPMTHorizontal = round(WCIDDiameter*sqrt(pi*WCPMTPercentCoverage)/
-                                    (10.0*WCPMTRadius));
+                                    (10.0*fPMTParams->GetRadius()));
   WCBarrelNRings        = round(((WCBarrelNumPMTHorizontal*((WCIDHeight-
                                     2*WCBarrelPMTOffset)/(pi*WCIDDiameter)))/
                                     WCPMTperCellVertical));
   WCCapPMTSpacing       = (pi*WCIDDiameter/WCBarrelNumPMTHorizontal);
-  WCCapEdgeLimit        = WCIDDiameter/2.0 - WCPMTRadius;
-  WCPMTGlassThickness   = .55*cm;
+  WCCapEdgeLimit        = WCIDDiameter/2.0 - fPMTParams->GetRadius();
+//  WCPMTGlassThickness   = .55*cm;
   WCBlackSheetThickness = 2.0*cm;
   WCAddGd               = false;
 }
 
 void WCSimDetectorConstruction::DUSEL_100kton_10inch_HQE_12perCent()
 {
-  WCPMTName             = "10inchHQE";
-  WCPMTRadius           = .127*m;
-  WCPMTExposeHeight	    = WCPMTRadius - 0.01*m;
+//  WCPMTName             = "10inchHQE";
+//  WCPMTRadius           = .127*m;
+//  WCPMTExposeHeight	    = WCPMTRadius - 0.01*m;
+	fPMTParams->SetPMTType("10inchHQE");
   WCIDDiameter          = 53.0*m;
   WCIDHeight            = 60.0*m;
-  WCBarrelPMTOffset	    = WCPMTRadius;
+//  WCBarrelPMTOffset	    = WCPMTRadius;
+  WCBarrelPMTOffset	    = fPMTParams->GetRadius();
   WCPMTperCellHorizontal = 4.0;
   WCPMTperCellVertical	 = 3.0;
   WCPMTPercentCoverage	 = 12.0;
   WCBarrelNumPMTHorizontal = round(WCIDDiameter*sqrt(pi*WCPMTPercentCoverage)/
-                                    (10.0*WCPMTRadius));
+                                    (10.0*fPMTParams->GetRadius()));
   WCBarrelNRings        = round(((WCBarrelNumPMTHorizontal*((WCIDHeight-
                                     2*WCBarrelPMTOffset)/(pi*WCIDDiameter)))/
                                     WCPMTperCellVertical));
   WCCapPMTSpacing       = (pi*WCIDDiameter/WCBarrelNumPMTHorizontal);
-  WCCapEdgeLimit        = WCIDDiameter/2.0 - WCPMTRadius;
-  WCPMTGlassThickness   = .55*cm;
+  WCCapEdgeLimit        = WCIDDiameter/2.0 - fPMTParams->GetRadius();
+//  WCPMTGlassThickness   = .55*cm;
   WCBlackSheetThickness = 2.0*cm;
   WCAddGd               = false;
 }
 
 void WCSimDetectorConstruction::DUSEL_100kton_10inch_HQE_30perCent()
 {
-  WCPMTName             = "10inchHQE";
-  WCPMTRadius           = .127*m;
-  WCPMTExposeHeight	    = WCPMTRadius - 0.01*m;
+//  WCPMTName             = "10inchHQE";
+//  WCPMTRadius           = .127*m;
+//  WCPMTExposeHeight	    = WCPMTRadius - 0.01*m;
+	fPMTParams->SetPMTType("10inchHQE");
   WCIDDiameter          = 53.0*m;
   WCIDHeight            = 60.0*m;
-  WCBarrelPMTOffset	    = WCPMTRadius;
+//  WCBarrelPMTOffset	    = WCPMTRadius;
+  WCBarrelPMTOffset	    = fPMTParams->GetRadius();
   WCPMTperCellHorizontal = 4.0;
   WCPMTperCellVertical	 = 3.0;
   WCPMTPercentCoverage	 = 30.0;
   WCBarrelNumPMTHorizontal = round(WCIDDiameter*sqrt(pi*WCPMTPercentCoverage)/
-                                    (10.0*WCPMTRadius));
+                                    (10.0*fPMTParams->GetRadius()));
   WCBarrelNRings        = round(((WCBarrelNumPMTHorizontal*((WCIDHeight-
                                     2*WCBarrelPMTOffset)/(pi*WCIDDiameter)))/
                                     WCPMTperCellVertical));
   WCCapPMTSpacing       = (pi*WCIDDiameter/WCBarrelNumPMTHorizontal);
-  WCCapEdgeLimit        = WCIDDiameter/2.0 - WCPMTRadius;
-  WCPMTGlassThickness   = .55*cm;
+  WCCapEdgeLimit        = WCIDDiameter/2.0 - fPMTParams->GetRadius();
+//  WCPMTGlassThickness   = .55*cm;
   WCBlackSheetThickness = 2.0*cm;
   WCAddGd               = false;
 }
 
 void WCSimDetectorConstruction::DUSEL_100kton_10inch_HQE_30perCent_Gd()
 {
-  WCPMTName             = "10inchHQE";
-  WCPMTRadius           = .127*m;
-  WCPMTExposeHeight	    = WCPMTRadius - 0.01*m;
+//  WCPMTName             = "10inchHQE";
+//  WCPMTRadius           = .127*m;
+//  WCPMTExposeHeight	    = WCPMTRadius - 0.01*m;
+	fPMTParams->SetPMTType("10inchHQE");
   WCIDDiameter          = 53.0*m;
   WCIDHeight            = 60.0*m;
-  WCBarrelPMTOffset	    = WCPMTRadius;
+//  WCBarrelPMTOffset	    = WCPMTRadius;
+  WCBarrelPMTOffset	    = fPMTParams->GetRadius();
   WCPMTperCellHorizontal = 4.0;
   WCPMTperCellVertical	 = 3.0;
   WCPMTPercentCoverage	 = 30.0;
   WCBarrelNumPMTHorizontal = round(WCIDDiameter*sqrt(pi*WCPMTPercentCoverage)/
-                                    (10.0*WCPMTRadius));
+                                    (10.0*fPMTParams->GetRadius()));
   WCBarrelNRings        = round(((WCBarrelNumPMTHorizontal*((WCIDHeight-
                                     2*WCBarrelPMTOffset)/(pi*WCIDDiameter)))/
                                     WCPMTperCellVertical));
   WCCapPMTSpacing       = (pi*WCIDDiameter/WCBarrelNumPMTHorizontal);
-  WCCapEdgeLimit        = WCIDDiameter/2.0 - WCPMTRadius;
-  WCPMTGlassThickness   = .55*cm;
+  WCCapEdgeLimit        = WCIDDiameter/2.0 - fPMTParams->GetRadius();
+//  WCPMTGlassThickness   = .55*cm;
   WCBlackSheetThickness = 2.0*cm;
   WCAddGd               = true;
 }
 
 void WCSimDetectorConstruction::DUSEL_150kton_10inch_HQE_30perCent()
 {
-  WCPMTName             = "10inchHQE";
-  WCPMTRadius           = .127*m;
-  WCPMTExposeHeight	    = WCPMTRadius - 0.01*m;
+//  WCPMTName             = "10inchHQE";
+//  WCPMTRadius           = .127*m;
+//  WCPMTExposeHeight	    = WCPMTRadius - 0.01*m;
+	fPMTParams->SetPMTType("10inchHQE");
   WCIDDiameter          = 64.0*m;
   WCIDHeight            = 60.0*m;
-  WCBarrelPMTOffset	    = WCPMTRadius;
+//  WCBarrelPMTOffset	    = WCPMTRadius;
+  WCBarrelPMTOffset	    = fPMTParams->GetRadius();
   WCPMTperCellHorizontal = 4.0;
   WCPMTperCellVertical	 = 3.0;
   WCPMTPercentCoverage	 = 30.0;
   WCBarrelNumPMTHorizontal = round(WCIDDiameter*sqrt(pi*WCPMTPercentCoverage)/
-                                    (10.0*WCPMTRadius));
+                                    (10.0*fPMTParams->GetRadius()));
   WCBarrelNRings        = round(((WCBarrelNumPMTHorizontal*((WCIDHeight-
                                     2*WCBarrelPMTOffset)/(pi*WCIDDiameter)))/
                                     WCPMTperCellVertical));
   WCCapPMTSpacing       = (pi*WCIDDiameter/WCBarrelNumPMTHorizontal);
-  WCCapEdgeLimit        = WCIDDiameter/2.0 - WCPMTRadius;
-  WCPMTGlassThickness   = .55*cm;
+  WCCapEdgeLimit        = WCIDDiameter/2.0 - fPMTParams->GetRadius();
+//  WCPMTGlassThickness   = .55*cm;
   WCBlackSheetThickness = 2.0*cm;
   WCAddGd               = false;
 }
 
 void WCSimDetectorConstruction::DUSEL_200kton_10inch_HQE_12perCent()
 {
-	WCPMTName             = "10inchHQE";
-	WCPMTRadius           = .127*m;
-	WCPMTExposeHeight	    = WCPMTRadius - 0.01*m;
+//	WCPMTName             = "10inchHQE";
+//	WCPMTRadius           = .127*m;
+//	WCPMTExposeHeight	    = WCPMTRadius - 0.01*m;
+	fPMTParams->SetPMTType("10inchHQE");
 	WCIDDiameter          = 62.21*m;
 	WCIDHeight            = 79.96*m;
-	WCBarrelPMTOffset	    = WCPMTRadius;
+//	WCBarrelPMTOffset	    = WCPMTRadius;
+  WCBarrelPMTOffset	    = fPMTParams->GetRadius();
 	WCPMTperCellHorizontal = 4.0;
 	WCPMTperCellVertical	 = 3.0;
 	WCPMTPercentCoverage	 = 12.0;
 	WCBarrelNumPMTHorizontal = round(WCIDDiameter*sqrt(pi*WCPMTPercentCoverage)/
-									 (10.0*WCPMTRadius));
+									 (10.0*fPMTParams->GetRadius()));
 	WCBarrelNRings        = round(((WCBarrelNumPMTHorizontal*((WCIDHeight-
 															   2*WCBarrelPMTOffset)/(pi*WCIDDiameter)))/
 								   WCPMTperCellVertical));
 	WCCapPMTSpacing       = (pi*WCIDDiameter/WCBarrelNumPMTHorizontal);
-	WCCapEdgeLimit        = WCIDDiameter/2.0 - WCPMTRadius;
-	WCPMTGlassThickness   = .55*cm;
+	WCCapEdgeLimit        = WCIDDiameter/2.0 - fPMTParams->GetRadius();
+//	WCPMTGlassThickness   = .55*cm;
 	WCBlackSheetThickness = 2.0*cm;
 	WCAddGd               = false;
 }
 
 void WCSimDetectorConstruction::DUSEL_200kton_12inch_HQE_10perCent()
 {
-	WCPMTName             = "10inchHQE"; //still using QE from 10 inch tube
-	WCPMTRadius           = .1524*m;
-	WCPMTExposeHeight	    = .118*m;
+//	WCPMTName             = "10inchHQE"; //still using QE from 10 inch tube
+//	WCPMTRadius           = .1524*m;
+//	WCPMTExposeHeight	    = .118*m;
+	fPMTParams->SetPMTType("12inchHQE");
 	WCIDDiameter          = 63.30*m;
 	WCIDHeight            = 76.60*m;
 	WCBarrelPMTOffset	    = .1537*m;
@@ -303,16 +346,17 @@ void WCSimDetectorConstruction::DUSEL_200kton_12inch_HQE_10perCent()
 	WCBarrelNRings        = 89;
 	WCCapPMTSpacing       = .8572*m;
 	WCCapEdgeLimit        = 31.424*m;
-	WCPMTGlassThickness   = .55*cm; //guess
+//	WCPMTGlassThickness   = .55*cm; //guess
 	WCBlackSheetThickness = 2.0*cm; //excess, should be just as light-tight
 	WCAddGd               = false;
 }
 
 void WCSimDetectorConstruction::DUSEL_200kton_12inch_HQE_14perCent()
 {
-	WCPMTName             = "10inchHQE"; //still using QE from 10 inch tube
-	WCPMTRadius           = .1524*m;
-	WCPMTExposeHeight	    = .118*m;
+//	WCPMTName             = "10inchHQE"; //still using QE from 10 inch tube
+//	WCPMTRadius           = .1524*m;
+//	WCPMTExposeHeight	    = .118*m;
+	fPMTParams->SetPMTType("12inchHQE");
 	WCIDDiameter          = 63.30*m;
 	WCIDHeight            = 76.60*m;
 	WCBarrelPMTOffset	    = .1951*m;
@@ -322,53 +366,57 @@ void WCSimDetectorConstruction::DUSEL_200kton_12inch_HQE_14perCent()
 	WCBarrelNRings        = 105;
 	WCCapPMTSpacing       = .7258*m;
 	WCCapEdgeLimit        = 31.624*m;
-	WCPMTGlassThickness   = .55*cm; //guess
+//	WCPMTGlassThickness   = .55*cm; //guess
 	WCBlackSheetThickness = 2.0*cm; //excess, should be just as light-tight
 	WCAddGd               = false;
 }
 
 void WCSimDetectorConstruction::CHIPS_25kton_10inch_HQE_10perCent()
 {
-  WCPMTName             = "10inchHQE";
-  WCPMTRadius           = .127*m;
-  WCPMTExposeHeight	    = WCPMTRadius - 0.01*m;
+//  WCPMTName             = "10inchHQE";
+//  WCPMTRadius           = .127*m;
+//  WCPMTExposeHeight	    = WCPMTRadius - 0.01*m;
+	fPMTParams->SetPMTType("10inchHQE");
   WCIDDiameter          = 40.0*m;
   WCIDHeight            = 20.0*m;
-  WCBarrelPMTOffset	    = WCPMTRadius;
+//  WCBarrelPMTOffset	    = WCPMTRadius;
+  WCBarrelPMTOffset	    = fPMTParams->GetRadius();
   WCPMTperCellHorizontal = 4.0;
   WCPMTperCellVertical	 = 3.0;
   WCPMTPercentCoverage	 = 10.0;
   WCBarrelNumPMTHorizontal = round(WCIDDiameter*sqrt(pi*WCPMTPercentCoverage)/
-                                    (10.0*WCPMTRadius));
+                                    (10.0*fPMTParams->GetRadius()));
   WCBarrelNRings        = round(((WCBarrelNumPMTHorizontal*((WCIDHeight-
                                     2*WCBarrelPMTOffset)/(pi*WCIDDiameter)))/
                                     WCPMTperCellVertical));
   WCCapPMTSpacing       = (pi*WCIDDiameter/WCBarrelNumPMTHorizontal);
-  WCCapEdgeLimit        = WCIDDiameter/2.0 - WCPMTRadius;
-  WCPMTGlassThickness   = .55*cm;
+  WCCapEdgeLimit        = WCIDDiameter/2.0 - fPMTParams->GetRadius();
+//  WCPMTGlassThickness   = .55*cm;
   WCBlackSheetThickness = 2.0*cm;
   WCAddGd               = false;
 }
 
 void WCSimDetectorConstruction::GiantPhotonTest()
 {
-  WCPMTName             = "10inchHQE";
-  WCPMTRadius           = .127*m;
-  WCPMTExposeHeight	    = WCPMTRadius - 0.01*m;
+//  WCPMTName             = "10inchHQE";
+//  WCPMTRadius           = .127*m;
+//  WCPMTExposeHeight	    = WCPMTRadius - 0.01*m;
+	fPMTParams->SetPMTType("10inchHQE");
   WCIDDiameter          = 2000.0*m;
   WCIDHeight            = 2000.0*m;
-  WCBarrelPMTOffset	    = WCPMTRadius;
+//  WCBarrelPMTOffset	    = WCPMTRadius;
+  WCBarrelPMTOffset	    = fPMTParams->GetRadius();
   WCPMTperCellHorizontal = 4.0;
   WCPMTperCellVertical	 = 3.0;
   WCPMTPercentCoverage	 = 0.0001;
   WCBarrelNumPMTHorizontal = round(WCIDDiameter*sqrt(pi*WCPMTPercentCoverage)/
-                                    (10.0*WCPMTRadius));
+                                    (10.0*fPMTParams->GetRadius()));
   WCBarrelNRings        = round(((WCBarrelNumPMTHorizontal*((WCIDHeight-
                                     2*WCBarrelPMTOffset)/(pi*WCIDDiameter)))/
                                     WCPMTperCellVertical));
   WCCapPMTSpacing       = (pi*WCIDDiameter/WCBarrelNumPMTHorizontal);
-  WCCapEdgeLimit        = WCIDDiameter/2.0 - WCPMTRadius;
-  WCPMTGlassThickness   = .55*cm;
+  WCCapEdgeLimit        = WCIDDiameter/2.0 - fPMTParams->GetRadius();
+//  WCPMTGlassThickness   = .55*cm;
   WCBlackSheetThickness = 2.0*cm;
   WCAddGd               = false;
 }
@@ -379,10 +427,11 @@ void WCSimDetectorConstruction::SetMailBox100kTGeometry()  // This should setup 
 {
 	// PMT stuff
 	this->SetIsMailbox(true);
-    WCPMTName               = "10inch";//normal QE 10 inch tube
-	WCPMTRadius				= .127*m; 
-	WCPMTExposeHeight		= WCPMTRadius - 0.01*m;
-	WCPMTGlassThickness		= .55*cm;
+//    WCPMTName               = "10inch";//normal QE 10 inch tube
+//	WCPMTRadius				= .127*m; 
+//	WCPMTExposeHeight		= WCPMTRadius - 0.01*m;
+	fPMTParams->SetPMTType("10inch");
+//	WCPMTGlassThickness		= .55*cm;
 	WCPMTPercentCoverage	= 10;	//% coverage
 	WCBlackSheetThickness	= 2.0*cm;
 	//Tank and Cavern Dimensions
@@ -423,10 +472,11 @@ void WCSimDetectorConstruction::SetMailBox100x20x30Geometry()  // This should se
 {
 	// PMT stuff
 	this->SetIsMailbox(true);
-  WCPMTName               = "10inch";//normal QE 10 inch tube
-	WCPMTRadius				= .127*m; 
-	WCPMTExposeHeight		= WCPMTRadius - 0.01*m;
-	WCPMTGlassThickness		= .55*cm;
+//  WCPMTName               = "10inch";//normal QE 10 inch tube
+//	WCPMTRadius				= .127*m; 
+//	WCPMTExposeHeight		= WCPMTRadius - 0.01*m;
+	fPMTParams->SetPMTType("10inch");
+//	WCPMTGlassThickness		= .55*cm;
 	WCPMTPercentCoverage	= 10;	//% coverage
 	WCBlackSheetThickness	= 2.0*cm;
 	//Tank and Cavern Dimensions
@@ -448,10 +498,11 @@ void WCSimDetectorConstruction::SetMailBox100x20x30Geometry()  // This should se
 void WCSimDetectorConstruction::SetMailBox150kTGeometry_10inch_HQE_30perCent()  // This should setup a 150kT (metric) Fiducial Volume
 {
 	// PMT stuff
-    WCPMTName               = "10inchHQE";//high qe 10 " tube
-	WCPMTRadius				= .127*m; 
-	WCPMTExposeHeight		= WCPMTRadius - 0.01*m;
-	WCPMTGlassThickness		= .55*cm;
+//    WCPMTName               = "10inchHQE";//high qe 10 " tube
+//	WCPMTRadius				= .127*m; 
+//	WCPMTExposeHeight		= WCPMTRadius - 0.01*m;
+	fPMTParams->SetPMTType("10inchHQE");
+//	WCPMTGlassThickness		= .55*cm;
 	WCPMTPercentCoverage	= 30;	//% coverage
 	WCBlackSheetThickness	= 2.0*cm;
 	//Tank and Cavern Dimensions
@@ -469,10 +520,11 @@ void WCSimDetectorConstruction::SetMailBox150kTGeometry_10inch_HQE_30perCent()  
 void WCSimDetectorConstruction::SetMailBox150kTGeometry_10inch_40perCent()  // This should setup a 150kT (metric) Fiducial Volume
 {
 	// PMT stuff
-    WCPMTName               = "10inch";//normal qe 10 inch tube
-	WCPMTRadius				= .127*m; 
-	WCPMTExposeHeight		= WCPMTRadius - 0.01*m;
-	WCPMTGlassThickness		= .55*cm;
+//    WCPMTName               = "10inch";//normal qe 10 inch tube
+//	WCPMTRadius				= .127*m; 
+//	WCPMTExposeHeight		= WCPMTRadius - 0.01*m;
+	fPMTParams->SetPMTType("10inch");
+//	WCPMTGlassThickness		= .55*cm;
 	WCPMTPercentCoverage	= 40;	//% coverage
 	WCBlackSheetThickness	= 2.0*cm;
 	//Tank and Cavern Dimensions
@@ -490,10 +542,11 @@ void WCSimDetectorConstruction::SetMailBox150kTGeometry_10inch_40perCent()  // T
 void WCSimDetectorConstruction::SetMailBox300kTGeometry()    // This should setup a 300kT (metric) Fiducial Volume
 {
 	// PMT stuff
-    WCPMTName               = "10inch";//normal qe 10 inch tube
-	WCPMTRadius				=.127*m;
-	WCPMTExposeHeight		=WCPMTRadius - 0.01*m;
-	WCPMTGlassThickness		= .55*cm;
+//    WCPMTName               = "10inch";//normal qe 10 inch tube
+//	WCPMTRadius				=.127*m;
+//	WCPMTExposeHeight		=WCPMTRadius - 0.01*m;
+	fPMTParams->SetPMTType("10inch");
+//	WCPMTGlassThickness		= .55*cm;
 	WCPMTPercentCoverage	= 10;	//% coverage
 	WCBlackSheetThickness	= 2.0*cm;
 	//Tank and Cavern Dimensions
@@ -556,7 +609,8 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructMailboxWC()
 	
 	
 	WCPosition=0.;//     aah    WCPosition is used as a depth offset in the Cylinder Detector. I set it to "0" here.
-	G4double WC_ActiveLayer_Depth  = WCBlackSheetThickness+WCPMTRadius+0.01*m;             //add 1cm extra thickness just in case
+//	G4double WC_ActiveLayer_Depth  = WCBlackSheetThickness+WCPMTRadius+0.01*m;             //add 1cm extra thickness just in case
+	G4double WC_ActiveLayer_Depth  = WCBlackSheetThickness+fPMTParams->GetRadius()+0.01*m;             //add 1cm extra thickness just in case
 	G4double WC_MB_Cavern_length = WC_MB_Fid_Length+2*(WC_MB_Buffer_Thickness-WC_MB_Veto_Thickness);
 	G4double WC_MB_Cavern_width = WC_MB_Fid_Width+2*(WC_MB_Buffer_Thickness-WC_MB_Veto_Thickness);
 	G4double WC_MB_Tank_depth = WC_MB_Fid_Depth+2*(WC_MB_Buffer_Thickness-WC_MB_Veto_Thickness);      //note that I want the 0,0,0 position oriented in center of water tank, so I won't include airgap here
@@ -658,7 +712,8 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructMailboxWC()
 	
 	//Now calculate the L,W,D offsets and # pmt's from the requested spacing.
 	//	G4double WCPMT_surfacearea=2*pi*WCPMTRadius*WCPMTRadius;//this is the surface area of a hemisphere
-	G4double WCPMT_crossarea=pi*WCPMTRadius*WCPMTRadius;// this is just the front face crossectional area---this is our standard definition
+//	G4double WCPMT_crossarea=pi*WCPMTRadius*WCPMTRadius;// this is just the front face crossectional area---this is our standard definition
+	G4double WCPMT_crossarea=pi*fPMTParams->GetRadius()*fPMTParams->GetRadius();// this is just the front face crossectional area---this is our standard definition
 	G4double WC_MB_PMT_Spacing = sqrt(100.*WCPMT_crossarea/WCPMTPercentCoverage);	// factor 100 to conver % to fraction
 
 	//**************************try to use replica--here I am making the unit PMT Cell  ***replica
@@ -1425,7 +1480,8 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructWC()
   mainAnnulusHeight = WCIDHeight -2.*WCBarrelPMTOffset -2.*barrelCellHeight;
   
   
-  innerAnnulusRadius = WCIDRadius - WCPMTExposeHeight-1.*mm;
+//  innerAnnulusRadius = WCIDRadius - WCPMTExposeHeight-1.*mm;
+  innerAnnulusRadius = WCIDRadius - fPMTParams->GetExposeHeight()-1.*mm;
   outerAnnulusRadius = WCIDRadius + WCBlackSheetThickness + 1.*mm;//+ Stealstructure etc.
   // the radii are measured to the center of the surfaces
   // (tangent distance). Thus distances between the corner and the center are bigger.
@@ -1945,7 +2001,8 @@ else {
 		  G4ThreeVector cellpos =
 		  		G4ThreeVector(	xoffset, yoffset, -0.5*m);
 
-		  if ((sqrt(xoffset*xoffset + yoffset*yoffset) + WCPMTRadius) < WCTVEdgeLimit) {
+//		  if ((sqrt(xoffset*xoffset + yoffset*yoffset) + WCPMTRadius) < WCTVEdgeLimit) {
+		  if ((sqrt(xoffset*xoffset + yoffset*yoffset) + fPMTParams->GetRadius()) < WCTVEdgeLimit) {
 
 		    G4VPhysicalVolume* physiCapPMT =
 		    		new G4PVPlacement(	0,						// no rotation
@@ -1961,7 +2018,8 @@ else {
 		}
 	  }
 
-	  G4double WCTVEfficiency = icopy*WCPMTRadius*WCPMTRadius/((WCIDRadius)*(WCIDRadius));
+//	  G4double WCTVEfficiency = icopy*WCPMTRadius*WCPMTRadius/((WCIDRadius)*(WCIDRadius));
+	  G4double WCTVEfficiency = icopy*fPMTParams->GetRadius()*fPMTParams->GetRadius()/((WCIDRadius)*(WCIDRadius));
 	  G4cout << "Total on top veto: " << icopy << "\n";
 	  G4cout << "Coverage was calculated to be: " << WCTVEfficiency << "\n";
 
@@ -2445,7 +2503,8 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructCaps(G4int zflip)
       //	- 2.0 * WCBarrelEffRadius * sqrt(xoffset*xoffset+yoffset*yoffset)
       //	+ WCBarrelEffRadius*WCBarrelEffRadius;
       //      if ( (comp > WCPMTRadius*WCPMTRadius) && ((sqrt(xoffset*xoffset + yoffset*yoffset) + WCPMTRadius) < WCCapEdgeLimit) ) {
-            if (((sqrt(xoffset*xoffset + yoffset*yoffset) + WCPMTRadius) < WCCapEdgeLimit) ) {
+//            if (((sqrt(xoffset*xoffset + yoffset*yoffset) + WCPMTRadius) < WCCapEdgeLimit) ) {
+            if (((sqrt(xoffset*xoffset + yoffset*yoffset) + fPMTParams->GetRadius()) < WCCapEdgeLimit) ) {
 
 
 	G4VPhysicalVolume* physiCapPMT =
@@ -2467,7 +2526,8 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructCaps(G4int zflip)
   }
 
   G4cout << "total on cap: " << icopy << "\n";
-  G4cout << "Coverage was calculated to be: " << (icopy*WCPMTRadius*WCPMTRadius/(WCIDRadius*WCIDRadius)) << "\n";
+//  G4cout << "Coverage was calculated to be: " << (icopy*WCPMTRadius*WCPMTRadius/(WCIDRadius*WCIDRadius)) << "\n";
+  G4cout << "Coverage was calculated to be: " << (icopy*fPMTParams->GetRadius()*fPMTParams->GetRadius()/(WCIDRadius*WCIDRadius)) << "\n";
 
     ///////////////   Barrel PMT placement
   G4RotationMatrix* WCPMTRotation = new G4RotationMatrix;
