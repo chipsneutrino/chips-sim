@@ -25,6 +25,10 @@ public:
   void EndOfRunAction(const G4Run*);
   void SetRootFileName(G4String fname) { RootFileName = fname; }
   G4String GetRootFileName() { return RootFileName; }
+  void SetSavePhotonNtuple( G4bool saveIt ){ SavePhotonNtuple = saveIt; }
+  G4bool GetSavePhotonNtuple() { return SavePhotonNtuple; }
+  void SetPhotonNtupleName(G4String fname) { PhotonNtupleName = fname; }
+  G4String GetPhotonNtupleName() { return PhotonNtupleName; }
   void FillGeoTree();
   TTree* GetTree(){return WCSimTree;}
   TTree* GetGeoTree(){return geoTree;}
@@ -47,6 +51,8 @@ public:
 private:
   // MFechner : set by the messenger
   std::string RootFileName;
+  std::string PhotonNtupleName;
+  bool SavePhotonNtuple;
   //
   TTree* WCSimTree;
   TTree* geoTree;

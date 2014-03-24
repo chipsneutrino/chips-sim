@@ -59,6 +59,12 @@
 #/WCSimIO/RootFile ~/some/absolute/path/file.root
 /WCSimIO/RootFile localfile.root
 
+## Whether to save an ntuple with all the optical photon tracks, default = false
+/WCSimIO/SavePhotonNtuple false
+
+## Set the name of the photon ntuple root file, default = localfile_photons.root
+#/WCSimIO/PhotonNtuple ~/some/absolute/path/file.root
+
 # seed the random generator with two integers
 /random/setSeeds 100 10
 

@@ -3,6 +3,7 @@
 
 
 #include "TString.h"
+#include "G4String.hh"
 
 class TFile;
 class TTree;
@@ -12,9 +13,11 @@ class WCSimPhotonNtuple
  public :
             
   WCSimPhotonNtuple();         
+  WCSimPhotonNtuple( G4String str );         
   ~WCSimPhotonNtuple();
      
   static WCSimPhotonNtuple* Instance();  
+  static WCSimPhotonNtuple* Instance( G4String str );  
   
   static void Open(const char* filename);
   static void Close();

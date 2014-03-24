@@ -146,6 +146,7 @@ void WCSimPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 		G4bool useRandomVertex = true;
 		if(useRandomVertex)
 		{
+		  std::cerr << " About to do the random vertex " << std::endl;
 			// Andy P hack: //
 			// genie generates them all at (0,0,0) - I want them randomly distributed
 			if( myDetector->GetIsMailbox() )

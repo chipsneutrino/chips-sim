@@ -23,6 +23,8 @@ class WCSimRunActionMessenger: public G4UImessenger
  private: //commands
   G4UIdirectory*      WCSimIODir;
   G4UIcmdWithAString* RootFile;
+  G4UIcmdWithAString* SavePhotonNtuple;
+  G4UIcmdWithAString* PhotonNtuple;
 };
 
 #endif

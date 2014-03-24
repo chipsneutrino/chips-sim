@@ -256,9 +256,11 @@ void WCSimEventAction::EndOfEventAction(const G4Event* evt)
  	trj->DrawTrajectory(50);
     }
 */
-/*
+
   // Fill photon ntuple
-  for ( G4int i=0; i < n_trajectories; i++ ) {
+  if( GetRunAction()->GetSavePhotonNtuple() )
+  {
+    for ( G4int i=0; i < n_trajectories; i++ ) {
     WCSimTrajectory* trj = (WCSimTrajectory*)((*(evt->GetTrajectoryContainer()))[i]);
 
     // get properties of trajectory
@@ -289,8 +291,9 @@ void WCSimEventAction::EndOfEventAction(const G4Event* evt)
                           vtxX, vtxY, vtxZ, vtxTime,
                           endX, endY, endZ, endTime,
                           vtxdirX, vtxdirY, vtxdirZ );      
+    }
   }
-*/
+
 
    G4cout << " Filling Root Event " << G4endl;
 

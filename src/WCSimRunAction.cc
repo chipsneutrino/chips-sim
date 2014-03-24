@@ -87,8 +87,12 @@ void WCSimRunAction::BeginOfRunAction(const G4Run* aRun)
   TBranch *geoBranch = geoTree->Branch("wcsimrootgeom", "WCSimRootGeom", &wcsimrootgeom, bufsize,0);
 
   FillGeoTree();
-
-  WCSimPhotonNtuple::Instance();
+  if( GetSavePhotonNtuple() ) 
+  { 
+    G4String photonname = GetPhotonNtupleName();
+    std::cout << "Photon ntuple name = " << photonname << std::endl;
+    WCSimPhotonNtuple::Instance(photonname); 
+  }
 
 }
 
@@ -107,7 +111,7 @@ void WCSimRunAction::EndOfRunAction(const G4Run*)
 //        << "% through-going (hit Catcher)" << G4endl;
 
   // Close the Root file at the end of the run
-  WCSimPhotonNtuple::Close();
+  if( GetSavePhotonNtuple() ) { WCSimPhotonNtuple::Close(); }
   TFile* hfile = WCSimTree->GetCurrentFile();
   hfile->Close();
 

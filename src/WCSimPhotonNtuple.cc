@@ -1,9 +1,11 @@
 #include "WCSimPhotonNtuple.hh"
 
+
 #include "TFile.h"
 #include "TTree.h"
 #include "TDirectory.h"
 
+#include <cassert>
 #include <iostream>
 
 static WCSimPhotonNtuple* fgNtuple = 0;
@@ -17,11 +19,34 @@ WCSimPhotonNtuple* WCSimPhotonNtuple::Instance()
   return fgNtuple;
 }
 
+WCSimPhotonNtuple* WCSimPhotonNtuple::Instance(G4String str)
+{
+  if( !fgNtuple ){
+    fgNtuple = new WCSimPhotonNtuple(str);
+  }
+  else{
+    std::cerr << "Photon ntuple already exists, cannot change the name" << std::endl;
+    assert( !fgNtuple );
+  }
+
+  return fgNtuple;
+}
+
 WCSimPhotonNtuple::WCSimPhotonNtuple() 
 {
   fWCFile = 0;
   fWCTree = 0;  
-  fWCFileName = "/unix/fnu/ajperch/numu_5mrad_LE_1000_photons.root";
+  fWCFileName = "localfile_photons.root";
+  this->OpenFile(fWCFileName.Data());
+  fHalfWidthZ = 0.0;
+  fHalfWidthXY = 0.0;
+}
+
+WCSimPhotonNtuple::WCSimPhotonNtuple(G4String str) 
+{
+  fWCFile = 0;
+  fWCTree = 0;  
+  fWCFileName = str;
   this->OpenFile(fWCFileName.Data());
   fHalfWidthZ = 0.0;
   fHalfWidthXY = 0.0;
@@ -50,11 +75,11 @@ void WCSimPhotonNtuple::FileName(const char* filename)
 void WCSimPhotonNtuple::Fill( Int_t eventID, Int_t pdgCode, Int_t trackID, Int_t parentID, Int_t processID, Double_t energy, Double_t lambda, Bool_t opticalPhoton,  Bool_t scatteredPhoton, Double_t vtxX, Double_t vtxY, Double_t vtxZ, Double_t vtxTime, Double_t endX, Double_t endY, Double_t endZ, Double_t endTime, Double_t vtxdirX, Double_t vtxdirY, Double_t vtxdirZ ) 
 {
   WCSimPhotonNtuple::Instance()->WriteEvent(eventID, pdgCode, trackID, parentID, processID, 
-                                         energy, lambda, 
-                                         opticalPhoton, scatteredPhoton,
-                                         vtxX, vtxY, vtxZ, vtxTime,
-                                         endX, endY, endZ, endTime,
-				                             vtxdirX, vtxdirY, vtxdirZ );
+                                            energy, lambda, 
+                                            opticalPhoton, scatteredPhoton,
+                                            vtxX, vtxY, vtxZ, vtxTime,
+                                            endX, endY, endZ, endTime,  
+                                            vtxdirX, vtxdirY, vtxdirZ );
 }
 
 void WCSimPhotonNtuple::WriteEvent( Int_t eventID, Int_t pdgCode, Int_t trackID, Int_t parentID, Int_t processID, Double_t energy, Double_t lambda, Bool_t opticalPhoton,  Bool_t scatteredPhoton, Double_t vtxX, Double_t vtxY, Double_t vtxZ, Double_t vtxTime, Double_t endX, Double_t endY, Double_t endZ, Double_t endTime, Double_t vtxdirX, Double_t vtxdirY, Double_t vtxdirZ ) 

@@ -100,7 +100,7 @@ void WCSimTrackingAction::PostUserTrackingAction(const G4Track* aTrack)
     } 
   }
 
-  if ( aTrack->GetDefinition() != G4OpticalPhoton::OpticalPhotonDefinition() || 1)
+  if ( aTrack->GetDefinition() != G4OpticalPhoton::OpticalPhotonDefinition() )
     //   if (aTrack->GetDefinition()->GetPDGCharge() == 0) 
   {
     WCSimTrajectory *currentTrajectory = 
