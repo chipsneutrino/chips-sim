@@ -174,6 +174,10 @@ void WCSimPMTParams::InitialiseEfficiencies(){
       .2268,  .1971, .1641, .1102, .0727, .0499, .0323, .0178, .0061, 0.00};
 	fMaxQEs.push_back(0.3396);
 
+	// 12 in HQE PMTs
+	// Use the same efficiency as 10inch HQE
+	fMaxQEs.push_back(0.3396);
+
 	for(unsigned int i = 0; i < fNBins; ++i){
 		effVec0.push_back(tempEff0[i]);
 		effVec1.push_back(tempEff1[i]);
