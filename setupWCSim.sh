@@ -1,5 +1,9 @@
 #! /bin/bash
 
+#WCSim Home Directory
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+export WCSIMHOME=${DIR}
+
 source /unix/lartpc/software/root/setup.sh
 echo "Root setup complete"
 source /unix/lartpc/software/geant4/setup.sh

@@ -32,6 +32,7 @@
 #include "G4SDManager.hh"
 #include "WCSimWCSD.hh"
 #include "WCSimPMTParams.hh"
+#include "WCSimPMTConfig.hh"
 #include "WCSimTuningParameters.hh" //jl145
 
 G4float WCSimDetectorConstruction::GetPMTQE(G4float PhotonWavelength, G4int flag, G4float low_wl, G4float high_wl, G4float ratio){
@@ -132,14 +133,14 @@ G4float WCSimDetectorConstruction::GetPMTQE(G4float PhotonWavelength, G4int flag
   }
 */
 	// Leigh: THIS IS THE FUTURE
-	// Get the quantum efficiency array and max value
-	G4float qEff[20] = {0};
-	fPMTParams->GetEfficiency(qEff,20);
-	const G4float qeMax = fPMTParams->GetMaxEfficiency();
+	// Get the quantum efficiency as a function of wavelength
+	// First number in the pair is the wavelength, second is the efficiency
+	std::vector<std::pair<double,double> > qEff = fPMTConfigs[0].GetEfficiency();
+	const G4float qeMax = fPMTConfigs[0].GetMaxEfficiency();
 
 	G4double newWave = 0;
 
-  if (flag == 1){
+/*  if (flag == 1){
     //MF: off by one bug fix.
     for (int i=0; i<=18; i++){
       if ( PhotonWavelength <= wavelength[i+1]){
@@ -152,6 +153,23 @@ G4float WCSimDetectorConstruction::GetPMTQE(G4float PhotonWavelength, G4int flag
   }else if (flag == 0){
       newWave = qeMax; 
   }
+*/
+
+	if(flag == 1){
+		for(unsigned int i = 0; i < qEff.size() - 1; ++i){
+			if(PhotonWavelength <= qEff[i+1].first){
+				double wave1 = qEff[i].first;
+				double eff1 = qEff[i].second;
+				double wave2 = qEff[i+1].first;
+				double eff2 = qEff[i+1].second;
+				newWave = eff1 + (eff2 - eff1)/(wave2-wave1)*(PhotonWavelength-wave1);
+				break;
+			}
+		}
+	}
+	else if (flag == 0){
+		newWave = qeMax;
+	}
 
 //  wavelengthQE = wavelengthQE *ratio;
   newWave = newWave *ratio;
@@ -206,7 +224,7 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructMailboxWC()
 	
 	WCPosition=0.;//     aah    WCPosition is used as a depth offset in the Cylinder Detector. I set it to "0" here.
 //	G4double WC_ActiveLayer_Depth  = WCBlackSheetThickness+WCPMTRadius+0.01*m;             //add 1cm extra thickness just in case
-	G4double WC_ActiveLayer_Depth  = WCBlackSheetThickness+fPMTParams->GetRadius()+0.01*m;             //add 1cm extra thickness just in case
+	G4double WC_ActiveLayer_Depth  = WCBlackSheetThickness+fPMTConfigs[0].GetRadius()+0.01*m;             //add 1cm extra thickness just in case
 	G4double WC_MB_Cavern_length = WC_MB_Fid_Length+2*(WC_MB_Buffer_Thickness-WC_MB_Veto_Thickness);
 	G4double WC_MB_Cavern_width = WC_MB_Fid_Width+2*(WC_MB_Buffer_Thickness-WC_MB_Veto_Thickness);
 	G4double WC_MB_Tank_depth = WC_MB_Fid_Depth+2*(WC_MB_Buffer_Thickness-WC_MB_Veto_Thickness);      //note that I want the 0,0,0 position oriented in center of water tank, so I won't include airgap here
@@ -309,7 +327,7 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructMailboxWC()
 	//Now calculate the L,W,D offsets and # pmt's from the requested spacing.
 	//	G4double WCPMT_surfacearea=2*pi*WCPMTRadius*WCPMTRadius;//this is the surface area of a hemisphere
 //	G4double WCPMT_crossarea=pi*WCPMTRadius*WCPMTRadius;// this is just the front face crossectional area---this is our standard definition
-	G4double WCPMT_crossarea=pi*fPMTParams->GetRadius()*fPMTParams->GetRadius();// this is just the front face crossectional area---this is our standard definition
+	G4double WCPMT_crossarea=pi*fPMTConfigs[0].GetRadius()*fPMTConfigs[0].GetRadius();// this is just the front face crossectional area---this is our standard definition
 	G4double WC_MB_PMT_Spacing = sqrt(100.*WCPMT_crossarea/WCPMTPercentCoverage);	// factor 100 to conver % to fraction
 
 	//**************************try to use replica--here I am making the unit PMT Cell  ***replica
@@ -1077,7 +1095,7 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructWC()
   
   
 //  innerAnnulusRadius = WCIDRadius - WCPMTExposeHeight-1.*mm;
-  innerAnnulusRadius = WCIDRadius - fPMTParams->GetExposeHeight()-1.*mm;
+  innerAnnulusRadius = WCIDRadius - fPMTConfigs[0].GetExposeHeight()-1.*mm;
   outerAnnulusRadius = WCIDRadius + WCBlackSheetThickness + 1.*mm;//+ Stealstructure etc.
   // the radii are measured to the center of the surfaces
   // (tangent distance). Thus distances between the corner and the center are bigger.
@@ -1598,7 +1616,7 @@ else {
 		  		G4ThreeVector(	xoffset, yoffset, -0.5*m);
 
 //		  if ((sqrt(xoffset*xoffset + yoffset*yoffset) + WCPMTRadius) < WCTVEdgeLimit) {
-		  if ((sqrt(xoffset*xoffset + yoffset*yoffset) + fPMTParams->GetRadius()) < WCTVEdgeLimit) {
+		  if ((sqrt(xoffset*xoffset + yoffset*yoffset) + fPMTConfigs[0].GetRadius()) < WCTVEdgeLimit) {
 
 		    G4VPhysicalVolume* physiCapPMT =
 		    		new G4PVPlacement(	0,						// no rotation
@@ -1615,7 +1633,7 @@ else {
 	  }
 
 //	  G4double WCTVEfficiency = icopy*WCPMTRadius*WCPMTRadius/((WCIDRadius)*(WCIDRadius));
-	  G4double WCTVEfficiency = icopy*fPMTParams->GetRadius()*fPMTParams->GetRadius()/((WCIDRadius)*(WCIDRadius));
+	  G4double WCTVEfficiency = icopy*fPMTConfigs[0].GetRadius()*fPMTConfigs[0].GetRadius()/((WCIDRadius)*(WCIDRadius));
 	  G4cout << "Total on top veto: " << icopy << "\n";
 	  G4cout << "Coverage was calculated to be: " << WCTVEfficiency << "\n";
 
@@ -2100,7 +2118,7 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructCaps(G4int zflip)
       //	+ WCBarrelEffRadius*WCBarrelEffRadius;
       //      if ( (comp > WCPMTRadius*WCPMTRadius) && ((sqrt(xoffset*xoffset + yoffset*yoffset) + WCPMTRadius) < WCCapEdgeLimit) ) {
 //            if (((sqrt(xoffset*xoffset + yoffset*yoffset) + WCPMTRadius) < WCCapEdgeLimit) ) {
-            if (((sqrt(xoffset*xoffset + yoffset*yoffset) + fPMTParams->GetRadius()) < WCCapEdgeLimit) ) {
+            if (((sqrt(xoffset*xoffset + yoffset*yoffset) + fPMTConfigs[0].GetRadius()) < WCCapEdgeLimit) ) {
 
 
 	G4VPhysicalVolume* physiCapPMT =
@@ -2123,7 +2141,7 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructCaps(G4int zflip)
 
   G4cout << "total on cap: " << icopy << "\n";
 //  G4cout << "Coverage was calculated to be: " << (icopy*WCPMTRadius*WCPMTRadius/(WCIDRadius*WCIDRadius)) << "\n";
-  G4cout << "Coverage was calculated to be: " << (icopy*fPMTParams->GetRadius()*fPMTParams->GetRadius()/(WCIDRadius*WCIDRadius)) << "\n";
+  G4cout << "Coverage was calculated to be: " << (icopy*fPMTConfigs[0].GetRadius()*fPMTConfigs[0].GetRadius()/(WCIDRadius*WCIDRadius)) << "\n";
 
     ///////////////   Barrel PMT placement
   G4RotationMatrix* WCPMTRotation = new G4RotationMatrix;

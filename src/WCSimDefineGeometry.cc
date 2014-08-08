@@ -1,6 +1,8 @@
 #include "WCSimDetectorConstruction.hh"
 
 #include "WCSimPMTParams.hh"
+#include "WCSimPMTConfig.hh"
+#include "WCSimPMTManager.hh"
 
 void WCSimDetectorConstruction::SetSuperKGeometry()
 {
@@ -8,6 +10,7 @@ void WCSimDetectorConstruction::SetSuperKGeometry()
 //  WCPMTRadius           =.254*m;  
 //  WCPMTExposeHeight     =.18*m; 
 	fPMTParams->SetPMTType("20inch");
+	fPMTConfigs.push_back(fPMTManager->GetPMTByName("20inch"));
   WCIDDiameter          = 33.6815*m; //16.900*2*cos(2*pi*rad/75)*m; //inner detector diameter
   WCIDHeight            = 36.200*m; //"" "" height
   WCBarrelPMTOffset     = 0.0715*m; //offset from vertical
@@ -28,20 +31,22 @@ void WCSimDetectorConstruction::DUSEL_100kton_10inch_40perCent()
 //  WCPMTRadius           = .127*m;
 //  WCPMTExposeHeight	    = WCPMTRadius - 0.01*m;
 	fPMTParams->SetPMTType("10inch");
+	fPMTConfigs.push_back(fPMTManager->GetPMTByName("10inch"));
   WCIDDiameter          = 53.0*m;
   WCIDHeight            = 60.0*m;
 //  WCBarrelPMTOffset	    = WCPMTRadius;
-  WCBarrelPMTOffset	    = fPMTParams->GetRadius();
+  WCBarrelPMTOffset	    = fPMTConfigs[0].GetRadius();
+//	WCBarrelPMTOffset = fPMTManager->GetPMTByName(fPMTNames[0]).GetRadius();
   WCPMTperCellHorizontal = 4.0;
   WCPMTperCellVertical	 = 3.0;
   WCPMTPercentCoverage	 = 40.0;
   WCBarrelNumPMTHorizontal = round(WCIDDiameter*sqrt(pi*WCPMTPercentCoverage)/
-                                    (10.0*fPMTParams->GetRadius()));
+                                    (10.0*fPMTConfigs[0].GetRadius()));
   WCBarrelNRings        = round(((WCBarrelNumPMTHorizontal*((WCIDHeight-
                                     2*WCBarrelPMTOffset)/(pi*WCIDDiameter)))/
                                     WCPMTperCellVertical));
   WCCapPMTSpacing       = (pi*WCIDDiameter/WCBarrelNumPMTHorizontal);
-  WCCapEdgeLimit        = WCIDDiameter/2.0 - fPMTParams->GetRadius();
+  WCCapEdgeLimit        = WCIDDiameter/2.0 - fPMTConfigs[0].GetRadius();
 //  WCPMTGlassThickness   = .55*cm;
   WCBlackSheetThickness = 2.0*cm;
   WCAddGd               = false;
@@ -53,20 +58,21 @@ void WCSimDetectorConstruction::DUSEL_100kton_10inch_HQE_12perCent()
 //  WCPMTRadius           = .127*m;
 //  WCPMTExposeHeight	    = WCPMTRadius - 0.01*m;
 	fPMTParams->SetPMTType("10inchHQE");
+	fPMTConfigs.push_back(fPMTManager->GetPMTByName("10inch_HQE"));
   WCIDDiameter          = 53.0*m;
   WCIDHeight            = 60.0*m;
 //  WCBarrelPMTOffset	    = WCPMTRadius;
-  WCBarrelPMTOffset	    = fPMTParams->GetRadius();
+  WCBarrelPMTOffset	    = fPMTConfigs[0].GetRadius();
   WCPMTperCellHorizontal = 4.0;
   WCPMTperCellVertical	 = 3.0;
   WCPMTPercentCoverage	 = 12.0;
   WCBarrelNumPMTHorizontal = round(WCIDDiameter*sqrt(pi*WCPMTPercentCoverage)/
-                                    (10.0*fPMTParams->GetRadius()));
+                                    (10.0*fPMTConfigs[0].GetRadius()));
   WCBarrelNRings        = round(((WCBarrelNumPMTHorizontal*((WCIDHeight-
                                     2*WCBarrelPMTOffset)/(pi*WCIDDiameter)))/
                                     WCPMTperCellVertical));
   WCCapPMTSpacing       = (pi*WCIDDiameter/WCBarrelNumPMTHorizontal);
-  WCCapEdgeLimit        = WCIDDiameter/2.0 - fPMTParams->GetRadius();
+  WCCapEdgeLimit        = WCIDDiameter/2.0 - fPMTConfigs[0].GetRadius();
 //  WCPMTGlassThickness   = .55*cm;
   WCBlackSheetThickness = 2.0*cm;
   WCAddGd               = false;
@@ -78,20 +84,21 @@ void WCSimDetectorConstruction::DUSEL_100kton_10inch_HQE_30perCent()
 //  WCPMTRadius           = .127*m;
 //  WCPMTExposeHeight	    = WCPMTRadius - 0.01*m;
 	fPMTParams->SetPMTType("10inchHQE");
+  fPMTConfigs.push_back(fPMTManager->GetPMTByName("10inch_HQE"));
   WCIDDiameter          = 53.0*m;
   WCIDHeight            = 60.0*m;
 //  WCBarrelPMTOffset	    = WCPMTRadius;
-  WCBarrelPMTOffset	    = fPMTParams->GetRadius();
+  WCBarrelPMTOffset	    = fPMTConfigs[0].GetRadius();
   WCPMTperCellHorizontal = 4.0;
   WCPMTperCellVertical	 = 3.0;
   WCPMTPercentCoverage	 = 30.0;
   WCBarrelNumPMTHorizontal = round(WCIDDiameter*sqrt(pi*WCPMTPercentCoverage)/
-                                    (10.0*fPMTParams->GetRadius()));
+                                    (10.0*fPMTConfigs[0].GetRadius()));
   WCBarrelNRings        = round(((WCBarrelNumPMTHorizontal*((WCIDHeight-
                                     2*WCBarrelPMTOffset)/(pi*WCIDDiameter)))/
                                     WCPMTperCellVertical));
   WCCapPMTSpacing       = (pi*WCIDDiameter/WCBarrelNumPMTHorizontal);
-  WCCapEdgeLimit        = WCIDDiameter/2.0 - fPMTParams->GetRadius();
+  WCCapEdgeLimit        = WCIDDiameter/2.0 - fPMTConfigs[0].GetRadius();
 //  WCPMTGlassThickness   = .55*cm;
   WCBlackSheetThickness = 2.0*cm;
   WCAddGd               = false;
@@ -103,20 +110,21 @@ void WCSimDetectorConstruction::DUSEL_100kton_10inch_HQE_30perCent_Gd()
 //  WCPMTRadius           = .127*m;
 //  WCPMTExposeHeight	    = WCPMTRadius - 0.01*m;
 	fPMTParams->SetPMTType("10inchHQE");
+  fPMTConfigs.push_back(fPMTManager->GetPMTByName("10inch_HQE"));
   WCIDDiameter          = 53.0*m;
   WCIDHeight            = 60.0*m;
 //  WCBarrelPMTOffset	    = WCPMTRadius;
-  WCBarrelPMTOffset	    = fPMTParams->GetRadius();
+  WCBarrelPMTOffset	    = fPMTConfigs[0].GetRadius();
   WCPMTperCellHorizontal = 4.0;
   WCPMTperCellVertical	 = 3.0;
   WCPMTPercentCoverage	 = 30.0;
   WCBarrelNumPMTHorizontal = round(WCIDDiameter*sqrt(pi*WCPMTPercentCoverage)/
-                                    (10.0*fPMTParams->GetRadius()));
+                                    (10.0*fPMTConfigs[0].GetRadius()));
   WCBarrelNRings        = round(((WCBarrelNumPMTHorizontal*((WCIDHeight-
                                     2*WCBarrelPMTOffset)/(pi*WCIDDiameter)))/
                                     WCPMTperCellVertical));
   WCCapPMTSpacing       = (pi*WCIDDiameter/WCBarrelNumPMTHorizontal);
-  WCCapEdgeLimit        = WCIDDiameter/2.0 - fPMTParams->GetRadius();
+  WCCapEdgeLimit        = WCIDDiameter/2.0 - fPMTConfigs[0].GetRadius();
 //  WCPMTGlassThickness   = .55*cm;
   WCBlackSheetThickness = 2.0*cm;
   WCAddGd               = true;
@@ -128,20 +136,21 @@ void WCSimDetectorConstruction::DUSEL_150kton_10inch_HQE_30perCent()
 //  WCPMTRadius           = .127*m;
 //  WCPMTExposeHeight	    = WCPMTRadius - 0.01*m;
 	fPMTParams->SetPMTType("10inchHQE");
+  fPMTConfigs.push_back(fPMTManager->GetPMTByName("10inch_HQE"));
   WCIDDiameter          = 64.0*m;
   WCIDHeight            = 60.0*m;
 //  WCBarrelPMTOffset	    = WCPMTRadius;
-  WCBarrelPMTOffset	    = fPMTParams->GetRadius();
+  WCBarrelPMTOffset	    = fPMTConfigs[0].GetRadius();
   WCPMTperCellHorizontal = 4.0;
   WCPMTperCellVertical	 = 3.0;
   WCPMTPercentCoverage	 = 30.0;
   WCBarrelNumPMTHorizontal = round(WCIDDiameter*sqrt(pi*WCPMTPercentCoverage)/
-                                    (10.0*fPMTParams->GetRadius()));
+                                    (10.0*fPMTConfigs[0].GetRadius()));
   WCBarrelNRings        = round(((WCBarrelNumPMTHorizontal*((WCIDHeight-
                                     2*WCBarrelPMTOffset)/(pi*WCIDDiameter)))/
                                     WCPMTperCellVertical));
   WCCapPMTSpacing       = (pi*WCIDDiameter/WCBarrelNumPMTHorizontal);
-  WCCapEdgeLimit        = WCIDDiameter/2.0 - fPMTParams->GetRadius();
+  WCCapEdgeLimit        = WCIDDiameter/2.0 - fPMTConfigs[0].GetRadius();
 //  WCPMTGlassThickness   = .55*cm;
   WCBlackSheetThickness = 2.0*cm;
   WCAddGd               = false;
@@ -153,20 +162,21 @@ void WCSimDetectorConstruction::DUSEL_200kton_10inch_HQE_12perCent()
 //	WCPMTRadius           = .127*m;
 //	WCPMTExposeHeight	    = WCPMTRadius - 0.01*m;
 	fPMTParams->SetPMTType("10inchHQE");
+  fPMTConfigs.push_back(fPMTManager->GetPMTByName("10inch_HQE"));
 	WCIDDiameter          = 62.21*m;
 	WCIDHeight            = 79.96*m;
 //	WCBarrelPMTOffset	    = WCPMTRadius;
-  WCBarrelPMTOffset	    = fPMTParams->GetRadius();
+  WCBarrelPMTOffset	    = fPMTConfigs[0].GetRadius();
 	WCPMTperCellHorizontal = 4.0;
 	WCPMTperCellVertical	 = 3.0;
 	WCPMTPercentCoverage	 = 12.0;
 	WCBarrelNumPMTHorizontal = round(WCIDDiameter*sqrt(pi*WCPMTPercentCoverage)/
-									 (10.0*fPMTParams->GetRadius()));
+									 (10.0*fPMTConfigs[0].GetRadius()));
 	WCBarrelNRings        = round(((WCBarrelNumPMTHorizontal*((WCIDHeight-
 															   2*WCBarrelPMTOffset)/(pi*WCIDDiameter)))/
 								   WCPMTperCellVertical));
 	WCCapPMTSpacing       = (pi*WCIDDiameter/WCBarrelNumPMTHorizontal);
-	WCCapEdgeLimit        = WCIDDiameter/2.0 - fPMTParams->GetRadius();
+	WCCapEdgeLimit        = WCIDDiameter/2.0 - fPMTConfigs[0].GetRadius();
 //	WCPMTGlassThickness   = .55*cm;
 	WCBlackSheetThickness = 2.0*cm;
 	WCAddGd               = false;
@@ -178,6 +188,7 @@ void WCSimDetectorConstruction::DUSEL_200kton_12inch_HQE_10perCent()
 //	WCPMTRadius           = .1524*m;
 //	WCPMTExposeHeight	    = .118*m;
 	fPMTParams->SetPMTType("12inchHQE");
+  fPMTConfigs.push_back(fPMTManager->GetPMTByName("12inchHQE"));
 	WCIDDiameter          = 63.30*m;
 	WCIDHeight            = 76.60*m;
 	WCBarrelPMTOffset	    = .1537*m;
@@ -198,6 +209,7 @@ void WCSimDetectorConstruction::DUSEL_200kton_12inch_HQE_14perCent()
 //	WCPMTRadius           = .1524*m;
 //	WCPMTExposeHeight	    = .118*m;
 	fPMTParams->SetPMTType("12inchHQE");
+  fPMTConfigs.push_back(fPMTManager->GetPMTByName("12inchHQE"));
 	WCIDDiameter          = 63.30*m;
 	WCIDHeight            = 76.60*m;
 	WCBarrelPMTOffset	    = .1951*m;
@@ -218,20 +230,26 @@ void WCSimDetectorConstruction::CHIPS_25kton_10inch_HQE_10perCent()
 //  WCPMTRadius           = .127*m;
 //  WCPMTExposeHeight	    = WCPMTRadius - 0.01*m;
 	fPMTParams->SetPMTType("10inchHQE");
+  fPMTConfigs.push_back(fPMTManager->GetPMTByName("10inch_HQE"));
+
+	std::cout << "=== PMT LOG ===" << std::endl;
+	std::cout << "PMT Vector Size = " << fPMTConfigs.size() << std::endl;
+	fPMTConfigs[0].Print();
+
   WCIDDiameter          = 40.0*m;
   WCIDHeight            = 20.0*m;
 //  WCBarrelPMTOffset	    = WCPMTRadius;
-  WCBarrelPMTOffset	    = fPMTParams->GetRadius();
+  WCBarrelPMTOffset	    = fPMTConfigs[0].GetRadius();
   WCPMTperCellHorizontal = 4.0;
   WCPMTperCellVertical	 = 3.0;
   WCPMTPercentCoverage	 = 10.0;
   WCBarrelNumPMTHorizontal = round(WCIDDiameter*sqrt(pi*WCPMTPercentCoverage)/
-                                    (10.0*fPMTParams->GetRadius()));
+                                    (10.0*fPMTConfigs[0].GetRadius()));
   WCBarrelNRings        = round(((WCBarrelNumPMTHorizontal*((WCIDHeight-
                                     2*WCBarrelPMTOffset)/(pi*WCIDDiameter)))/
                                     WCPMTperCellVertical));
   WCCapPMTSpacing       = (pi*WCIDDiameter/WCBarrelNumPMTHorizontal);
-  WCCapEdgeLimit        = WCIDDiameter/2.0 - fPMTParams->GetRadius();
+  WCCapEdgeLimit        = WCIDDiameter/2.0 - fPMTConfigs[0].GetRadius();
 //  WCPMTGlassThickness   = .55*cm;
   WCBlackSheetThickness = 2.0*cm;
   WCAddGd               = false;
@@ -243,20 +261,22 @@ void WCSimDetectorConstruction::GiantPhotonTest()
 //  WCPMTRadius           = .127*m;
 //  WCPMTExposeHeight	    = WCPMTRadius - 0.01*m;
 	fPMTParams->SetPMTType("10inchHQE");
+  fPMTConfigs.push_back(fPMTManager->GetPMTByName("10inch_HQE"));
+
   WCIDDiameter          = 2000.0*m;
   WCIDHeight            = 2000.0*m;
 //  WCBarrelPMTOffset	    = WCPMTRadius;
-  WCBarrelPMTOffset	    = fPMTParams->GetRadius();
+  WCBarrelPMTOffset	    = fPMTConfigs[0].GetRadius();
   WCPMTperCellHorizontal = 4.0;
   WCPMTperCellVertical	 = 3.0;
   WCPMTPercentCoverage	 = 0.0001;
   WCBarrelNumPMTHorizontal = round(WCIDDiameter*sqrt(pi*WCPMTPercentCoverage)/
-                                    (10.0*fPMTParams->GetRadius()));
+                                    (10.0*fPMTConfigs[0].GetRadius()));
   WCBarrelNRings        = round(((WCBarrelNumPMTHorizontal*((WCIDHeight-
                                     2*WCBarrelPMTOffset)/(pi*WCIDDiameter)))/
                                     WCPMTperCellVertical));
   WCCapPMTSpacing       = (pi*WCIDDiameter/WCBarrelNumPMTHorizontal);
-  WCCapEdgeLimit        = WCIDDiameter/2.0 - fPMTParams->GetRadius();
+  WCCapEdgeLimit        = WCIDDiameter/2.0 - fPMTConfigs[0].GetRadius();
 //  WCPMTGlassThickness   = .55*cm;
   WCBlackSheetThickness = 2.0*cm;
   WCAddGd               = false;
@@ -272,6 +292,7 @@ void WCSimDetectorConstruction::SetMailBox100kTGeometry()  // This should setup 
 //	WCPMTRadius				= .127*m; 
 //	WCPMTExposeHeight		= WCPMTRadius - 0.01*m;
 	fPMTParams->SetPMTType("10inch");
+  fPMTConfigs.push_back(fPMTManager->GetPMTByName("10inch"));
 //	WCPMTGlassThickness		= .55*cm;
 	WCPMTPercentCoverage	= 10;	//% coverage
 	WCBlackSheetThickness	= 2.0*cm;
@@ -317,6 +338,7 @@ void WCSimDetectorConstruction::SetMailBox100x20x30Geometry()  // This should se
 //	WCPMTRadius				= .127*m; 
 //	WCPMTExposeHeight		= WCPMTRadius - 0.01*m;
 	fPMTParams->SetPMTType("10inch");
+  fPMTConfigs.push_back(fPMTManager->GetPMTByName("10inch"));
 //	WCPMTGlassThickness		= .55*cm;
 	WCPMTPercentCoverage	= 10;	//% coverage
 	WCBlackSheetThickness	= 2.0*cm;
@@ -343,6 +365,7 @@ void WCSimDetectorConstruction::SetMailBox150kTGeometry_10inch_HQE_30perCent()  
 //	WCPMTRadius				= .127*m; 
 //	WCPMTExposeHeight		= WCPMTRadius - 0.01*m;
 	fPMTParams->SetPMTType("10inchHQE");
+  fPMTConfigs.push_back(fPMTManager->GetPMTByName("10inch_HQE"));
 //	WCPMTGlassThickness		= .55*cm;
 	WCPMTPercentCoverage	= 30;	//% coverage
 	WCBlackSheetThickness	= 2.0*cm;
@@ -365,6 +388,7 @@ void WCSimDetectorConstruction::SetMailBox150kTGeometry_10inch_40perCent()  // T
 //	WCPMTRadius				= .127*m; 
 //	WCPMTExposeHeight		= WCPMTRadius - 0.01*m;
 	fPMTParams->SetPMTType("10inch");
+  fPMTConfigs.push_back(fPMTManager->GetPMTByName("10inch"));
 //	WCPMTGlassThickness		= .55*cm;
 	WCPMTPercentCoverage	= 40;	//% coverage
 	WCBlackSheetThickness	= 2.0*cm;
@@ -387,6 +411,7 @@ void WCSimDetectorConstruction::SetMailBox300kTGeometry()    // This should setu
 //	WCPMTRadius				=.127*m;
 //	WCPMTExposeHeight		=WCPMTRadius - 0.01*m;
 	fPMTParams->SetPMTType("10inch");
+  fPMTConfigs.push_back(fPMTManager->GetPMTByName("10inch"));
 //	WCPMTGlassThickness		= .55*cm;
 	WCPMTPercentCoverage	= 10;	//% coverage
 	WCBlackSheetThickness	= 2.0*cm;

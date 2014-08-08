@@ -1,5 +1,6 @@
 #include "WCSimDetectorConstruction.hh"
 #include "WCSimPMTParams.hh"
+#include "WCSimPMTConfig.hh"
 
 #include "G4Box.hh"
 #include "G4Sphere.hh"
@@ -20,8 +21,8 @@ void WCSimDetectorConstruction::ConstructPMT()
 //  sphereRadius = (WCPMTExposeHeight*WCPMTExposeHeight+ WCPMTRadius*WCPMTRadius)
 //  			/(2*WCPMTExposeHeight);
 //  PMTOffset =  sphereRadius - WCPMTExposeHeight;
-	double tmpRadius = fPMTParams->GetRadius();
-	double tmpExpose = fPMTParams->GetExposeHeight();
+	double tmpRadius = fPMTConfigs[0].GetRadius();
+	double tmpExpose = fPMTConfigs[0].GetExposeHeight();
   sphereRadius = (tmpExpose*tmpExpose + tmpRadius*tmpRadius)/(2*tmpExpose);
   PMTOffset =  sphereRadius - tmpExpose;
 

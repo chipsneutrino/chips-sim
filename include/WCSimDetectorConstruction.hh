@@ -36,6 +36,8 @@ class WCSimTuningParameters;
 class WCSimDetectorMessenger;
 class WCSimWCSD;
 class WCSimPMTParams;
+class WCSimPMTManager;
+class WCSimPMTConfig;
 
 namespace __gnu_cxx  {
   template<> struct hash< std::string >
@@ -138,8 +140,13 @@ private:
 	// WCSimPMTParams object to store the PMT related information
 	WCSimPMTParams* fPMTParams;
 
-  // Tuning parameters
+	// WCSimPMTManager to access information about the PMTs.
+	WCSimPMTManager* fPMTManager;
 
+	// Vector of WCSimPMTConfig objects.
+	std::vector<WCSimPMTConfig> fPMTConfigs;
+
+  // Tuning parameters
   WCSimTuningParameters* WCSimTuningParams;
 
   // Sensitive Detectors. We declare the pointers here because we need

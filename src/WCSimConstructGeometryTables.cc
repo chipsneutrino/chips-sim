@@ -1,6 +1,7 @@
 #include "WCSimDetectorConstruction.hh"
 #include "WCSimPmtInfo.hh"
 #include "WCSimPMTParams.hh"
+#include "WCSimPMTConfig.hh"
 
 #include "G4Material.hh"
 #include "G4Element.hh"
@@ -65,7 +66,7 @@ void WCSimDetectorConstruction::GetWCGeom
     // Stash info in data member
     // AH Need to store this in CM for it to be understood by SK code
 //    WCPMTSize = WCPMTRadius/cm;// I think this is just a variable no if needed
-    WCPMTSize = fPMTParams->GetRadius()/cm;// I think this is just a variable no if needed
+    WCPMTSize = fPMTConfigs[0].GetRadius()/cm;// I think this is just a variable no if needed
 //  }
 // (JF) None of this is needed anymore.  Values are calculated when writing file
 /*   

@@ -34,6 +34,7 @@ extern void G__set_cpp_environmentWCSimRootDict();
 #include "WCSimRootEvent.hh"
 #include "WCSimRootGeom.hh"
 #include "WCSimPmtInfo.hh"
+#include "WCSimCHIPSPMT.hh"
 #include <algorithm>
 namespace std { }
 using namespace std;
@@ -46,6 +47,7 @@ extern G__linked_taginfo G__WCSimRootDictLN_TBuffer;
 extern G__linked_taginfo G__WCSimRootDictLN_TMemberInspector;
 extern G__linked_taginfo G__WCSimRootDictLN_TObject;
 extern G__linked_taginfo G__WCSimRootDictLN_vectorlEfloatcOallocatorlEfloatgRsPgR;
+extern G__linked_taginfo G__WCSimRootDictLN_vectorlEdoublecOallocatorlEdoublegRsPgR;
 extern G__linked_taginfo G__WCSimRootDictLN_vectorlEROOTcLcLTSchemaHelpercOallocatorlEROOTcLcLTSchemaHelpergRsPgR;
 extern G__linked_taginfo G__WCSimRootDictLN_reverse_iteratorlEvectorlEROOTcLcLTSchemaHelpercOallocatorlEROOTcLcLTSchemaHelpergRsPgRcLcLiteratorgR;
 extern G__linked_taginfo G__WCSimRootDictLN_TObjArray;
@@ -66,5 +68,7 @@ extern G__linked_taginfo G__WCSimRootDictLN_WCSimRootEvent;
 extern G__linked_taginfo G__WCSimRootDictLN_WCSimRootPMT;
 extern G__linked_taginfo G__WCSimRootDictLN_WCSimRootGeom;
 extern G__linked_taginfo G__WCSimRootDictLN_WCSimPmtInfo;
+extern G__linked_taginfo G__WCSimRootDictLN_TRandom;
+extern G__linked_taginfo G__WCSimRootDictLN_WCSimCHIPSPMT;
 
 /* STUB derived class for protected member access */

@@ -2,6 +2,7 @@
 #include "WCSimDetectorMessenger.hh"
 #include "WCSimTuningParameters.hh"
 #include "WCSimPMTParams.hh"
+#include "WCSimPMTManager.hh"
 
 #include "G4Material.hh"
 #include "G4Element.hh"
@@ -41,6 +42,9 @@ WCSimDetectorConstruction::WCSimDetectorConstruction(G4int DetConfig,WCSimTuning
 
 	// Create the PMT object
 	fPMTParams = new WCSimPMTParams();
+
+	// Create the PMT manager
+	fPMTManager = new WCSimPMTManager();
 
   //-----------------------------------------------------
   // Create Materials
