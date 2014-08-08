@@ -139,7 +139,7 @@ void WCSimPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
         {
             vtx = G4ThreeVector(atof(token[3])*cm,
                     atof(token[2])*cm,
-                    atof(token[3])*cm);
+                    atof(token[1])*cm);
         }
 			
 		std::cerr << " About to do the random vertex " << std::endl;
