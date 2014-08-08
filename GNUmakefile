@@ -14,7 +14,7 @@ ifndef G4INSTALL
 endif
 
 ROOTCFLAGS   := $(shell root-config --cflags) -DUSE_ROOT -fPIC
-ROOTLIBS     := $(shell root-config --libs)
+ROOTLIBS     := $(shell root-config --glibs)
 
 LIBNAME := WCSim
 
@@ -41,15 +41,15 @@ EXTRALIBS += $(ROOTLIBS)
 EXTRA_LINK_DEPENDENCIES := 
 
 .PHONY: all
-all: rootcint lib bin shared libWCSim.a
+all: rootcint lib bin shared libWCSim.a evDisp
 
 # Note dependencies not yet set up right yet
 
 ROOTSO    := libWCSimRoot.so
 
-ROOTSRC  := ./src/WCSimRootEvent.cc ./include/WCSimRootEvent.hh ./src/WCSimRootGeom.cc ./include/WCSimRootGeom.hh ./include/WCSimPmtInfo.hh ./src/WCSimCHIPSPMT.cc ./include/WCSimCHIPSPMT.hh ./include/WCSimRootLinkDef.hh
+ROOTSRC  := ./src/WCSimRootEvent.cc ./include/WCSimRootEvent.hh ./src/WCSimRootGeom.cc ./include/WCSimRootGeom.hh ./include/WCSimPmtInfo.hh ./src/WCSimCHIPSPMT.cc ./include/WCSimCHIPSPMT.hh ./include/WCSimEvDisplay.hh ./include/WCSimRootLinkDef.hh
 
-ROOTOBJS  := $(G4WORKDIR)/tmp/$(G4SYSTEM)/WCSim/WCSimRootEvent.o $(G4WORKDIR)/tmp/$(G4SYSTEM)/WCSim/WCSimRootGeom.o $(G4WORKDIR)/tmp/$(G4SYSTEM)/WCSim/WCSimPmtInfo.o $(G4WORKDIR)/tmp/$(G4SYSTEM)/WCSim/WCSimCHIPSPMT.o $(G4WORKDIR)/tmp/$(G4SYSTEM)/WCSim/WCSimRootDict.o 
+ROOTOBJS  := $(G4WORKDIR)/tmp/$(G4SYSTEM)/WCSim/WCSimRootEvent.o $(G4WORKDIR)/tmp/$(G4SYSTEM)/WCSim/WCSimRootGeom.o $(G4WORKDIR)/tmp/$(G4SYSTEM)/WCSim/WCSimPmtInfo.o $(G4WORKDIR)/tmp/$(G4SYSTEM)/WCSim/WCSimCHIPSPMT.o $(G4WORKDIR)/tmp/$(G4SYSTEM)/WCSim/WCSimEvDisplay.o $(G4WORKDIR)/tmp/$(G4SYSTEM)/WCSim/WCSimRootDict.o 
 
 shared: $(ROOTSRC) $(ROOTOBJS) 
 	g++ -shared -O $(ROOTOBJS) -o $(ROOTSO) $(ROOTLIBS)
@@ -59,8 +59,12 @@ libWCSim.a : $(ROOTOBJS)
 	ar clq $@ $(ROOTOBJS) 
 
 ./src/WCSimRootDict.cc : $(ROOTSRC)
-	rootcint  -f ./src/WCSimRootDict.cc -c -I./include -I$(shell root-config --incdir) WCSimRootEvent.hh WCSimRootGeom.hh  WCSimPmtInfo.hh WCSimCHIPSPMT.hh WCSimRootLinkDef.hh
+	rootcint  -f ./src/WCSimRootDict.cc -c -I./include -I$(shell root-config --incdir) WCSimRootEvent.hh WCSimRootGeom.hh  WCSimPmtInfo.hh WCSimCHIPSPMT.hh WCSimEvDisplay.hh WCSimRootLinkDef.hh
+
 
 rootcint: ./src/WCSimRootDict.cc
+
+evDisp : 
+	g++ `root-config --cflags --glibs` -I./include -L./ -o evDisplay evDisplay.cc src/WCSimRootDict.cc -lWCSim
 
 include $(G4INSTALL)/config/binmake.gmk

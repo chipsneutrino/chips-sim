@@ -35,6 +35,7 @@ extern void G__set_cpp_environmentWCSimRootDict();
 #include "WCSimRootGeom.hh"
 #include "WCSimPmtInfo.hh"
 #include "WCSimCHIPSPMT.hh"
+#include "WCSimEvDisplay.hh"
 #include <algorithm>
 namespace std { }
 using namespace std;
@@ -48,6 +49,7 @@ extern G__linked_taginfo G__WCSimRootDictLN_TMemberInspector;
 extern G__linked_taginfo G__WCSimRootDictLN_TObject;
 extern G__linked_taginfo G__WCSimRootDictLN_vectorlEfloatcOallocatorlEfloatgRsPgR;
 extern G__linked_taginfo G__WCSimRootDictLN_vectorlEdoublecOallocatorlEdoublegRsPgR;
+extern G__linked_taginfo G__WCSimRootDictLN_string;
 extern G__linked_taginfo G__WCSimRootDictLN_vectorlEROOTcLcLTSchemaHelpercOallocatorlEROOTcLcLTSchemaHelpergRsPgR;
 extern G__linked_taginfo G__WCSimRootDictLN_reverse_iteratorlEvectorlEROOTcLcLTSchemaHelpercOallocatorlEROOTcLcLTSchemaHelpergRsPgRcLcLiteratorgR;
 extern G__linked_taginfo G__WCSimRootDictLN_TObjArray;
@@ -70,5 +72,19 @@ extern G__linked_taginfo G__WCSimRootDictLN_WCSimRootGeom;
 extern G__linked_taginfo G__WCSimRootDictLN_WCSimPmtInfo;
 extern G__linked_taginfo G__WCSimRootDictLN_TRandom;
 extern G__linked_taginfo G__WCSimRootDictLN_WCSimCHIPSPMT;
+extern G__linked_taginfo G__WCSimRootDictLN_TQObject;
+extern G__linked_taginfo G__WCSimRootDictLN_TGWindow;
+extern G__linked_taginfo G__WCSimRootDictLN_TGObject;
+extern G__linked_taginfo G__WCSimRootDictLN_TGFrame;
+extern G__linked_taginfo G__WCSimRootDictLN_TGCompositeFrame;
+extern G__linked_taginfo G__WCSimRootDictLN_TGHorizontalFrame;
+extern G__linked_taginfo G__WCSimRootDictLN_TGMainFrame;
+extern G__linked_taginfo G__WCSimRootDictLN_TRootEmbeddedCanvas;
+extern G__linked_taginfo G__WCSimRootDictLN_TChain;
+extern G__linked_taginfo G__WCSimRootDictLN_TH1;
+extern G__linked_taginfo G__WCSimRootDictLN_TH1D;
+extern G__linked_taginfo G__WCSimRootDictLN_TH2D;
+extern G__linked_taginfo G__WCSimRootDictLN_TPad;
+extern G__linked_taginfo G__WCSimRootDictLN_WCSimEvDisplay;
 
 /* STUB derived class for protected member access */
