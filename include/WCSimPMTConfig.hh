@@ -28,8 +28,8 @@ public:
 	double GetGlassThickness() const;
 	void SetGlassThickness(double thick);
 
-	std::vector<std::pair<double,double> > GetEfficiency() const;
-	void SetEfficiency(std::vector<std::pair<double,double> > effVec);
+	std::vector<std::pair<double,double> > GetEfficiencyVector() const;
+	void SetEfficiencyVector(std::vector<std::pair<double,double> > effVec);
 
 	// Not set function for this, performed by SetEfficiency.
 	double GetMaxEfficiency() const;

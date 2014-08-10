@@ -21,7 +21,7 @@ WCSimPMTConfig::WCSimPMTConfig(const WCSimPMTConfig &rhs){
 	fRadius = rhs.GetRadius();
 	fExposeHeight = rhs.GetExposeHeight();
 	fGlassThickness = rhs.GetGlassThickness();
-	this->SetEfficiency(rhs.GetEfficiency());
+	this->SetEfficiencyVector(rhs.GetEfficiencyVector());
 	fPMTName = rhs.GetPMTName();
 }
 
@@ -62,11 +62,11 @@ void WCSimPMTConfig::SetGlassThickness(double glass){
 
 // Efficiency
 
-std::vector<std::pair<double,double> > WCSimPMTConfig::GetEfficiency() const{
+std::vector<std::pair<double,double> > WCSimPMTConfig::GetEfficiencyVector() const{
 	return fEffVec; 
 }
 
-void WCSimPMTConfig::SetEfficiency(std::vector<std::pair<double,double> > eff){
+void WCSimPMTConfig::SetEfficiencyVector(std::vector<std::pair<double,double> > eff){
 	fEffVec = eff;
 
 	// Now loop over and get the maximum value

@@ -42,7 +42,7 @@ void WCSimPMTManager::ReadPMTTypeList(){
 		}
 		// We have filled the temporary efficiency vector. Now sort it and add to the pmt object.
 		std::sort(fTempEffVec.begin(),fTempEffVec.end());
-		pmt.SetEfficiency(fTempEffVec);
+		pmt.SetEfficiencyVector(fTempEffVec);
 		fPMTVector.push_back(pmt);
 	}
  

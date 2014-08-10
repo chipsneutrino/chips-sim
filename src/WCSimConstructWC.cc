@@ -67,7 +67,7 @@ G4float WCSimDetectorConstruction::GetPMTQE(G4float PhotonWavelength, G4int flag
 	// Leigh:
 	// Get the quantum efficiency as a function of wavelength
 	// First number in the pair is the wavelength, second is the efficiency
-	std::vector<std::pair<double,double> > qEff = fPMTConfigs[0].GetEfficiency();
+	std::vector<std::pair<double,double> > qEff = fPMTConfigs[0].GetEfficiencyVector();
 	const G4float qeMax = fPMTConfigs[0].GetMaxEfficiency();
 
 	G4double newWave = 0;
