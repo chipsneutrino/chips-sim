@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+This is the config file that defines the different CHIPS geometries
+
+Parameters and descriptions:
+===========
+Main Detector (required)
+
+innerRadius
+  - Radius of the inner part of the detector in m
+innerHeight
+  - Height of the inner part of the detector in m
+nSides
+  - Number of sides of the regular polygon that makes up the cross-sectional
+    area of the detector
+
+PMT (required)
+
+pmtName1
+  - Name of the PMT (as named in pmtDefinitions.xml) to be used in the unit 
+    cells
+perCentCoverage
+  - The required percentage of the inner detector area to be covered with 
+    PMT photocathode.
+
+PMT (optional)
+
+pmtName2
+  - Name of an optional second PMT to be used in the unit cells
+pmtRatio
+  - Ratio of number of PMT1 to PMT2 per unit cell such that PMT1 is always
+    the most numerous PMT
+-->
+
+<!-- CHIPS 25kt with 10% coverage of 10" HQE PMTs -->
+<geoDef
+  name="CHIPS_25kton_10inch_HQE_10perCent"
+  innerRadius="20"
+  innerHeight="40"
+	nSides="20"
+	pmtName1="10inch_HQE"
+	perCentCoverage="10"
+/>
+
