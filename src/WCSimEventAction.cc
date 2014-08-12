@@ -30,7 +30,7 @@
 #include <string>
 #include <vector>
 
-#include "jhfNtuple.h"
+//#include "jhfNtuple.h"
 #include "TTree.h"
 #include "TFile.h"
 #include "WCSimRootEvent.hh"
@@ -157,16 +157,16 @@ void WCSimEventAction::EndOfEventAction(const G4Event* evt)
   //  Fill Ntuple
   // ----------------------------------------------------------------------
 
-  jhfNtuple.mode   = mode;         // interaction mode
-  jhfNtuple.vtxvol = vtxvol;       // volume of vertex
+//  jhfNtuple.mode   = mode;         // interaction mode
+//  jhfNtuple.vtxvol = vtxvol;       // volume of vertex
   // unit mismatch between geant4 and reconstruction, M Fechner
   //  jhfNtuple.vtx[0] = vtx[0]/1000.; // interaction vertex
   //jhfNtuple.vtx[1] = vtx[1]/1000.; // interaction vertex
   //jhfNtuple.vtx[2] = vtx[2]/1000.; // interaction vertex
-  jhfNtuple.vtx[0] = vtx[0]/cm; // interaction vertex
-  jhfNtuple.vtx[1] = vtx[1]/cm; // interaction vertex
-  jhfNtuple.vtx[2] = vtx[2]/cm; // interaction vertex
-  jhfNtuple.vecRecNumber = vecRecNumber; //vectorfile record number
+//  jhfNtuple.vtx[0] = vtx[0]/cm; // interaction vertex
+//  jhfNtuple.vtx[1] = vtx[1]/cm; // interaction vertex
+//  jhfNtuple.vtx[2] = vtx[2]/cm; // interaction vertex
+//  jhfNtuple.vecRecNumber = vecRecNumber; //vectorfile record number
 
   // mustop, pstop, npar will be filled later
 
@@ -181,24 +181,24 @@ void WCSimEventAction::EndOfEventAction(const G4Event* evt)
   G4double      beamenergy = generatorAction->GetBeamEnergy();
   G4ThreeVector beamdir    = generatorAction->GetBeamDir();
 
-  jhfNtuple.ipnu[npar]    = beampdg;               // id
-  jhfNtuple.flag[npar]    = -1;                    // incoming neutrino
-  jhfNtuple.m[npar]       = 0.0;                   // mass (always a neutrino)
-  jhfNtuple.p[npar]       = beamenergy;            // momentum magnitude
-  jhfNtuple.E[npar]       = beamenergy;            // energy 
-  jhfNtuple.startvol[npar]= -1;                    // starting volume, vtxvol should be referred
-  jhfNtuple.stopvol[npar] = -1;                    // stopping volume 
-  jhfNtuple.dir[npar][0]  = beamdir[0];            // direction 
-  jhfNtuple.dir[npar][1]  = beamdir[1];            // direction 
-  jhfNtuple.dir[npar][2]  = beamdir[2];            // direction 
-  jhfNtuple.pdir[npar][0] = beamenergy*beamdir[0]; // momentum-vector 
-  jhfNtuple.pdir[npar][1] = beamenergy*beamdir[1]; // momentum-vector 
-  jhfNtuple.pdir[npar][2] = beamenergy*beamdir[2]; // momentum-vector 
+//  jhfNtuple.ipnu[npar]    = beampdg;               // id
+//  jhfNtuple.flag[npar]    = -1;                    // incoming neutrino
+//  jhfNtuple.m[npar]       = 0.0;                   // mass (always a neutrino)
+//  jhfNtuple.p[npar]       = beamenergy;            // momentum magnitude
+//  jhfNtuple.E[npar]       = beamenergy;            // energy 
+//  jhfNtuple.startvol[npar]= -1;                    // starting volume, vtxvol should be referred
+//  jhfNtuple.stopvol[npar] = -1;                    // stopping volume 
+//  jhfNtuple.dir[npar][0]  = beamdir[0];            // direction 
+//  jhfNtuple.dir[npar][1]  = beamdir[1];            // direction 
+//  jhfNtuple.dir[npar][2]  = beamdir[2];            // direction 
+//  jhfNtuple.pdir[npar][0] = beamenergy*beamdir[0]; // momentum-vector 
+//  jhfNtuple.pdir[npar][1] = beamenergy*beamdir[1]; // momentum-vector 
+//  jhfNtuple.pdir[npar][2] = beamenergy*beamdir[2]; // momentum-vector 
   // M Fechner, same as above
-  jhfNtuple.stop[npar][0] = vtx[0]/cm;  // stopping point (not meaningful)
-  jhfNtuple.stop[npar][1] = vtx[1]/cm;  // stopping point (not meaningful)
-  jhfNtuple.stop[npar][2] = vtx[2]/cm;  // stopping point (not meaningful)
-  jhfNtuple.parent[npar] = 0;
+//  jhfNtuple.stop[npar][0] = vtx[0]/cm;  // stopping point (not meaningful)
+//  jhfNtuple.stop[npar][1] = vtx[1]/cm;  // stopping point (not meaningful)
+//  jhfNtuple.stop[npar][2] = vtx[2]/cm;  // stopping point (not meaningful)
+//  jhfNtuple.parent[npar] = 0;
 
   npar++;
 
@@ -220,28 +220,28 @@ void WCSimEventAction::EndOfEventAction(const G4Event* evt)
       targetpmag = 0.0;
   }
 
-  jhfNtuple.ipnu[npar]     = targetpdg;    // id
-  jhfNtuple.flag[npar]    = -2;            // target
-  jhfNtuple.m[npar]       = targetmass;    // mass (always a neutrino)
-  jhfNtuple.p[npar]       = targetpmag;    // momentum magnitude
-  jhfNtuple.E[npar]       = targetenergy;  // energy (total!) 
-  jhfNtuple.startvol[npar] = -1;           // starting volume 
-  jhfNtuple.stopvol[npar] = -1;            // stopping volume 
-  jhfNtuple.dir[npar][0]  = targetdir[0];  // direction 
-  jhfNtuple.dir[npar][1]  = targetdir[1];  // direction 
-  jhfNtuple.dir[npar][2]  = targetdir[2];  // direction 
+//  jhfNtuple.ipnu[npar]     = targetpdg;    // id
+//  jhfNtuple.flag[npar]    = -2;            // target
+//  jhfNtuple.m[npar]       = targetmass;    // mass (always a neutrino)
+//  jhfNtuple.p[npar]       = targetpmag;    // momentum magnitude
+//  jhfNtuple.E[npar]       = targetenergy;  // energy (total!) 
+//  jhfNtuple.startvol[npar] = -1;           // starting volume 
+//  jhfNtuple.stopvol[npar] = -1;            // stopping volume 
+//  jhfNtuple.dir[npar][0]  = targetdir[0];  // direction 
+//  jhfNtuple.dir[npar][1]  = targetdir[1];  // direction 
+//  jhfNtuple.dir[npar][2]  = targetdir[2];  // direction 
   // MF feb9,2006 : we want the momentum, not the energy...
   //  jhfNtuple.pdir[npar][0] = targetenergy*targetdir[0];  // momentum-vector 
   //  jhfNtuple.pdir[npar][1] = targetenergy*targetdir[1];  // momentum-vector 
   //  jhfNtuple.pdir[npar][2] = targetenergy*targetdir[2];  // momentum-vector 
-  jhfNtuple.pdir[npar][0] = targetpmag*targetdir[0];  // momentum-vector 
-  jhfNtuple.pdir[npar][1] = targetpmag*targetdir[1];  // momentum-vector 
-  jhfNtuple.pdir[npar][2] = targetpmag*targetdir[2];  // momentum-vector 
+//  jhfNtuple.pdir[npar][0] = targetpmag*targetdir[0];  // momentum-vector 
+//  jhfNtuple.pdir[npar][1] = targetpmag*targetdir[1];  // momentum-vector 
+//  jhfNtuple.pdir[npar][2] = targetpmag*targetdir[2];  // momentum-vector 
   // M Fechner, same as above
-  jhfNtuple.stop[npar][0] = vtx[0]/cm;  // stopping point (not meaningful)
-  jhfNtuple.stop[npar][1] = vtx[1]/cm;  // stopping point (not meaningful)
-  jhfNtuple.stop[npar][2] = vtx[2]/cm;  // stopping point (not meaningful)
-  jhfNtuple.parent[npar] = 0;
+//  jhfNtuple.stop[npar][0] = vtx[0]/cm;  // stopping point (not meaningful)
+//  jhfNtuple.stop[npar][1] = vtx[1]/cm;  // stopping point (not meaningful)
+//  jhfNtuple.stop[npar][2] = vtx[2]/cm;  // stopping point (not meaningful)
+//  jhfNtuple.parent[npar] = 0;
 
   npar++;
 
@@ -312,7 +312,6 @@ void WCSimEventAction::EndOfEventAction(const G4Event* evt)
 
 
   FillRootEvent(event_id,
-		jhfNtuple,
 		trajectoryContainer,
 		WCHC,
 		WCDC);
@@ -416,7 +415,6 @@ G4int WCSimEventAction::WCSimEventFindStoppingVolume(G4String stopVolumeName)
 }
 
 void WCSimEventAction::FillRootEvent(G4int event_id, 
-				      const struct ntupleStruct& jhfNtuple,
 				      G4TrajectoryContainer* TC,
 				      WCSimWCHitsCollection* WCHC, 
 				      WCSimWCDigitsCollection* WCDC)
@@ -443,7 +441,7 @@ void WCSimEventAction::FillRootEvent(G4int event_id,
 	wcsimrootevent = wcsimrootsuperevent->GetTrigger(index);
 	wcsimrootevent->SetHeader(event_id,0,
 				   0,index+1); // date & # of subevent 
-	wcsimrootevent->SetMode(jhfNtuple.mode);
+	wcsimrootevent->SetMode(generatorAction->GetMode()); //jhfNtuple.mode);
       }
     }
   
@@ -455,51 +453,130 @@ void WCSimEventAction::FillRootEvent(G4int event_id,
 
   // Fill other info for this event
 
-  wcsimrootevent->SetMode(jhfNtuple.mode);
-  wcsimrootevent->SetVtxvol(jhfNtuple.vtxvol);
+  wcsimrootevent->SetMode(generatorAction->GetMode()); //jhfNtupe.mode);
+  G4ThreeVector vtx = generatorAction->GetVtx();
+  wcsimrootevent->SetVtxvol(WCSimEventFindStartingVolume(vtx)); //jhfNtuple.vtxvol);
   for (int j=0;j<3;j++)
   {
-    wcsimrootevent->SetVtx(j,jhfNtuple.vtx[j]);
+    wcsimrootevent->SetVtx(j,vtx[j]);
   }
-  wcsimrootevent->SetJmu(jhfNtuple.jmu);
-  wcsimrootevent->SetJp(jhfNtuple.jp);
-  wcsimrootevent->SetNpar(jhfNtuple.npar);
-  wcsimrootevent->SetVecRecNumber(jhfNtuple.vecRecNumber);
+  // wcsimrootevent->SetJmu(jhfNtuple.jmu); // Never appears to be set...
+  // wcsimrootevent->SetJp(jhfNtuple.jp); // Never appears to be set...
+  // wcsimrootevent->SetNpar(jhfNtuple.npar); // Never appears to be set...
+  wcsimrootevent->SetVecRecNumber(generatorAction->GetVecRecNumber()); //jhfNtuple.vecRecNumber);
 
   // Add the tracks with the particle information
   // First two tracks come from jhfNtuple, as they are special
 
-  int k;
-  for (k=0;k<2;k++) // should be just 2
-  {
+//  int k;
+//  for (k=0;k<2;k++) // should be just 2
+//  {
     float dir[3];
     float pdir[3];
     float stop[3];
     float start[3];
-    for (int l=0;l<3;l++)
-    {
-      dir[l]=jhfNtuple.dir[k][l];
-      pdir[l]=jhfNtuple.pdir[k][l];
-      stop[l]=jhfNtuple.stop[k][l];
-      start[l]=jhfNtuple.start[k][l];
-	G4cout<< "start[" << k << "][" << l <<"]: "<< jhfNtuple.start[k][l] <<G4endl;
-    }
+//    for (int l=0;l<3;l++)
+//    {
+//      dir[l]=jhfNtuple.dir[k][l];
+//      pdir[l]=jhfNtuple.pdir[k][l];
+//      stop[l]=jhfNtuple.stop[k][l];
+//      start[l]=jhfNtuple.start[k][l];
+//	G4cout<< "start[" << k << "][" << l <<"]: "<< jhfNtuple.start[k][l] <<G4endl;
+//    }
 
     // Add the track to the TClonesArray
-    wcsimrootevent->AddTrack(jhfNtuple.ipnu[k], 
-			      jhfNtuple.flag[k], 
-			      jhfNtuple.m[k], 
-			      jhfNtuple.p[k], 
-			      jhfNtuple.E[k], 
-			      jhfNtuple.startvol[k], 
-			      jhfNtuple.stopvol[k], 
-			      dir, 
-			      pdir, 
-			      stop,
-			      start,
-			      jhfNtuple.parent[k],
-			     jhfNtuple.time[k],0); 
+//    wcsimrootevent->AddTrack(jhfNtuple.ipnu[k], 
+//			      jhfNtuple.flag[k], 
+//			      jhfNtuple.m[k], 
+//			      jhfNtuple.p[k], 
+//			      jhfNtuple.E[k], 
+//			      jhfNtuple.startvol[k], 
+//			      jhfNtuple.stopvol[k], 
+//			      dir, 
+//			      pdir, 
+//			      stop,
+//			      start,
+//			      jhfNtuple.parent[k],
+//			     jhfNtuple.time[k],0); 
+//  }
+
+  // First track is special and contains beam information
+  G4double beamEnergy = generatorAction->GetBeamEnergy();
+  G4ThreeVector beamDir = generatorAction->GetBeamDir();
+  G4ThreeVector beamMom = beamDir*beamEnergy;
+
+  // Fill the float arrays (Why can't we use three vectors for this?)
+  for(unsigned int i = 0; i < 3; ++i){
+    dir[i] = beamDir[i];
+    pdir[i] = beamMom[i];
+    stop[i] = vtx[i]/cm; // Apparently not meaningful?
+    start[i] = 0.0; // I never saw this set anywhere.
   }
+
+  wcsimrootevent->AddTrack(generatorAction->GetBeamPDG(),
+                           -1, // This is the dummy flag for the neutrino
+                           0.0, // Assume zero mass for neutrino
+                           beamEnergy, // Momentum = Energy for zero mass
+                           beamEnergy, // Energy 
+                           -1, // Start volume = -1
+                           -1, // Stop volume = -1
+                           dir, // Direction
+                           pdir, // Mom-vector
+                           stop, // Stopping point
+                           start, // Starting point
+                           0, // Neutrino has no parent
+                           0.0, // Time doesn't appear to be set
+                           0);                         
+ 
+  // Second track is special and contains target information
+  G4double targetEnergy = generatorAction->GetTargetEnergy();
+  G4ThreeVector targetDir = generatorAction->GetTargetDir();
+  G4int targetPDG = generatorAction->GetTargetPDG();
+  // Find out the target mass
+  G4double targetMass = 0.0;
+  G4double targetPMag = 0.0;
+  G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
+  if (targetPDG!=0) {            // protects against seg-fault
+    if (targetPDG > 999){         // 16O nucleus not in pdg table
+      targetMass = targetEnergy; // 16O is at rest, so E = m
+    }
+    else{
+      targetMass = particleTable->FindParticle(targetPDG)->GetPDGMass();
+    }
+
+    if (targetEnergy > targetMass){
+      //      targetpmag = sqrt(targetenergy*targetenergy - targetmass*targetenergy);
+      // MF : bug fix
+      targetPMag = sqrt(targetEnergy*targetEnergy - targetMass*targetMass);
+    }
+    else{ // protect against NaN
+      targetPMag = 0.0;
+    }
+  }
+  G4ThreeVector targetMom = targetDir*targetPMag;
+
+  // Fill the float arrays (Why can't we use three vectors for this?)
+  for(unsigned int i = 0; i < 3; ++i){
+    dir[i] = targetDir[i];
+    pdir[i] = targetMom[i];
+    stop[i] = vtx[i]/cm; // Apparently not meaningful?
+    start[i] = 0.0; // I never saw this set anywhere.
+  }
+
+  wcsimrootevent->AddTrack(targetPDG,
+                           -2, // This is the dummy flag for the target
+                           targetMass, // Mass
+                           targetPMag, // Momentum 
+                           targetEnergy, // Energy 
+                           -1, // Start volume = -1
+                           -1, // Stop volume = -1
+                           dir, // Direction
+                           pdir, // Mom-vector
+                           stop, // Stopping point
+                           start, // Starting point
+                           0, // Target has no parent
+                           0.0, // Time doesn't appear to be set
+                           0);
 
   // the rest of the tracks come from WCSimTrajectory
 
@@ -668,13 +745,13 @@ void WCSimEventAction::FillRootEvent(G4int event_id,
   // Add the Cherenkov hits
   wcsimrootevent = wcsimrootsuperevent->GetTrigger(0);
 
-  wcsimrootevent->SetNumTubesHit(jhfNtuple.numTubesHit);
+//  wcsimrootevent->SetNumTubesHit(jhfNtuple.numTubesHit);
 #ifdef _SAVE_RAW_HITS
   if (WCHC) 
   {
     G4cout<<"RAW HITS"<<G4endl;
     wcsimrootevent->SetNumTubesHit(WCHC->entries());
-    for (k=0;k<WCHC->entries();k++){
+    for (int k=0;k<WCHC->entries();k++){
     
       std::vector<float> truetime;
       std::vector<int>   primaryParentID;
@@ -708,7 +785,7 @@ void WCSimEventAction::FillRootEvent(G4int event_id,
 	G4float gatestart;
 	int countdigihits = 0;
 	wcsimrootevent = wcsimrootsuperevent->GetTrigger(index);
-	for (k=0;k<WCDC->entries();k++)
+	for (int k=0;k<WCDC->entries();k++)
 	  {
 	    if ( (*WCDC)[k]->HasHitsInGate(index)) {
 	      wcsimrootevent->AddCherenkovDigiHit((*WCDC)[k]->GetPe(index),

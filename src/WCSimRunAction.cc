@@ -6,8 +6,6 @@
 #include "G4VVisManager.hh"
 #include "G4ios.hh"
 
-#include "jhfNtuple.h"
-
 #ifdef REFLEX_DICTIONARY
 #include "Cintex/Cintex.h"
 #endif
@@ -24,7 +22,6 @@
 #include <vector>
 
 int pawc_[500000];                // Declare the PAWC common
-struct ntupleStruct jhfNtuple;
 
 WCSimRunAction::WCSimRunAction(WCSimDetectorConstruction* test)
 {

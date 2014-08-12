@@ -31,8 +31,7 @@ public:
 public:
   void BeginOfEventAction(const G4Event*);
   void EndOfEventAction(const G4Event*);
-  void FillRootEvent(G4int, 
-		     const struct ntupleStruct&, 
+  void FillRootEvent(G4int,  
 		     G4TrajectoryContainer*,
 		     WCSimWCHitsCollection*, 
 		     WCSimWCDigitsCollection*);
