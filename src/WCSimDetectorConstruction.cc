@@ -1,7 +1,6 @@
 #include "WCSimDetectorConstruction.hh"
 #include "WCSimDetectorMessenger.hh"
 #include "WCSimTuningParameters.hh"
-#include "WCSimPMTParams.hh"
 #include "WCSimPMTManager.hh"
 
 #include "G4Material.hh"
@@ -39,9 +38,6 @@ WCSimDetectorConstruction::WCSimDetectorConstruction(G4int DetConfig,WCSimTuning
       aWCPMT     = NULL;
 
   myConfiguration = DetConfig;
-
-	// Create the PMT object
-	fPMTParams = new WCSimPMTParams();
 
 	// Create the PMT manager
 	fPMTManager = new WCSimPMTManager();
@@ -122,7 +118,6 @@ WCSimDetectorConstruction::~WCSimDetectorConstruction(){
   }
   fpmts.clear();
 
-	delete fPMTParams;
 }
 
 
@@ -224,4 +219,12 @@ G4VPhysicalVolume* WCSimDetectorConstruction::Construct()
   
   // Return the pointer to the physical experimental hall
   return physiExpHall;
+}
+
+WCSimPMTManager* WCSimDetectorConstruction::GetPMTManager() const{
+	return fPMTManager;
+}
+
+std::vector<WCSimPMTConfig> WCSimDetectorConstruction::GetPMTVector() const{
+	return fPMTConfigs;
 }

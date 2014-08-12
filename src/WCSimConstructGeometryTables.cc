@@ -1,6 +1,5 @@
 #include "WCSimDetectorConstruction.hh"
 #include "WCSimPmtInfo.hh"
-#include "WCSimPMTParams.hh"
 #include "WCSimPMTConfig.hh"
 
 #include "G4Material.hh"

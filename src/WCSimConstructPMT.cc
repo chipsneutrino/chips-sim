@@ -1,5 +1,4 @@
 #include "WCSimDetectorConstruction.hh"
-#include "WCSimPMTParams.hh"
 #include "WCSimPMTConfig.hh"
 
 #include "G4Box.hh"
@@ -69,7 +68,7 @@ void WCSimDetectorConstruction::ConstructPMT()
   //Create PMT Interior
   G4Sphere* tmpSolidInteriorWCPMT =
   	new G4Sphere(	"tmpInteriorWCPMT",
-				0.0*m,(sphereRadius-fPMTParams->GetGlassThickness()),
+				0.0*m,(sphereRadius-fPMTConfigs[0].GetGlassThickness()),
 				0.0*deg,360.0*deg,
 				0.0*deg,90.0*deg);
 
@@ -97,7 +96,7 @@ void WCSimDetectorConstruction::ConstructPMT()
   //Create PMT Glass Face
   G4Sphere* tmpGlassFaceWCPMT =
   	new G4Sphere(	"tmpGlassFaceWCPMT",
-				(sphereRadius-fPMTParams->GetGlassThickness()),
+				(sphereRadius-fPMTConfigs[0].GetGlassThickness()),
 				sphereRadius,
 				0.0*deg,360.0*deg,
 				0.0*deg,90.0*deg);

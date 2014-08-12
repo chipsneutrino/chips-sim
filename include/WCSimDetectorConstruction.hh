@@ -2,6 +2,7 @@
 #define WCSimDetectorConstruction_H 1
 
 #include "WCSimPmtInfo.hh"
+#include "WCSimPMTConfig.hh"
 
 #include "G4Transform3D.hh"
 #include "G4VUserDetectorConstruction.hh"
@@ -35,7 +36,6 @@ class G4VPhysicalVolume;
 class WCSimTuningParameters;
 class WCSimDetectorMessenger;
 class WCSimWCSD;
-class WCSimPMTParams;
 class WCSimPMTManager;
 class WCSimPMTConfig;
 
@@ -120,9 +120,6 @@ public:
 	G4int GetPMTSim() const {return PMTSim_Method;};
 	void SetPMTSim(G4int val) {PMTSim_Method = val;};
 
-	// Leigh: Get a pointer to the PMT parameter object
-	WCSimPMTParams* GetPMTParams() {return fPMTParams;};
-
   // Geometry options
   void   SetIsUpright(G4bool choice) {isUpright = choice;}
   void   SetIsMailbox(G4bool choice) {isMailbox = choice;}
@@ -133,12 +130,13 @@ public:
      else return 0;
   }
 
+	WCSimPMTManager* GetPMTManager() const;
+
+	std::vector<WCSimPMTConfig> GetPMTVector() const;
+
   std::vector<WCSimPmtInfo*>* Get_Pmts() {return &fpmts;}
 
 private:
-
-	// WCSimPMTParams object to store the PMT related information
-	WCSimPMTParams* fPMTParams;
 
 	// WCSimPMTManager to access information about the PMTs.
 	WCSimPMTManager* fPMTManager;

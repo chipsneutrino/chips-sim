@@ -31,7 +31,6 @@
 
 #include "G4SDManager.hh"
 #include "WCSimWCSD.hh"
-#include "WCSimPMTParams.hh"
 #include "WCSimPMTConfig.hh"
 #include "WCSimTuningParameters.hh" //jl145
 
