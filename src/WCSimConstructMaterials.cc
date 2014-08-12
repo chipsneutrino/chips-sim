@@ -121,7 +121,7 @@ void WCSimDetectorConstruction::ConstructMaterials()
   DryIce->AddElement(elO, 2);
 
   density = 1.290*mg/cm3;
-  G4Material* Air = new G4Material("Air",density,2);
+  G4Material* Air = new G4Material("Air",density,3);
   Air->AddElement(elN, 78.*perCent);
   Air->AddElement(elO, 21.*perCent);
   Air->AddElement(elAr, 1.*perCent);
