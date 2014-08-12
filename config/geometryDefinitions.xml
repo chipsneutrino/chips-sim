@@ -35,9 +35,9 @@ pmtRatio
 
 <!-- CHIPS 25kt with 10% coverage of 10" HQE PMTs -->
 <geoDef
-  name="CHIPS_25kton_10inch_HQE_10perCent"
-  innerRadius="20"
-  innerHeight="40"
+	name="CHIPS_25kton_10inch_HQE_10perCent"
+	innerRadius="20"
+	innerHeight="40"
 	nSides="20"
 	pmtName1="10inch_HQE"
 	perCentCoverage="10"
