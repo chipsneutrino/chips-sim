@@ -305,11 +305,10 @@ WCSimRootCherenkovHit *WCSimRootTrigger::AddCherenkovHit(Int_t tubeID,std::vecto
   // Add a new Cherenkov hit to the list of Cherenkov hits
   TClonesArray &cherenkovhittimes = *fCherenkovHitTimes;
 
-  for (int i =0;i<truetime.size();i++)
+  for (unsigned int i =0;i<truetime.size();i++)
   {
     fCherenkovHitCounter++;
-
-  WCSimRootCherenkovHitTime *cherenkovhittime = 
+ 
     new(cherenkovhittimes[fNcherenkovhittimes++]) WCSimRootCherenkovHitTime(truetime[i],primParID[i]);
   }
 
@@ -402,9 +401,6 @@ WCSimRootEvent::~WCSimRootEvent()
     }
     delete fEventList;
   }
-  //  std::vector<WCSimRootTrigger*>::iterator  iter = fEventList.begin();
-  //for ( ; iter != fEventList.end() ; ++iter) delete (*iter);
-  //Clear("");
 }
 
 void WCSimRootEvent::Clear(Option_t* o)
