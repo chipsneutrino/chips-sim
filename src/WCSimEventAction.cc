@@ -57,12 +57,6 @@ void WCSimEventAction::EndOfEventAction(const G4Event* evt)
 {
 
   // ----------------------------------------------------------------------
-  //  Get Particle Table
-  // ----------------------------------------------------------------------
-
-  G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
-
-  // ----------------------------------------------------------------------
   //  Get Trajectory Container
   // ----------------------------------------------------------------------
 
@@ -77,10 +71,6 @@ void WCSimEventAction::EndOfEventAction(const G4Event* evt)
   // ----------------------------------------------------------------------
 
   G4int         event_id = evt->GetEventID();
-  G4int         mode     = generatorAction->GetMode();
-  G4ThreeVector vtx      = generatorAction->GetVtx();
-  G4int         vtxvol   = WCSimEventFindStartingVolume(vtx);
-  G4int         vecRecNumber = generatorAction->GetVecRecNumber();
 
   // ----------------------------------------------------------------------
   //  Get WC Hit Collection
