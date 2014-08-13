@@ -1,5 +1,5 @@
-#ifndef WCSimPMTManager_H
-#define WCSimPMTManager_H 1
+#ifndef WCSimGeoManager_H
+#define WCSimGeoManager_H
 
 #include "WCSimGeoConfig.hh"
 
@@ -20,13 +20,16 @@ class WCSimGeoManager {
 		WCSimGeoConfig GetGeometryByName(std::string name) const;
 	private:
 
-		// Read the list of PMT types from the config file
+		// Read the list of geometry types from the config file
 		void ReadGeometryList();
 
-		// Fill PMT object attribute from xml file
-		void FillGeoAttribute(WCSimGeoConfig &pmt, rapidxml::xml_attribute<> *attr);
+		// Fill geometry object attribute from xml file
+		void FillGeoAttribute(WCSimGeoConfig &geo, rapidxml::xml_attribute<> *attr);
 
-		// Vector to store the requested PMT types
+        // Fill unit cell object attribute from xml file
+        void FillCellAttribute(WCSimGeoConfig &geo, rapidxml::xml_attribute<> *attr);
+
+		// Vector to store the requested geometry types
 		std::vector<WCSimGeoConfig> fGeoVector;
 
 		std::string fConfigFile;

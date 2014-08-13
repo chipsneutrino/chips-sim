@@ -39,7 +39,16 @@ pmtRatio
 	innerRadius="20"
 	innerHeight="40"
 	nSides="20"
-	pmtName1="10inch_HQE"
-	perCentCoverage="10"
-/>
+	perCentCoverage="10">
+  <cellPMTDef
+   cellPMTName="10inch_HQE"
+   cellPMTX="0.1"
+   cellPMTY="0.2"
+  />
+  <cellPMTDef
+    cellPMTName="10inch"
+    cellPMTX="0.5"
+    cellPMTY="0.2"
+  />
+</geoDef>
 

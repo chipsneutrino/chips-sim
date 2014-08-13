@@ -1,5 +1,5 @@
 #ifndef WCSimPMTManager_H
-#define WCSimPMTManager_H 1
+#define WCSimPMTManager_H
 
 #include "WCSimPMTConfig.hh"
 

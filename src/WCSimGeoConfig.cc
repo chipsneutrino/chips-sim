@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "globals.hh"
+#include <cassert>
 
 #include "WCSimGeoConfig.hh"
 
@@ -11,8 +12,6 @@ WCSimGeoConfig::WCSimGeoConfig(){
 	fInnerRadius = 0.;
 	fInnerHeight = 0.;
 	fNSides = 0;
-
-	fPMTName1 = "";
 	fPercentCoverage = 0.;
 }
 
@@ -23,10 +22,11 @@ WCSimGeoConfig::WCSimGeoConfig(const WCSimGeoConfig &rhs){
 	fInnerRadius = rhs.GetInnerRadius();
 	fInnerHeight = rhs.GetInnerHeight();
 	fNSides = rhs.GetNSides();
+    fPercentCoverage = rhs.GetCoverage();
 
-	fPMTName1 = rhs.GetPMTName1();
-	fPercentCoverage = rhs.GetCoverage();
-
+	fCellPMTName = rhs.GetCellPMTName();
+	fCellPMTX = rhs.GetCellPMTX();
+	fCellPMTY = rhs.GetCellPMTY();
 }
 
 // Destructor
@@ -74,16 +74,6 @@ void WCSimGeoConfig::SetNSides(unsigned int nsides){
 	fNSides = nsides;
 }
 
-// First PMT Name
-
-std::string WCSimGeoConfig::GetPMTName1() const{
-	return fPMTName1;
-}
-
-void WCSimGeoConfig::SetPMTName1(std::string name){
-	fPMTName1 = name;
-}
-
 // PMT Coverage
 
 double WCSimGeoConfig::GetCoverage() const{
@@ -94,6 +84,71 @@ void WCSimGeoConfig::SetCoverage(double coverage){
 	fPercentCoverage = coverage;
 }
 
+// Unit cell PMTs
+
+void WCSimGeoConfig::AddCellPMTName(std::string name){
+    fCellPMTName.push_back(name);
+}
+
+std::string WCSimGeoConfig::GetCellPMTName(unsigned int pmt) const{
+    assert( pmt < fCellPMTName.size() && "PMT number is out of range");
+    return fCellPMTName.at(pmt);
+}
+
+std::vector<std::string> WCSimGeoConfig::GetCellPMTName() const{
+    return fCellPMTName;
+}
+
+void WCSimGeoConfig::AddCellPMTX(double x){
+    fCellPMTX.push_back(x);
+}
+
+double WCSimGeoConfig::GetCellPMTX(unsigned int pmt) const{
+    assert( pmt < fCellPMTX.size() && "PMT number is out of range");
+    return fCellPMTX.at(pmt);
+}
+
+std::vector<double> WCSimGeoConfig::GetCellPMTX() const{
+    return fCellPMTX;
+}
+
+void WCSimGeoConfig::AddCellPMTY(double y){
+    fCellPMTY.push_back(y);
+}
+
+double WCSimGeoConfig::GetCellPMTY(unsigned int pmt) const{
+    assert( pmt < fCellPMTX.size() && "PMT number is out of range");
+    return fCellPMTX.at(pmt);
+}
+
+std::vector<double> WCSimGeoConfig::GetCellPMTY() const{
+    return fCellPMTY;
+}
+
+bool WCSimGeoConfig::IsGood() const{
+    bool isGood = true;
+
+    if( fCellPMTX.size() != fCellPMTY.size()){
+            std::cerr << "Must have the same number of PMT x and y coordinates ("
+                      << fCellPMTX.size() << " vs " << fCellPMTY.size() << std::endl;
+            isGood = false;
+    }
+    if( fCellPMTX.size() != fCellPMTName.size()){
+            std::cerr << "Must have the same number of PMT x coordinates as names ("
+                      << fCellPMTX.size() << " vs " << fCellPMTName.size() << std::endl;
+            isGood = false;
+    }
+    if( fCellPMTY.size() != fCellPMTName.size()){
+            std::cerr << "Must have the same number of PMT y coordinates as names ("
+                      << fCellPMTY.size() << " vs " << fCellPMTName.size() << std::endl;
+            isGood = false;
+    }
+
+
+    if( !isGood ) { std::cerr << "Check the geometry xml file!" << std::endl; }
+    return isGood;
+}
+
 // Print out the PMT details
 void WCSimGeoConfig::Print() const{
 
@@ -102,8 +157,15 @@ void WCSimGeoConfig::Print() const{
 	std::cout << "\tInner Radius = " << this->GetInnerRadius()/m << "m" << std::endl;
 	std::cout << "\tInner Height = " << this->GetInnerHeight()/m << "m" << std::endl;
 	std::cout << "\t# of Sides   = " << this->GetNSides() << std::endl;
-	std::cout << "\tPMT 1 = " << this->GetPMTName1() << std::endl;
 	std::cout << "\tCoverage = " << this->GetCoverage() << std::endl;
+
+	assert(IsGood());
+    std::cout << "\tPMT locations in the unit cell:" << std::endl;
+    for(unsigned int iPMT = 0; iPMT < fCellPMTName.size(); ++iPMT)
+    {
+        std::cout << "\t\t" << fCellPMTName.at(iPMT) << " at (" << fCellPMTX.at(iPMT) / m
+                  << ", " << fCellPMTY.at(iPMT) / m << ")" << std::endl;
+    }
 }
 
 

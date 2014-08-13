@@ -1,5 +1,5 @@
-#ifndef WCSimPMTConfig_H
-#define WCSimPMTConfig_H 1
+#ifndef WCSimGeoConfig_H
+#define WCSimGeoConfig_H
 
 #include <vector>
 #include <string>
@@ -31,12 +31,22 @@ public:
 	std::string GetGeoName() const;
 	void SetGeoName(std::string name);
 
-	std::string GetPMTName1() const;
-	void SetPMTName1(std::string name); 
-
 	double GetCoverage() const;
 	void SetCoverage(double coverage);
 
+    void AddCellPMTName(std::string name);
+    std::string GetCellPMTName(unsigned int pmt) const;
+    std::vector<std::string> GetCellPMTName() const;
+
+	void AddCellPMTX(double x);
+    double GetCellPMTX(unsigned int pmt) const;
+    std::vector<double> GetCellPMTX() const;
+
+    void AddCellPMTY(double y);
+    double GetCellPMTY(unsigned int pmt) const;
+    std::vector<double> GetCellPMTY() const;
+
+    bool IsGood() const;
 	void Print() const;
 	
 private:
@@ -48,6 +58,10 @@ private:
 
 	std::string fPMTName1;
 	double fPercentCoverage;
+
+	std::vector<std::string> fCellPMTName;
+	std::vector<double> fCellPMTX;
+	std::vector<double> fCellPMTY;
 
 };
 
