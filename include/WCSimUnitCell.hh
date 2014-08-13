@@ -32,7 +32,7 @@ public:
      * @param PMT placement to compare
      * @return Absolute distance between the two PMT centres, assuming they both live in a 1m x 1m square
      */
-    double GetDistanceTo(WCSimPMTPlacement * pmt);  // Return the distance between the centres of two PMTs in the unit cell
+    double GetDistanceTo(WCSimPMTPlacement * pmt) const;  // Return the distance between the centres of two PMTs in the unit cell
     
     /**
      * \brief If the 1m x 1m unit square is scaled up to a square with a 
@@ -41,7 +41,7 @@ public:
      * @param Side length of scaled square cell - Units must be METRES
      * @return True if any PMTs overlap.  False is no PMTs overlap.
      */
-    bool OverlapsWith(WCSimPMTPlacement * pmt, double side); // Do the photocathodes overlap if this PMT is placed in a side x side square with another one?
+    bool OverlapsWith(WCSimPMTPlacement * pmt, double side) const; // Do the photocathodes overlap if this PMT is placed in a side x side square with another one?
 
     double GetX() const; //< @return PMT x-coordinate in metres
     double GetY() const; //< @return PMT y-coordinate in metres
@@ -79,7 +79,7 @@ public:
      * @param side Side length of scaled cell - units are METRES
      * @return Fraction of cell covered by all the PMTs
      */
-    double GetPhotocathodeCoverage(double side);  // What fraction of a side x side square is PMT?
+    double GetPhotocathodeCoverage(double side) const;  // What fraction of a side x side square is PMT?
 
     /**
      * \brief Get the smalled possible square side length so that no PMTs 
@@ -87,7 +87,7 @@ public:
      * @param side Side length of the scaled cell - units are METRES
      * @return Minimum side length - units are METRES
      */
-    double GetMinimumCellSize(); // Returns side length of the smallest square that will fit all the PMTs without overlapping
+    double GetMinimumCellSize() const; // Returns side length of the smallest square that will fit all the PMTs without overlapping
     
     /** 
      * \brief Get the side length for a square cell that has the desired PMT 
@@ -95,7 +95,7 @@ public:
      * @param coverage Fraction of cell to be covered by PMTs
      * @return Side length required - units are METRES
      */
-    double GetCellSizeForCoverage(double coverage);  // Returns the side length of the square cell that has the desired PMT coverage
+    double GetCellSizeForCoverage(double coverage) const;  // Returns the side length of the square cell that has the desired PMT coverage
     
     /**
      * \brief If the 1m x 1m cell is scaled to a different side length, do
@@ -103,7 +103,7 @@ public:
      * @param side Length of side of square cell - units are METRES
      * @return True if any two PMTs overlap, false if no PMTs overlap
      */
-    bool ContainsOverlaps(double side); // Do any PMTs overlap if the cell is a square of size side x side?  
+    bool ContainsOverlaps(double side) const; // Do any PMTs overlap if the cell is a square of size side x side?  
     void Print() const;
 private:
     std::vector<WCSimPMTPlacement> fPMTs; //< Collection of PMTs and their relative positions in the cell

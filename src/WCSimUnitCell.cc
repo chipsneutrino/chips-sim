@@ -28,13 +28,13 @@ void WCSimPMTPlacement::Print() const{
   std::cout << "-------------------------" << std::endl << std::endl;
 }
 
-double WCSimPMTPlacement::GetDistanceTo(WCSimPMTPlacement * pmt){
+double WCSimPMTPlacement::GetDistanceTo(WCSimPMTPlacement * pmt) const{
 	double xdiff = (this->GetX() - pmt->GetX());
 	double ydiff = (this->GetY() - pmt->GetY());
 	return sqrt( xdiff * xdiff + ydiff * ydiff );
 }
 
-bool WCSimPMTPlacement::OverlapsWith(WCSimPMTPlacement * pmt, double side) {
+bool WCSimPMTPlacement::OverlapsWith(WCSimPMTPlacement * pmt, double side) const {
   double separation = this->GetDistanceTo(pmt) * side;
 	return ( (this->GetPMTRadius() + pmt->GetPMTRadius()) > separation );
 }
@@ -91,17 +91,17 @@ void WCSimUnitCell::AddPMT(WCSimPMTConfig* pmt, double x, double y) {
 	fPMTs.push_back(WCSimPMTPlacement(pmt, x, y));
 }
 
-double WCSimUnitCell::GetPhotocathodeCoverage(double side) {
+double WCSimUnitCell::GetPhotocathodeCoverage(double side) const {
 	double cellarea = side * side;
 	double cathodearea = 0.0;
-	for (std::vector<WCSimPMTPlacement>::iterator itr = fPMTs.begin();
+	for (std::vector<WCSimPMTPlacement>::const_iterator itr = fPMTs.begin();
 			itr != fPMTs.end(); ++itr) {
 		cathodearea += (*itr).GetPMTConfig()->GetArea();
 	}
 	return cathodearea / cellarea;
 }
 
-double WCSimUnitCell::GetMinimumCellSize() {
+double WCSimUnitCell::GetMinimumCellSize() const {
 	// Need the closest two PMTs to be separated by exactly the sum of their radii
 
 	uint toCompare = fPMTs.size() / 2 + fPMTs.size() % 2;
@@ -152,14 +152,14 @@ double WCSimUnitCell::GetMinimumCellSize() {
 }
 
 
-double WCSimUnitCell::GetCellSizeForCoverage(double coverage) {
+double WCSimUnitCell::GetCellSizeForCoverage(double coverage) const {
 	double minSize     = GetMinimumCellSize();
 	double maxCoverage = GetPhotocathodeCoverage(minSize);
 	assert( maxCoverage > coverage && "Desired coverage is too large for unit cell - PMTs would overlap");
 	return sqrt(maxCoverage / coverage) * minSize;
 }
 
-bool WCSimUnitCell::ContainsOverlaps(double side) {
+bool WCSimUnitCell::ContainsOverlaps(double side) const {
 	// Calculate the distance between the centres
 	// and compare it to the sum of the two PMT radii
 	// for each pair of DOMs
