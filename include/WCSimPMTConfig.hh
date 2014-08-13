@@ -22,6 +22,8 @@ public:
 	double GetRadius() const;
 	void SetRadius(double radius);
 
+  double GetArea() const;
+
 	double GetExposeHeight() const;
 	void SetExposeHeight(double height);
 

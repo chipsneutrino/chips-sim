@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "globals.hh"
+#include "math.h"
 
 #include "WCSimPMTConfig.hh"
 
@@ -10,7 +11,7 @@ WCSimPMTConfig::WCSimPMTConfig(){
 	fRadius = 0.;
 	fExposeHeight = 0.;
 	fGlassThickness = 0.;
-	fEffBins = 20;
+	fEffBins = 0;
 	fMaxEff = 0;
 	fPMTName = "";
 
@@ -38,6 +39,11 @@ double WCSimPMTConfig::GetRadius() const{
 
 void WCSimPMTConfig::SetRadius(double radius){
 	fRadius = radius;
+}
+
+// Photocathode area
+double WCSimPMTConfig::GetArea() const{
+  return M_PI * fRadius * fRadius;
 }
 
 // Exposed height 
