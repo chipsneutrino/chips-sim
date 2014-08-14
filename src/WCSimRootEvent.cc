@@ -137,7 +137,7 @@ WCSimRootTrigger::~WCSimRootTrigger()
 
 //_____________________________________________________________________________
 
-void WCSimRootTrigger::Clear(Option_t *option)
+void WCSimRootTrigger::Clear(Option_t* )
 {
   // To be filled in 
   // Filled in, by MF, 31/08/06  -> Keep all the alloc'ed memory but reset all
@@ -165,7 +165,7 @@ void WCSimRootTrigger::Clear(Option_t *option)
 
 //_____________________________________________________________________________
 
-void WCSimRootTrigger::Reset(Option_t *option)
+void WCSimRootTrigger::Reset(Option_t*)
 {
 // Static function to reset all static objects for this event
 // To be filled in
@@ -403,12 +403,12 @@ WCSimRootEvent::~WCSimRootEvent()
   }
 }
 
-void WCSimRootEvent::Clear(Option_t* o)
+void WCSimRootEvent::Clear(Option_t*)
 {
   //nothing for now
 }
 
-void WCSimRootEvent::Reset(Option_t* o)
+void WCSimRootEvent::Reset(Option_t*)
 {
   //nothing for now
 }
