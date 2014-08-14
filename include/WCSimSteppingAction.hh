@@ -1,13 +1,13 @@
 #ifndef WCSimSteppingAction_h
 #define WCSimSteppingAction_h 1
 
-#include "G4Event.hh"
 #include "G4UserSteppingAction.hh"
-#include "G4ThreeVector.hh"
 
-class G4HCofThisEvent;
+class G4Step;
 class G4Event;
 
+// Leigh: I don't think we need the class at the moment. Will
+// leave it as unimplemented for now in case a use for it arises
 class WCSimSteppingAction : public G4UserSteppingAction
 {
 
@@ -20,21 +20,7 @@ public:
 
   void UserSteppingAction(const G4Step*);
 
-  G4int G4ThreeVectorToWireTime(G4ThreeVector *pos3d,
-				G4ThreeVector lArPos,
-				G4ThreeVector start,
-				G4int i);
-  
-  void Distortion(G4double x,
-		  G4double y);
-
-  G4double FieldLines(G4double x,
-		      G4double y,
-		      G4int xy);
-
 private:
-
-  G4double ret[2];
 
 };
 
