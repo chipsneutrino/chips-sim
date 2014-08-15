@@ -88,6 +88,11 @@ void WCSimDetectorConstruction::ConstructMaterials()
   Water->AddElement(elH, 2);
   Water->AddElement(elO, 1);
 
+  density = 1.00*g/cm;
+  G4Material* PitWater = new G4Material("PitWater",density,2);
+  PitWater->AddElement(elH,2);
+  PitWater->AddElement(elO,1);
+
   density = 1.00*g/cm3;
   G4Material* DopedWater = new G4Material("Doped Water",density,2);
   DopedWater->AddMaterial(Water,99.9*perCent);
@@ -528,6 +533,8 @@ void WCSimDetectorConstruction::ConstructMaterials()
 
 
   Water->SetMaterialPropertiesTable(myMPT1);
+  // Leigh: For now, make pit water the same as the pure water
+  PitWater->SetMaterialPropertiesTable(myMPT1);
   //Gd doped water has the same optical properties as pure water
   DopedWater->SetMaterialPropertiesTable(myMPT1);
   // myMPT1->DumpTable();
