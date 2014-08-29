@@ -37,9 +37,9 @@ void WCSimDetectorConstruction::ConstructPMT()
   G4double PMTHolderr[2] = {0,0};
 
   solidWCPMT =
-   new G4Polycone("WCPMT",                    
-			0.0*deg,
-			360.0*deg,
+   new G4Polycone("WCPMT",
+				0.0*deg,
+				360.0*deg,
     			2,
     			PMTHolderZ,
     			PMTHolderR,

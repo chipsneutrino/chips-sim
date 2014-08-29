@@ -9,13 +9,16 @@
 #ifndef WCSIMUNITCELL_HH_
 #define WCSIMUNITCELL_HH_
 #include "WCSimPMTConfig.hh"
+#include "G4TwoVector.hh"
 #include <vector>
 
 /**
  * \class WCSimPMTPlacement
  * This class contains a single WCSimPMTConfig, which defines the PMT type, 
  * and the coordinates of its centre in a 2D unit cell.  A WCSimUnitCell object 
- * will contain a collection of these objects
+ * will contain a collection of these objects.  I use the convention that (0,0)
+ * is the top-left corner of the unit cell because that's how I was taught 2D
+ * crystallography in Condensed Matter Physics.
  */
 class WCSimPMTPlacement
 {
@@ -104,6 +107,40 @@ public:
      * @return True if any two PMTs overlap, false if no PMTs overlap
      */
     bool ContainsOverlaps(double side) const; // Do any PMTs overlap if the cell is a square of size side x side?  
+
+    /**
+     * \brief Get the expose height of the most protruding PMT in this cell
+     * @return The largest PMT expose heigh in the cell - units are METRES
+     */
+    double GetCellExposeHeight() const;
+
+    /**
+     * \brief Get the number of PMTs in the cell
+     * @return Number of PMTs in the cell
+     */
+    unsigned int GetNumPMTs() const;
+
+    /**
+     * \brief Get the position of a given PMT (in the order they were added) relative
+     * 		  to the top-left corner of a square cell with a given side length
+     * @param pmt Which PMT (by vector index) to consider
+     * @param side Side length to scale the square cell up to - units are METRES
+     * @return The (x,y) coordinates of the PMT - units are METRES
+     */
+    G4TwoVector GetPMTPos( unsigned int pmt, double side=1.0 ) const;
+
+    /**
+     * \brief Get the vector of all the PMT placements in the cell
+     * @return Vector of all the PMTs and their relative positions in a 1x1m cell
+     */
+    std::vector GetPMTPlacements() const;
+
+    /**
+     * \brief Get the placement object corresponding to a given PMT
+     * @param pmt Which PMT (by vector index) to return
+     * @return Placement object corresponding to the chosen PMT
+     */
+    WCSimPMTPlacement GetPMTPlacement(unsigned int pmt) const;
     void Print() const;
 private:
     std::vector<WCSimPMTPlacement> fPMTs; //< Collection of PMTs and their relative positions in the cell

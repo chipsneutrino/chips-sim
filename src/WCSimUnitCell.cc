@@ -71,6 +71,19 @@ WCSimUnitCell::~WCSimUnitCell() {
 	// TODO Auto-generated destructor stub
 }
 
+
+unsigned int WCSimUnitCell::GetNumPMTs() const {
+}
+
+G4TwoVector WCSimUnitCell::GetPMTPos(unsigned int pmt, double side) const {
+}
+
+std::vector WCSimUnitCell::GetPMTPlacements() const {
+}
+
+WCSimPMTPlacement WCSimUnitCell::GetPMTPlacement(unsigned int pmt) const {
+}
+
 void WCSimUnitCell::Print() const{
   std::cout << "-------------------" << std::endl;
   std::cout << "Unit cell contains " << fPMTs.size() << " PMTs" << std::endl;
@@ -184,3 +197,12 @@ bool WCSimUnitCell::ContainsOverlaps(double side) const {
 	return false;
 }
 
+double WCSimUnitCell::GetCellExposeHeight() const {
+	double maxExpose = 0.0;
+	std::vector<WCSimPMTPlacement>::iterator pmtItr = fPMTs.begin();
+	for( ; pmtItr != fPMTs.end(); ++pmtItr ){
+		double expose = (*pmtItr).GetPMTConfig()->GetExposeHeight();
+		if( expose > maxExpose) { maxExpose = expose; }
+	}
+	return maxExpose;
+}

@@ -30,9 +30,12 @@
 
 
 #include "G4SDManager.hh"
+#include "WCSimCherenkovBuilder.hh"
 #include "WCSimWCSD.hh"
 #include "WCSimPMTConfig.hh"
+#include "WCSimPolygonTools.hh"
 #include "WCSimTuningParameters.hh" //jl145
+
 
 G4float WCSimDetectorConstruction::GetPMTQE(G4float PhotonWavelength, G4int flag, G4float low_wl, G4float high_wl, G4float ratio){
   // XQ  08/17/10
@@ -986,7 +989,7 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructMailboxWC()
 
 G4LogicalVolume* WCSimDetectorConstruction::ConstructWC()
 {
-
+/*
   //-----------------------------------------------------
   // Positions
   //-----------------------------------------------------
@@ -1659,11 +1662,14 @@ else {
     SDman->AddNewDetector( aWCPMT );
   }
   logicGlassFaceWCPMT->SetSensitiveDetector( aWCPMT );
-
-
-
+  return logicWC;
+*/
+  G4LogicalVolume * logicWC = NULL;
+  WCSimCherenkovBuilder * myCherenkovBuilder = new WCSimCherenkovBuilder();
+  logicWC = myCherenkovBuilder->ConstructDetector();
   return logicWC;
 }
+
 
 
 G4LogicalVolume* WCSimDetectorConstruction::ConstructCaps(G4int zflip)
