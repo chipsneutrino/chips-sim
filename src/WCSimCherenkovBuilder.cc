@@ -7,25 +7,42 @@
 
 #include "WCSimCherenkovBuilder.hh"
 #include "WCSimGeoConfig.hh"
+#include "WCSimGeoManager.hh"
 #include "WCSimPMTConfig.hh"
 #include "WCSimPMTManager.hh"
+#include "WCSimPolygonTools.hh"
 #include "WCSimUnitCell.hh"
+#include "WCSimWCSD.hh"
+
+#include "G4Colour.hh"
+#include "G4Material.hh"
 #include "G4Polyhedra.hh"
 #include "G4PVReplica.hh"
+#include "G4LogicalBorderSurface.hh"
 #include "G4LogicalVolume.hh"
+#include "G4VPhysicalVolume.hh"
+#include "G4PVPlacement.hh"
+#include "G4SDManager.hh"
 #include "G4Tubs.hh"
 #include "G4TwoVector.hh"
+#include "G4VisAttributes.hh"
+
 #include <cassert>
 #include <math.h>
 
-WCSimCherenkovBuilder::WCSimCherenkovBuilder() :
-		fConstructed(false), fGeoConfig(NULL) {
+WCSimCherenkovBuilder::WCSimCherenkovBuilder(G4int DetConfig,WCSimTuningParameters* WCSimTuningPars) :
+		fConstructed(false), fGeoConfig(NULL), WCSimDetectorConstruction(DetConfig, WCSimTuningPars) {
 	fBlacksheetThickness = 2 * mm;
 	fDebugMode 			 = false;
+
+  WCSimGeoManager * manager = new WCSimGeoManager();
+  WCSimGeoConfig temp = manager->GetGeometryByName("CHIPS_25kton_10inch_HQE_10perCent");
+  fGeoConfig = &temp;
+
 }
 
 WCSimCherenkovBuilder::~WCSimCherenkovBuilder() {
-	for(unsigned int iCell = 0; iCell, fUnitCells.size(); ++iCell)
+	for(unsigned int iCell = 0; iCell < fUnitCells.size(); ++iCell)
 	{
 		delete fUnitCells[iCell];
 	}
@@ -218,7 +235,7 @@ void WCSimCherenkovBuilder::CreatePrismRings() {
 								  + fBlacksheetThickness + 1. * mm;
 
 	double ringHeight 			= GetBarrelLengthForCells() / fWallCellsZ;
-	G4Material * ringWater 	    = G4Material::GetMaterial("Water");
+	G4Material * pureWater  = G4Material::GetMaterial("Water");
 
 	// Zip them up into arrays to pass to Geant
 	G4double RingZ[2] 			= { -0.5 * ringHeight, 0.5 * ringHeight };
@@ -234,7 +251,7 @@ void WCSimCherenkovBuilder::CreatePrismRings() {
 													 2, RingZ, mainAnnulusRmin, mainAnnulusRmax);
 
 	fPrismRingLogic = new G4LogicalVolume(prismRingSolid,
-														  ringWater, "prismRing",
+														  pureWater, "prismRing",
 														  0, 0, 0);
 
 	G4VPhysicalVolume* prismRingPhysic = new G4PVReplica("prismRing",
@@ -260,7 +277,7 @@ void WCSimCherenkovBuilder::CreateRingSegments() {
 								  + fBlacksheetThickness + 1. * mm;
 
 	double ringHeight 			= GetBarrelLengthForCells() / fWallCellsZ;
-	G4Material ringWater = G4Material::GetMaterial("Water");
+	G4Material * pureWater = G4Material::GetMaterial("Water");
 
 	// Zip them up into arrays to pass to Geant
 	G4double RingZ[2] 			= { -0.5 * ringHeight, 0.5 * ringHeight };
@@ -279,7 +296,7 @@ void WCSimCherenkovBuilder::CreateRingSegments() {
 												mainAnnulusRmin, mainAnnulusRmax);
 
 	fSegmentLogic = new G4LogicalVolume(segmentSolid,
-														G4Material::GetMaterial("Water"),
+														pureWater,
 														"segment",
 														0, 0, 0);
 
@@ -423,7 +440,7 @@ void WCSimCherenkovBuilder::BuildUnitCells() {
 	assert( pmtX.size() == pmtY.size() && pmtX.size() == pmtNames.size() );
 
 	for(unsigned int i = 0; i < pmtNames.size(); ++i){
-		WCSimUnitCell * cell = new WCSimUnitCell(&fPMTManager->GetPMTByName(pmtNames.at(i)),
+		WCSimUnitCell * cell = new WCSimUnitCell(&(fPMTManager->GetPMTByName(pmtNames.at(i))),
 						   	   	   	   	   	   	 pmtX.at(i), pmtY.at(i));
 
 		fUnitCells.push_back(cell);
@@ -458,7 +475,7 @@ double WCSimCherenkovBuilder::GetOptimalTopCellSize() {
 	WCSimUnitCell topCell = *(GetTopUnitCell());
 	double defaultSide = topCell.GetCellSizeForCoverage(fGeoConfig->GetCoverage());
 
-	int cellRows = (int)(squareSide/defaultSide); // Round down
+	unsigned int cellRows = (unsigned int)(squareSide/defaultSide); // Round down
 
 /*	TODO: implement this feature
     G4TwoVector centreOffset;
@@ -534,9 +551,9 @@ double WCSimCherenkovBuilder::GetOptimalWallCellSize() {
 	WCSimUnitCell wallCell  = *(GetBarrelUnitCell()); // Make a copy because we'll mess with it
 
 	// Number of unit cells spanning across the width of the wall
-	int tileX = wallSide / (this->GetTopUnitCell()->GetCellSizeForCoverage(coverage));
+	int tileX = (int)(wallSide / (this->GetTopUnitCell()->GetCellSizeForCoverage(coverage)));
 	// Number of unit cells to span the height of the detector
-	int tileZ = wallHeight / (this->GetTopUnitCell()->GetCellSizeForCoverage(coverage));
+	int tileZ = (int)(wallHeight / (this->GetTopUnitCell()->GetCellSizeForCoverage(coverage)));
 
 	// In general the number of cells needed is non-integral
 	// We need an m x n arrangement of cells that gives coverage close
@@ -592,7 +609,7 @@ void WCSimCherenkovBuilder::ConstructEndCaps(){
 void WCSimCherenkovBuilder::ConstructEndCap(G4bool zflip) {
 	ConstructEndCapFrame(zflip);
 	ConstructEndCapAnnuli(zflip);
-	ConstructEndCapFrame(zflip);
+	ConstructEndCapWalls(zflip);
 
 }
 
@@ -711,7 +728,7 @@ void WCSimCherenkovBuilder::ConstructEndCapAnnuli( G4bool zflip ){
 	  return;
 }
 
-void WCSimCherenkovBuilder::ConstructEndCapFrame(G4bool zflip)
+void WCSimCherenkovBuilder::ConstructEndCapWalls(G4bool zflip)
 {
 	// TODO: put these into a function
 	  G4double innerAnnulusRadius = fGeoConfig->GetInnerRadius()
@@ -839,7 +856,7 @@ void WCSimCherenkovBuilder::PlaceEndCapPMTs(G4bool zflip)
 	  // loop over the cap
 	  // Build a square that contains the cap:
 	  G4double squareEdge = fGeoConfig->GetInnerRadius();
-	  G4TwoVector squareCentreToTopLeft = (-0.5 * squareEdge, 0.5 * squareEdge);
+	  G4TwoVector squareCentreToTopLeft(-0.5 * squareEdge, 0.5 * squareEdge);
 
 	  G4double xpos = 0.0;
 	  G4double ypos = 0.0;

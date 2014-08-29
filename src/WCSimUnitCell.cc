@@ -78,7 +78,8 @@ unsigned int WCSimUnitCell::GetNumPMTs() const {
 G4TwoVector WCSimUnitCell::GetPMTPos(unsigned int pmt, double side) const {
 }
 
-std::vector WCSimUnitCell::GetPMTPlacements() const {
+std::vector<WCSimPMTPlacement> WCSimUnitCell::GetPMTPlacements() const {
+  return fPMTs;
 }
 
 WCSimPMTPlacement WCSimUnitCell::GetPMTPlacement(unsigned int pmt) const {
@@ -199,7 +200,7 @@ bool WCSimUnitCell::ContainsOverlaps(double side) const {
 
 double WCSimUnitCell::GetCellExposeHeight() const {
 	double maxExpose = 0.0;
-	std::vector<WCSimPMTPlacement>::iterator pmtItr = fPMTs.begin();
+	std::vector<WCSimPMTPlacement>::const_iterator pmtItr = fPMTs.begin();
 	for( ; pmtItr != fPMTs.end(); ++pmtItr ){
 		double expose = (*pmtItr).GetPMTConfig()->GetExposeHeight();
 		if( expose > maxExpose) { maxExpose = expose; }

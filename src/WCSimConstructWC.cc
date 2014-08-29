@@ -1665,7 +1665,7 @@ else {
   return logicWC;
 */
   G4LogicalVolume * logicWC = NULL;
-  WCSimCherenkovBuilder * myCherenkovBuilder = new WCSimCherenkovBuilder();
+  WCSimCherenkovBuilder * myCherenkovBuilder = new WCSimCherenkovBuilder(myConfiguration, WCSimTuningParams);
   logicWC = myCherenkovBuilder->ConstructDetector();
   return logicWC;
 }

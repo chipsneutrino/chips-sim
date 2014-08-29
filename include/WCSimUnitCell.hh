@@ -133,7 +133,7 @@ public:
      * \brief Get the vector of all the PMT placements in the cell
      * @return Vector of all the PMTs and their relative positions in a 1x1m cell
      */
-    std::vector GetPMTPlacements() const;
+    std::vector<WCSimPMTPlacement> GetPMTPlacements() const;
 
     /**
      * \brief Get the placement object corresponding to a given PMT

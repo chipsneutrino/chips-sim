@@ -24,7 +24,5 @@ namespace WCSimPolygonTools {
 	double GetAreaFromRadius( unsigned int nSides, double radius);
 	double GetAreaFromSide( unsigned int nSides, double side);
 	G4TwoVector ShiftVector( G4TwoVector vec, double x, double y );
-};
-
 } /* namespace WCSimPolygonTools */
 #endif /* WCSIMPOLYGONTOOLS_HH_ */

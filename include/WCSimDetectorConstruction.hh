@@ -136,7 +136,9 @@ public:
 
   std::vector<WCSimPmtInfo*>* Get_Pmts() {return &fpmts;}
 
-private:
+protected: // Changed this from private to let WCSimCherenkovBuilder
+           // inherit and access these.  Anticipate changing back when
+           // this gets refactorized properly - AJP 29/8/2014
 
 	// WCSimPMTManager to access information about the PMTs.
 	WCSimPMTManager* fPMTManager;

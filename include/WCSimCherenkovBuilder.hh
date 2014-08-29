@@ -10,14 +10,15 @@
 #define WCSIMCHERENKOVBUILDER_HH_
 
 #include "WCSimDetectorConstruction.hh"
-class WCSimGeoConfig;
+#include "WCSimGeoConfig.hh"
 class WCSimPMTManager;
+class WCSimTuningParameters;
 class WCSimUnitCell;
 class G4LogicalVolume;
 
 class WCSimCherenkovBuilder : public WCSimDetectorConstruction{
 public:
-	WCSimCherenkovBuilder();
+	WCSimCherenkovBuilder(G4int DetConfig,WCSimTuningParameters* WCSimTuningPars);
 	virtual ~WCSimCherenkovBuilder();
 	void SetGeoConfig(WCSimGeoConfig * config);
 	WCSimGeoConfig * GetGeoConfig() const;
@@ -36,10 +37,11 @@ private:
 
 
 	void ConstructEndCaps(); //< Build the top and bottom caps of the detector
-	void ConstructEndCap(G4bool zflip) //< Construct top (zflip = true) and bottom (false) caps
+	void ConstructEndCap(G4bool zflip); //< Construct top (zflip = true) and bottom (false) caps
 	void ConstructEndCapFrame(G4bool zflip);
 	void ConstructEndCapAnnuli( G4bool zflip );
-	void WCSimCherenkovBuilder::PlaceEndCapPMTs(G4bool zflip)
+	void ConstructEndCapWalls(G4bool zflip);
+	void PlaceEndCapPMTs(G4bool zflip);
 
 	void CreateSensitiveDetector(); //< Make the photocathodes responsive
 
@@ -59,6 +61,8 @@ private:
 	bool fConstructed;
 	double fWallCellSize;
 	double fTopCellSize;
+
+  WCSimGeoConfig temp; // TODO: deal with this in a much better way
 	WCSimGeoConfig * fGeoConfig;
 	WCSimPMTManager * fPMTManager;
 	std::vector<WCSimUnitCell*> fUnitCells;
