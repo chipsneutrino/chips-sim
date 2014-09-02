@@ -37,11 +37,11 @@ private:
 
 
 	void ConstructEndCaps(); //< Build the top and bottom caps of the detector
-	void ConstructEndCap(G4bool zflip); //< Construct top (zflip = true) and bottom (false) caps
-	void ConstructEndCapFrame(G4bool zflip);
-	void ConstructEndCapAnnuli( G4bool zflip );
-	void ConstructEndCapWalls(G4bool zflip);
-	void PlaceEndCapPMTs(G4bool zflip);
+	void ConstructEndCap(G4int zflip); //< Construct top (zflip = true) and bottom (false) caps
+	void ConstructEndCapFrame(G4int zflip);
+	void ConstructEndCapAnnuli( G4int zflip );
+	void ConstructEndCapWalls(G4int zflip);
+	void PlaceEndCapPMTs(G4int zflip);
 
 	void CreateSensitiveDetector(); //< Make the photocathodes responsive
 

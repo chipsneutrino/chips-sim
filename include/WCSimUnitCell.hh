@@ -28,7 +28,7 @@ public:
      * @param x The PMT centre's x position in the unit cell (0.0 < x < 1.0) - Units must be METRES.
      * @param y The PMT centre's y position in the unit cell (0.0 < y < 1.0) - Units must be METRES
      */
-    WCSimPMTPlacement(WCSimPMTConfig * pmt, double x, double y);
+    WCSimPMTPlacement(WCSimPMTConfig pmt, double x, double y);
     virtual ~WCSimPMTPlacement();
 
     /** \brief Calculate the distance between two PMT placments
@@ -49,10 +49,10 @@ public:
     double GetX() const; //< @return PMT x-coordinate in metres
     double GetY() const; //< @return PMT y-coordinate in metres
     double GetPMTRadius() const; //< @return PMT radius in metres
-    WCSimPMTConfig * GetPMTConfig() const; //< @return PMT config object
+    WCSimPMTConfig GetPMTConfig() const; //< @return PMT config object
     void Print() const;
 private:
-    WCSimPMTConfig * fPMTConfig; //< Pointer to config object that specifies PMT type
+    WCSimPMTConfig fPMTConfig; //< Pointer to config object that specifies PMT type
     double fX; //< PMT centre x-position in the 1m x 1m unit cell (units are METRES)
     double fY; //< PMT centre y-position in the 1m x 1m unit cell (units are METRES)
 };
@@ -67,7 +67,7 @@ public:
      * @param x PMT centre's x-coordinate (0.0 < x < 1.0) - units are METRES
      * @param y PMT centre's y-coordinate (0.0 < y < 1.0) - units are METRES
      */
-    WCSimUnitCell(WCSimPMTConfig * pmt, double x, double y); // Constructor that adds the first PMT
+    WCSimUnitCell(const WCSimPMTConfig &pmt, double x, double y); // Constructor that adds the first PMT
     virtual ~WCSimUnitCell();
     
     /** \brief Place a new PMT in the cell
@@ -75,7 +75,7 @@ public:
      * @param x PMT centre's x-coordinate (0.0 < x < 1.0) - units are METRES
      * @param y PMT centre's y-coordinate (0.0 < y < 1.0) - units are METRES
      */
-    void AddPMT(WCSimPMTConfig * pmt, double x, double y);  // Add a new PMT
+    void AddPMT(const WCSimPMTConfig &pmt, double x, double y);  // Add a new PMT
 
     /** \brief If the 1m x 1m unit cell is scaled to have a different side length, 
      * but the PMT radii do not change, what percentage of the new cell is covered?

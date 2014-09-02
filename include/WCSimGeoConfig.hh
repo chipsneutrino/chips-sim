@@ -32,6 +32,7 @@ public:
 	void SetGeoName(std::string name);
 
 	double GetCoverage() const;
+	double GetCoverageFraction() const;
 	void SetCoverage(double coverage);
 
     void AddCellPMTName(std::string name);

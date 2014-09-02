@@ -80,6 +80,10 @@ double WCSimGeoConfig::GetCoverage() const{
 	return fPercentCoverage;
 }
 
+double WCSimGeoConfig::GetCoverageFraction() const{
+	return fPercentCoverage / 100.;
+}
+
 void WCSimGeoConfig::SetCoverage(double coverage){
 	fPercentCoverage = coverage;
 }
@@ -96,6 +100,7 @@ std::string WCSimGeoConfig::GetCellPMTName(unsigned int pmt) const{
 }
 
 std::vector<std::string> WCSimGeoConfig::GetCellPMTName() const{
+    std::cout << "Getting PMTName vector, of size " << std::cout << fCellPMTName.size() << std::endl;
     return fCellPMTName;
 }
 
@@ -109,8 +114,13 @@ double WCSimGeoConfig::GetCellPMTX(unsigned int pmt) const{
 }
 
 std::vector<double> WCSimGeoConfig::GetCellPMTX() const{
+    std::cout << "Getting PMTX vector, of size " << std::cout << (unsigned int)fCellPMTX.size() << std::endl;
+    std::vector<double> myvec;
+    myvec.push_back(2.0);
+    std::cout << "Size of this weird vector = " << myvec.size() << std::endl;
     return fCellPMTX;
 }
+
 
 void WCSimGeoConfig::AddCellPMTY(double y){
     fCellPMTY.push_back(y);

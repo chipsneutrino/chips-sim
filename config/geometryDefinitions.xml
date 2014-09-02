@@ -42,13 +42,13 @@ pmtRatio
 	perCentCoverage="10">
   <cellPMTDef
    cellPMTName="10inch_HQE"
-   cellPMTX="0.1"
-   cellPMTY="0.2"
+   cellPMTX="0.2928932188"
+   cellPMTY="0.2928932188"
   />
   <cellPMTDef
     cellPMTName="10inch"
-    cellPMTX="0.5"
-    cellPMTY="0.2"
+    cellPMTX="0.7071067812"
+    cellPMTY="0.7071067812"
   />
 </geoDef>
 
