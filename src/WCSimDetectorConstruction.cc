@@ -25,6 +25,9 @@ WCSimDetectorConstruction::tubeLocationMap;
 
 WCSimDetectorConstruction::WCSimDetectorConstruction(G4int DetConfig,WCSimTuningParameters* WCSimTuningPars):WCSimTuningParams(WCSimTuningPars)
 {
+	// Initialize daughter classes
+	fPMTBuilder = NULL;
+
 	
   // Decide if (only for the case of !1kT detector) should be upright or horizontal
   isUpright = false;

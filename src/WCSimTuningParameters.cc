@@ -2,7 +2,20 @@
 
 #include "WCSimTuningParameters.hh"
 #include "WCSimTuningMessenger.hh"
+#include <cassert>
 
+static WCSimTuningParameters * fgWCSimTuningParameters = NULL;
+
+static WCSimTuningParameters * WCSimTuningParameters::Instance(){
+	if( fgWCSimTuningParameters == NULL){
+		fgWCSimTuningParameters = new WCSimTuningParameters();
+	}
+	if( fgWCSimTuningParameters == NULL){
+		assert( fgWCSimTuningParameters != NULL );
+	}
+
+	return fgWCSimTuningParameters;
+}
 
 WCSimTuningParameters::WCSimTuningParameters()
 {

@@ -62,13 +62,14 @@ WCSimCherenkovBuilder::~WCSimCherenkovBuilder() {
 
 G4LogicalVolume * WCSimCherenkovBuilder::ConstructDetector() {
 	if (!fConstructed) {
-    CalculateCellSizes();
+		CalculateCellSizes();
+		ConstructUnitCells();
 		ConstructEnvironment();
 		ConstructFrame();
 		ConstructVeto();
 		ConstructInnerDetector();
 		//ConstructEndCaps();
-    ConstructPMT();
+		ConstructPMTs();
 		PlacePMTs();
 		CreateSensitiveDetector();
 	}
@@ -454,15 +455,14 @@ double WCSimCherenkovBuilder::GetMaxBarrelExposeHeight() {
 	return cell->GetCellExposeHeight();
 }
 
-void WCSimCherenkovBuilder::BuildUnitCells() {
-  std::cout << "BUILDING UNIT CELLS HERE" << std::endl;
+void WCSimCherenkovBuilder::ConstructUnitCells() {
   fGeoConfig->Print();
-	std::vector<double> pmtX     = fGeoConfig->GetCellPMTX();
-	std::vector<double> pmtY     = fGeoConfig->GetCellPMTY();
-	std::vector<std::string> pmtNames = fGeoConfig->GetCellPMTName();
-	assert( pmtX.size() == pmtY.size() && pmtX.size() == pmtNames.size() );
+  std::vector<double> pmtX     = fGeoConfig->GetCellPMTX();
+  std::vector<double> pmtY     = fGeoConfig->GetCellPMTY();
+  std::vector<std::string> pmtNames = fGeoConfig->GetCellPMTName();
+  assert( pmtX.size() == pmtY.size() && pmtX.size() == pmtNames.size() );
 
-	WCSimUnitCell * cell = new WCSimUnitCell();
+  WCSimUnitCell * cell = new WCSimUnitCell();
   for(unsigned int i = 0; i < pmtNames.size(); ++i){
     std::cout << "PMT = " << pmtNames.at(i) << "  X = " << pmtX.at(i) << " / m = " << pmtX.at(i) / m << std::endl;
 		WCSimPMTConfig config = fPMTManager->GetPMTByName(pmtNames.at(i));
@@ -476,7 +476,7 @@ void WCSimCherenkovBuilder::BuildUnitCells() {
 
 WCSimUnitCell* WCSimCherenkovBuilder::GetTopUnitCell() {
 	if( fUnitCells.size() == 0 ){
-		this->BuildUnitCells();
+		this->ConstructUnitCells();
 	}
 
 	return fUnitCells.at(0);
@@ -942,7 +942,7 @@ void WCSimCherenkovBuilder::CreateSensitiveDetector() {
 }
 
 WCSimUnitCell* WCSimCherenkovBuilder::GetBarrelUnitCell() {
-	if( fUnitCells.size() == 0 ){ this->BuildUnitCells(); }
+	if( fUnitCells.size() == 0 ){ this->ConstructUnitCells(); }
 	return fUnitCells.at(0);
 }
 
@@ -1101,4 +1101,10 @@ void WCSimCherenkovBuilder::SetPositions()
 	 if (WCAddGd) {
 	 water = "Doped Water";
 	 }
+}
+
+void WCSimCherenkovBuilder::ConstructPMTs()
+{
+	fPMTBuilder->ConstructPMTs( fPMTConfigs );
+}
 }

@@ -3,6 +3,7 @@
 
 #include "WCSimPmtInfo.hh"
 #include "WCSimPMTConfig.hh"
+#include "WCSimPMTBuilder.hh"
 
 #include "G4Transform3D.hh"
 #include "G4VUserDetectorConstruction.hh"
@@ -331,6 +332,8 @@ protected: // Changed this from private to let WCSimCherenkovBuilder
  
   std::vector<WCSimPmtInfo*> fpmts;
   
+  WCSimPMTBuilder * fPMTBuilder;
+
 };
 
 #endif

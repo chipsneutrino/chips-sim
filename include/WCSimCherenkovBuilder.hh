@@ -62,15 +62,17 @@ private:
 	double GetOptimalTopCellSize(); //< Optimise the cell placement on the endcaps
 	double GetOptimalWallCellSize(); //< Optimise the cell placement on the detector walls
 
-	void BuildUnitCells(); //< Construct the unit cell objects specified in the geometry config
+	void ConstructUnitCells(); //< Construct the unit cell objects specified in the geometry config
 	WCSimUnitCell * GetTopUnitCell(); //< For now we only have one type all over the detector
 	WCSimUnitCell * GetBarrelUnitCell(); //< For now we only have one type all over the detector
+
+	void ConstructPMTs();
 
 	bool fConstructed;
 	double fWallCellSize;
 	double fTopCellSize;
 
-  WCSimGeoConfig temp; // TODO: deal with this in a much better way
+    WCSimGeoConfig temp; // TODO: deal with this in a much better way
 	WCSimGeoConfig * fGeoConfig;
 	WCSimPMTManager * fPMTManager;
 	std::vector<WCSimUnitCell*> fUnitCells;
