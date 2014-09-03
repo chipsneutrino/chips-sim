@@ -6,7 +6,7 @@
 
 static WCSimTuningParameters * fgWCSimTuningParameters = NULL;
 
-static WCSimTuningParameters * WCSimTuningParameters::Instance(){
+WCSimTuningParameters * WCSimTuningParameters::Instance(){
 	if( fgWCSimTuningParameters == NULL){
 		fgWCSimTuningParameters = new WCSimTuningParameters();
 	}
@@ -20,7 +20,7 @@ static WCSimTuningParameters * WCSimTuningParameters::Instance(){
 WCSimTuningParameters::WCSimTuningParameters()
 {
 
- TuningMessenger = new WCSimTuningMessenger(this);
+ TuningMessenger = new WCSimTuningMessenger();
  // Default values
  rayff=0.625;
  bsrff=1.0;

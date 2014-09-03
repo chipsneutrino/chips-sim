@@ -12,13 +12,12 @@
 #include "WCSimDetectorConstruction.hh"
 #include "WCSimGeoConfig.hh"
 class WCSimPMTManager;
-class WCSimTuningParameters;
 class WCSimUnitCell;
 class G4LogicalVolume;
 
 class WCSimCherenkovBuilder : public WCSimDetectorConstruction{
 public:
-	WCSimCherenkovBuilder(G4int DetConfig,WCSimTuningParameters* WCSimTuningPars);
+	WCSimCherenkovBuilder(G4int DetConfig);
 	virtual ~WCSimCherenkovBuilder();
 	void SetGeoConfig(WCSimGeoConfig * config);
 	WCSimGeoConfig * GetGeoConfig() const;

@@ -268,7 +268,7 @@ void WCSimDetectorConstruction::ConstructMaterials()
   G4double ABWFF = 1.0;
 
   // Get from the tuning parameters
-  ABWFF = WCSimTuningParams->GetAbwff();
+  ABWFF = (WCSimTuningParameters::Instance())->GetAbwff();
 
   //T. Akiri: Values from Skdetsim 
   G4double ABSORPTION_water[NUMENTRIES_water] =
@@ -306,7 +306,7 @@ void WCSimDetectorConstruction::ConstructMaterials()
   G4double RAYFF = 0.625;
 
   // Get from the tuning parameters
-  RAYFF = WCSimTuningParams->GetRayff();
+  RAYFF = (WCSimTuningParameters::Instance())->GetRayff();
   //    printf("RAYFF: %f\n",RAYFF);
 
   //T. Akiri: Values from Skdetsim 
@@ -326,7 +326,7 @@ void WCSimDetectorConstruction::ConstructMaterials()
   };
 
   // Get from the tuning parameters
-  G4double MIEFF = WCSimTuningParams->GetMieff();
+  G4double MIEFF = (WCSimTuningParameters::Instance())->GetMieff();
   //G4double MIEFF = 0.0;
   //    printf("MIEFF: %f\n",MIEFF);
 
@@ -397,7 +397,7 @@ void WCSimDetectorConstruction::ConstructMaterials()
   G4double BSRFF = 1.0;
 
   // Get from the tuning parameters
-  BSRFF = WCSimTuningParams->GetBsrff();
+  BSRFF = (WCSimTuningParameters::Instance())->GetBsrff();
 
   G4double REFLECTIVITY_blacksheet[NUMENTRIES_water] =
   { 0.055*BSRFF, 0.055*BSRFF, 
@@ -484,7 +484,7 @@ void WCSimDetectorConstruction::ConstructMaterials()
   { 1.0, 1.0 };
 
   G4double RGCFF = 0.0;
-  RGCFF = WCSimTuningParams->GetRgcff();
+  RGCFF = (WCSimTuningParameters::Instance())->GetRgcff();
 
   G4double REFLECTIVITY_glasscath[NUM] =
   { 1.0*RGCFF, 1.0*RGCFF };

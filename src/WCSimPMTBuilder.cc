@@ -7,11 +7,16 @@
 #include "WCSimMaterialsBuilder.hh"
 #include "WCSimPMTBuilder.hh"
 #include "WCSimPMTConfig.hh"
+#include "G4Box.hh"
 #include "G4LogicalBorderSurface.hh"
 #include "G4LogicalVolume.hh"
 #include "G4Material.hh"
 #include "G4VPhysicalVolume.hh"
+#include "G4Polycone.hh"
 #include "G4PVPlacement.hh"
+#include "G4Sphere.hh"
+#include "G4SubtractionSolid.hh"
+#include "G4SurfaceProperty.hh"
 #include "G4ThreeVector.hh"
 #include "G4VisAttributes.hh"
 #include <vector>
@@ -104,7 +109,7 @@ void WCSimPMTBuilder::ConstructPMT(WCSimPMTConfig config) {
 	logicGlassFaceWCPMT->SetVisAttributes(G4VisAttributes::Invisible);
 
 	//Add Logical Border Surface
-	G4OpticalSurface * OpGlassCathodeSurface = WCSimMaterialsBuilder::Instance()->GetOpticalSurface("GlassCathodeSurface");
+	G4SurfaceProperty * OpGlassCathodeSurface = (G4SurfaceProperty*)(WCSimMaterialsBuilder::Instance()->GetOpticalSurface("GlassCathodeSurface"));
 	G4LogicalBorderSurface* GlassCathodeSurface = new G4LogicalBorderSurface(
 																			 "GlassCathodeSurface",
 																			 physiGlassFaceWCPMT,

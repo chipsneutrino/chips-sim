@@ -39,8 +39,8 @@
 #include <cassert>
 #include <math.h>
 
-WCSimCherenkovBuilder::WCSimCherenkovBuilder(G4int DetConfig,WCSimTuningParameters* WCSimTuningPars) :
-		fConstructed(false), fGeoConfig(NULL), WCSimDetectorConstruction(DetConfig, WCSimTuningPars) {
+WCSimCherenkovBuilder::WCSimCherenkovBuilder(G4int DetConfig) :
+		fConstructed(false), fGeoConfig(NULL), WCSimDetectorConstruction(DetConfig) {
 	fBlacksheetThickness = 2 * mm;
 	fDebugMode 			 = false;
 
@@ -1106,5 +1106,4 @@ void WCSimCherenkovBuilder::SetPositions()
 void WCSimCherenkovBuilder::ConstructPMTs()
 {
 	fPMTBuilder->ConstructPMTs( fPMTConfigs );
-}
 }

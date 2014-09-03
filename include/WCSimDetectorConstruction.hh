@@ -34,7 +34,6 @@ class G4Material;
 class G4LogicalVolume;
 class G4AssemblyVolume;
 class G4VPhysicalVolume;
-class WCSimTuningParameters;
 class WCSimDetectorMessenger;
 class WCSimWCSD;
 class WCSimPMTManager;
@@ -54,7 +53,7 @@ class WCSimDetectorConstruction : public G4VUserDetectorConstruction
 {
 public:
 
-  WCSimDetectorConstruction(G4int DetConfig,WCSimTuningParameters* WCSimTuningPars);
+  WCSimDetectorConstruction(G4int DetConfig);
   ~WCSimDetectorConstruction();
   
   G4VPhysicalVolume* Construct();
@@ -146,9 +145,6 @@ protected: // Changed this from private to let WCSimCherenkovBuilder
 
 	// Vector of WCSimPMTConfig objects.
 	std::vector<WCSimPMTConfig> fPMTConfigs;
-
-  // Tuning parameters
-  WCSimTuningParameters* WCSimTuningParams;
 
   // Sensitive Detectors. We declare the pointers here because we need
   // to check their state if we change the geometry.

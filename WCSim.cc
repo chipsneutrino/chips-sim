@@ -28,10 +28,6 @@ int main(int argc,char** argv)
   // get the pointer to the UI manager
   G4UImanager* UI = G4UImanager::GetUIpointer();
 
-  // Set up the tuning parameters that need to be read before the detector
-  //  construction is done
-  WCSimTuningParameters* tuningpars = new WCSimTuningParameters();
-
   // Get the tuning parameters
   UI->ApplyCommand("/control/execute tuning_parameters.mac");
 
@@ -43,7 +39,7 @@ int main(int argc,char** argv)
   G4int WCSimConfiguration = fwm;
 
   WCSimCherenkovBuilder* WCSimdetector = new 
-    WCSimCherenkovBuilder(WCSimConfiguration,tuningpars);
+    WCSimCherenkovBuilder(WCSimConfiguration);
 
   runManager->SetUserInitialization(WCSimdetector);
 

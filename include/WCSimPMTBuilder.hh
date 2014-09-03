@@ -20,10 +20,10 @@ public:
 	WCSimPMTBuilder();
 	virtual ~WCSimPMTBuilder();
 	G4LogicalVolume * GetPMTLogicalVolume(WCSimPMTConfig config);
+	void ConstructPMTs(std::vector<WCSimPMTConfig> configVec);
 
 private:
 	void ConstructPMT(WCSimPMTConfig config);
-	void ConstructPMTs(std::vector<WCSimPMTConfig> configVec);
 	std::map<std::string, G4LogicalVolume*> fPMTLogicalVolumes;
 };
 

@@ -10,8 +10,11 @@
 #include "G4Isotope.hh"
 #include "G4Element.hh"
 #include "G4Material.hh"
+#include "G4OpticalSurface.hh"
 #include "G4UnitsTable.hh"
 #include <cassert>
+#include <map>
+#include <vector>
 
 static WCSimMaterialsBuilder* fgMaterialsBuilder = 0;
 
@@ -27,7 +30,7 @@ WCSimMaterialsBuilder::~WCSimMaterialsBuilder() {
 	// TODO Auto-generated destructor stub
 }
 
-static WCSimMaterialsBuilder* WCSimMaterialsBuilder::Instance() {
+WCSimMaterialsBuilder* WCSimMaterialsBuilder::Instance() {
 	if (!fgMaterialsBuilder) {
 		fgMaterialsBuilder = new WCSimMaterialsBuilder();
 	}
@@ -48,8 +51,7 @@ void WCSimMaterialsBuilder::BuildVacuum() {
 	G4double pressure = 1.e-19 * pascal;
 	G4double temperature = 0.1 * kelvin;
 	a = 1.01 * g / mole;
-	G4Material* Vacuum = new G4Material("Vacuum", 1., a, density, kStateGas,
-			temperature, pressure);
+	new G4Material("Vacuum", 1., a, density, kStateGas, temperature, pressure);
 }
 
 void WCSimMaterialsBuilder::BuildElements() {
@@ -58,103 +60,102 @@ void WCSimMaterialsBuilder::BuildElements() {
 	// == Elements ==
 	a = 1.01 * g / mole;
 	G4String name = "Hydrogen";
-	G4Element* elH = new G4Element(name, "H", 1, a);
-	fElements.push_back(name);
+	G4Element * elH = new G4Element(name, "H", 1, a);
+	fElements[name] = elH;
 
 	a = 10.81 * g / mole;
 	name = "Boron";
-	G4Element* elB = new G4Element(name, "B", 5, a);
-	fElements.push_back(name);
+	G4Element * elB = new G4Element(name, "B", 5, a);
+	fElements[name] = elB;
 
 	a = 12.01 * g / mole;
 	name = "Carbon";
-	G4Element* elC = new G4Element(name, "C", 6, a);
-	fElements.push_back(name);
+	G4Element * elC = new G4Element(name, "C", 6, a);
+	fElements[name] = elC;
 
 	a = 14.01 * g / mole;
 	name = "Nitrogen";
-	G4Element* elN = new G4Element(name, "N", 7, a);
-	fElements.push_back(name);
+	G4Element * elN = new G4Element(name, "N", 7, a);
+	fElements[name] = elN;
 
 	a = 16.00 * g / mole;
 	name = "Oxygen";
-	G4Element* elO = new G4Element(name, "O", 8, a);
-	fElements.push_back(name);
+	G4Element * elO = new G4Element(name, "O", 8, a);
+	fElements[name] = elO;
 
 	a = 22.99 * g / mole;
 	name = "Sodium";
-	G4Element* elNa = new G4Element(name, "Na", 11, a);
-	fElements.push_back(name);
+	G4Element * elNa = new G4Element(name, "Na", 11, a);
+	fElements[name] = elNa;
 
 	a = 24.30 * g / mole;
 	name = "Magnesium";
-	G4Element* elMg = new G4Element(name, "Mg", 12, a);
-	fElements.push_back(name);
+	G4Element * elMg = new G4Element(name, "Mg", 12, a);
+	fElements[name] = elMg;
 
 	a = 26.98 * g / mole;
 	name = "Aluminum";
-	G4Element* elAl = new G4Element(name, "Al", 13, a);
-	fElements.push_back(name);
+	G4Element * elAl = new G4Element(name, "Al", 13, a);
+	fElements[name] = elAl;
 
 	a = 28.09 * g / mole;
 	name = "Silicon";
-	G4Element* elSi = new G4Element(name, "Si", 14., a);
-	fElements.push_back(name);
+	G4Element * elSi = new G4Element(name, "Si", 14., a);
+	fElements[name] = elSi;
 
 	a = 30.974 * g / mole;
 	name = "Phosphore";
-	G4Element* elP = new G4Element(name, "P", 15., a);
-	fElements.push_back(name);
+	G4Element * elP = new G4Element(name, "P", 15., a);
+	fElements[name] = elP;
 
 	a = 32.065 * g / mole;
 	name = "Sulphur";
-	G4Element* elS = new G4Element(name, "S", 16., a);
-	fElements.push_back(name);
+	G4Element * elS = new G4Element(name, "S", 16., a);
+	fElements[name] = elS;
 
 	a = 39.948 * g / mole;
 	name = "Argon";
-	G4Element* elAr = new G4Element(name, "Ar", 18., a);
-	fElements.push_back(name);
+	G4Element * elAr = new G4Element(name, "Ar", 18., a);
+	fElements[name] = elAr;
 
 	a = 39.10 * g / mole;
 	name = "Potassium";
-	G4Element* elK = new G4Element(name, "K", 19, a);
-	fElements.push_back(name);
+	G4Element * elK = new G4Element(name, "K", 19, a);
+	fElements[name] = elK;
 
 	a = 40.08 * g / mole;
 	name = "Calcium";
-	G4Element* elCa = new G4Element(name, "Ca", 20, a);
-	fElements.push_back(name);
+	G4Element * elCa = new G4Element(name, "Ca", 20, a);
+	fElements[name] = elCa;
 
 	a = 51.9961 * g / mole;
 	name = "Chromium";
-	G4Element* elCr = new G4Element(name, "Cr", 24., a);
-	fElements.push_back(name);
+	G4Element * elCr = new G4Element(name, "Cr", 24., a);
+	fElements[name] = elCr;
 
 	a = 54.938 * g / mole;
 	name = "Manganese";
-	G4Element* elMn = new G4Element(name, "Mn", 25., a);
-	fElements.push_back(name);
+	G4Element * elMn = new G4Element(name, "Mn", 25., a);
+	fElements[name] = elMn;
 
 	a = 55.85 * g / mole;
 	name = "Iron";
-	G4Element* elFe = new G4Element(name, "Fe", 26, a);
-	fElements.push_back(name);
+	G4Element * elFe = new G4Element(name, "Fe", 26, a);
+	fElements[name] = elFe;
 
 	a = 58.6934 * g / mole;
 	name = "Nickel";
-	G4Element* elNi = new G4Element(name, "Ni", 28., a);
-	fElements.push_back(name);
+	G4Element * elNi = new G4Element(name, "Ni", 28., a);
+	fElements[name] = elNi;
 
 	a = 157.25 * g / mole;
 	name = "Gadolinium";
-	G4Element* Gd = new G4Element(name, "Gd", 64, a);
-	fElements.push_back(name);
+	G4Element * elGd = new G4Element(name, "Gd", 64, a);
+	fElements[name] = elGd;
 	// -----------------------
 }
 
 void WCSimMaterialsBuilder::BuildMaterials() {
-	G4double a = 0.0;
 	G4double density = 0.0;
 	G4String name = "";
 
@@ -310,9 +311,16 @@ G4Material* WCSimMaterialsBuilder::GetVacuum(const G4String& name) const {
 }
 
 G4Element* WCSimMaterialsBuilder::GetElement(const G4String& name) const {
-	assert(
-			std::find(fElements.begin(), fElements.end(), name) != fElements.end());
-	return G4Material::GetMaterial(name);
+	std::map<G4String, G4Element*>::const_iterator mapItr = fElements.find(name);
+  G4Element * element = NULL;
+  if( mapItr != fElements.end()){
+    element = (*mapItr).second;
+  }
+  else{
+    std::cerr << "Could not find an element called " << name << std::endl;
+    assert(mapItr != fElements.end());
+  }
+	return element;
 }
 
 G4Material* WCSimMaterialsBuilder::GetMaterial(const G4String& name) const {
@@ -739,13 +747,14 @@ void WCSimMaterialsBuilder::BuildMaterialPropertiesTable() {
 }
 
 G4OpticalSurface* WCSimMaterialsBuilder::GetOpticalSurface(
-		const G4String& name) const {
+		const G4String &name) const {
 	G4OpticalSurface * surf = NULL;
-	if (fOpticalSurfaces.find(name) != fOpticalSurfaces.end()) {
-		surf = fOpticalSurfaces[name];
+  std::map<G4String, G4OpticalSurface *>::const_iterator mapItr = fOpticalSurfaces.find(name);
+	if ( mapItr != fOpticalSurfaces.end()) {
+		surf = (*mapItr).second;
 	} else {
 		std::cerr << "Could not find surface " << name << std::endl;
-		assert( fOpticalSurfaces.find(name) != fOpticalSurfaces.end());
+		assert( mapItr != fOpticalSurfaces.end());
 	}
 	return surf;
 }

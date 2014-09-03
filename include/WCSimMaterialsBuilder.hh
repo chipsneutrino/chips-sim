@@ -7,13 +7,19 @@
 
 #ifndef WCSIMMATERIALSBUILDER_HH_
 #define WCSIMMATERIALSBUILDER_HH_
+#include <map>
+#include <vector>
+#include "G4String.hh"
+class G4OpticalSurface;
+class G4Material;
+class G4Element;
 
 class WCSimMaterialsBuilder {
 public:
 	static WCSimMaterialsBuilder * Instance();
 	G4OpticalSurface * GetOpticalSurface(const G4String &name) const;
 	G4Material* GetVacuum(const G4String &name) const;
-	G4Element * GetElement(const G4String &name) const;
+	G4Element* GetElement(const G4String &name) const;
 	G4Material* GetMaterial(const G4String &name) const;
 
 	G4OpticalSurface* GetOpGlassCathodeSurface() const {
@@ -40,8 +46,8 @@ private:
 	void BuildSurfacePropertiesTable();
 	void BuildSurfaces();
 
-	static std::vector<G4String> fElements;
-	static std::vector<G4String> fMaterials;
+	std::map<G4String, G4Element*> fElements;
+	std::vector<G4String> fMaterials;
 
 	// Surfaces:
 	std::map<G4String, G4OpticalSurface*> fOpticalSurfaces;

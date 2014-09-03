@@ -23,8 +23,7 @@ std::map<int, G4Transform3D> WCSimDetectorConstruction::tubeIDMap;
 hash_map<std::string, int, hash<std::string> > 
 WCSimDetectorConstruction::tubeLocationMap;
 
-WCSimDetectorConstruction::WCSimDetectorConstruction(G4int DetConfig,WCSimTuningParameters* WCSimTuningPars):WCSimTuningParams(WCSimTuningPars)
-{
+WCSimDetectorConstruction::WCSimDetectorConstruction(G4int DetConfig){
 	// Initialize daughter classes
 	fPMTBuilder = NULL;
 
