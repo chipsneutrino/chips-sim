@@ -989,6 +989,7 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructMailboxWC()
 
 G4LogicalVolume* WCSimDetectorConstruction::ConstructWC()
 {
+  assert(0);
 /*
   //-----------------------------------------------------
   // Positions
@@ -1665,8 +1666,6 @@ else {
   return logicWC;
 */
   G4LogicalVolume * logicWC = NULL;
-  WCSimCherenkovBuilder * myCherenkovBuilder = new WCSimCherenkovBuilder(myConfiguration, WCSimTuningParams);
-  logicWC = myCherenkovBuilder->ConstructDetector();
   return logicWC;
 }
 

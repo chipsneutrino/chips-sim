@@ -25,6 +25,12 @@ public:
 	G4LogicalVolume * ConstructDetector(); //< Main function to build the detector
 
 private:
+  G4VPhysicalVolume* Construct(); //< Overload this for now TODO: reorganise
+  G4LogicalVolume* ConstructWC(); //< Overload from WCSimConstructWC TODO: reorganise
+  void SetPositions(); /*< Sets a bunch of physical constants in the parent WCSimDetectorContruction
+                        * object.  Has to run before making any geometry objects TODO: reorganise */
+
+
 	void ConstructEnvironment(); //< Build the lake for the detector to sit in
 	void ConstructFrame(); //< The external metal frame
 	void ConstructVeto(); //< The veto region (currently not implemented)
@@ -33,7 +39,6 @@ private:
 	void CreatePrismRings(); //< Divide it into slices along the long axis
 	void CreateRingSegments(); //< Divide each slice into n segments
 	void CreateSegmentCells(); //< Fill each segment with WCSimUnitCells
-	void PlacePMTs(); //< Put the PMTs into each unit cell
 
 
 	void ConstructEndCaps(); //< Build the top and bottom caps of the detector
@@ -41,7 +46,10 @@ private:
 	void ConstructEndCapFrame(G4int zflip);
 	void ConstructEndCapAnnuli( G4int zflip );
 	void ConstructEndCapWalls(G4int zflip);
+	
+  void PlacePMTs(); //< Put the PMTs into each unit cell
 	void PlaceEndCapPMTs(G4int zflip);
+  void PlaceBarrelPMTs();
 
 	void CreateSensitiveDetector(); //< Make the photocathodes responsive
 

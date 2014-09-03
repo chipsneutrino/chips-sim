@@ -3,7 +3,7 @@
 #include "G4UImanager.hh"
 #include "G4UIterminal.hh"
 #include "G4UItcsh.hh"
-#include "WCSimDetectorConstruction.hh"
+#include "WCSimCherenkovBuilder.hh"
 #include "WCSimPhysicsList.hh"
 #include "WCSimPhysicsMessenger.hh"
 #include "WCSimPhysicsListFactory.hh"
@@ -42,8 +42,8 @@ int main(int argc,char** argv)
   enum DetConfiguration {wfm=1,fwm=2};
   G4int WCSimConfiguration = fwm;
 
-  WCSimDetectorConstruction* WCSimdetector = new 
-    WCSimDetectorConstruction(WCSimConfiguration,tuningpars);
+  WCSimCherenkovBuilder* WCSimdetector = new 
+    WCSimCherenkovBuilder(WCSimConfiguration,tuningpars);
 
   runManager->SetUserInitialization(WCSimdetector);
 
