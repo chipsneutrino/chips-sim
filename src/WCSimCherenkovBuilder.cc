@@ -933,13 +933,13 @@ void WCSimCherenkovBuilder::PlaceEndCapPMTs(G4int zflip)
 void WCSimCherenkovBuilder::CreateSensitiveDetector() {
 
 	  G4SDManager* SDman = G4SDManager::GetSDMpointer();
-
 	  if (!aWCPMT)
 	  {
 	    aWCPMT = new WCSimWCSD( "/WCSim/glassFaceWCPMT",this );
 	    SDman->AddNewDetector( aWCPMT );
 	  }
-	  logicGlassFaceWCPMT->SetSensitiveDetector( aWCPMT );
+    
+    fPMTBuilder.SetSensitiveDetector( aWCPMT );
 }
 
 WCSimUnitCell* WCSimCherenkovBuilder::GetBarrelUnitCell() {

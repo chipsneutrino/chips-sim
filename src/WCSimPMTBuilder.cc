@@ -7,6 +7,7 @@
 #include "WCSimMaterialsBuilder.hh"
 #include "WCSimPMTBuilder.hh"
 #include "WCSimPMTConfig.hh"
+#include "WCSimWCSD.hh"
 #include "G4Box.hh"
 #include "G4LogicalBorderSurface.hh"
 #include "G4LogicalVolume.hh"
@@ -22,6 +23,29 @@
 #include <vector>
 #include <map>
 
+// Wrapper used to access the Geant4 objects we create for each PMT
+WCSimGeantPMTWrapper::WCSimGeantPMTWrapper() : fPMTLogicalVolume(NULL), fGlassFaceLogicalVolume(NULL){
+}
+
+
+WCSimGeantPMTWrapper::WCSimGeantPMTWrapper(G4LogicalVolume* PMTLogicalVolume,
+		G4LogicalVolume* glassFaceLogicalVolume) :
+		fPMTLogicalVolume(PMTLogicalVolume),
+		fGlassFaceLogicalVolume(glassFaceLogicalVolume){
+}
+
+G4LogicalVolume* WCSimGeantPMTWrapper::GetPMTLogicalVolume() const {
+	assert(fPMTLogicalVolume != NULL);
+	return fPMTLogicalVolume;
+}
+
+G4LogicalVolume* WCSimGeantPMTWrapper::GetGlassFaceLogicalVolume() const {
+	assert(fGlassFaceLogicalVolume != NULL);
+	return fGlassFaceLogicalVolume;
+}
+
+
+// Class to construct all our PMTs
 WCSimPMTBuilder::WCSimPMTBuilder(){
 }
 
@@ -32,16 +56,27 @@ WCSimPMTBuilder::~WCSimPMTBuilder() {
 G4LogicalVolume* WCSimPMTBuilder::GetPMTLogicalVolume(WCSimPMTConfig config) {
 
 	G4LogicalVolume * vol = NULL;
-  std::cout << "Config name = " << config.GetPMTName() << std::endl;
+    std::cout << "Config name = " << config.GetPMTName() << std::endl;
 	if( fPMTLogicalVolumes.find(config.GetPMTName()) != fPMTLogicalVolumes.end()){
-		vol = fPMTLogicalVolumes[config.GetPMTName()];
+		WCSimGeantPMTWrapper wrapper = (fPMTLogicalVolumes[config.GetPMTName()]);
+    vol = wrapper.GetPMTLogicalVolume();
 	}
 	else{
 		std::cerr << "Could not find PMT config in the list of PMT logical volumes" << std::endl;
-    std::map<std::string, G4LogicalVolume*>::iterator mapItr2 = fPMTLogicalVolumes.begin();
-    for( ; mapItr2 != fPMTLogicalVolumes.end(); ++mapItr2){
-      std::cout << (*mapItr2).first << std::endl;
-    }
+		assert(0);
+	}
+	return vol;
+}
+
+G4LogicalVolume* WCSimPMTBuilder::GetGlassFaceLogicalVolume(WCSimPMTConfig config) {
+
+	G4LogicalVolume * vol = NULL;
+    std::cout << "Config name = " << config.GetPMTName() << std::endl;
+	if( fPMTLogicalVolumes.find(config.GetPMTName()) != fPMTLogicalVolumes.end()){
+		vol = (fPMTLogicalVolumes[config.GetPMTName()]).GetGlassFaceLogicalVolume();
+	}
+	else{
+		std::cerr << "Could not find PMT config in the list of PMT logical volumes" << std::endl;
 		assert(0);
 	}
 	return vol;
@@ -116,13 +151,12 @@ void WCSimPMTBuilder::ConstructPMT(WCSimPMTConfig config) {
 	//Add Logical Border Surface
 	G4SurfaceProperty * OpGlassCathodeSurface = (G4SurfaceProperty*)(WCSimMaterialsBuilder::Instance()->GetOpticalSurface("GlassCathodeSurface"));
 	G4LogicalBorderSurface* GlassCathodeSurface = new G4LogicalBorderSurface(
-																			 "GlassCathodeSurface",
-																			 physiGlassFaceWCPMT,
-																			 physiInteriorWCPMT,
-																			 OpGlassCathodeSurface);
-
-	fPMTLogicalVolumes[config.GetPMTName()] = logicWCPMT;
-
+	                                    																		 "GlassCathodeSurface",
+	                                    																		 physiGlassFaceWCPMT,
+	                                    																		 physiInteriorWCPMT,
+	                                    																		 OpGlassCathodeSurface);
+                                      
+	fPMTLogicalVolumes[config.GetPMTName()] = WCSimGeantPMTWrapper( logicWCPMT, logicGlassFaceWCPMT);
 }
 
 void WCSimPMTBuilder::ConstructPMTs(std::vector<WCSimPMTConfig> configVec) {
@@ -135,4 +169,11 @@ void WCSimPMTBuilder::ConstructPMTs(std::vector<WCSimPMTConfig> configVec) {
 	return;
 }
 
-
+void WCSimPMTBuilder::SetSensitiveDetector(WCSimWCSD * sensDet){
+  std::map<std::string, WCSimGeantPMTWrapper>::iterator pmtItr;
+  for( pmtItr = fPMTLogicalVolumes.begin(); pmtItr != fPMTLogicalVolumes.end(); ++pmtItr){
+    WCSimGeantPMTWrapper wrapper = (*pmtItr).second;
+    wrapper.GetGlassFaceLogicalVolume()->SetSensitiveDetector(sensDet);
+  }
+  return;
+}
