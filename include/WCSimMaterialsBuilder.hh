@@ -18,7 +18,7 @@ class WCSimMaterialsBuilder {
 public:
 	static WCSimMaterialsBuilder * Instance();
 	G4OpticalSurface * GetOpticalSurface(const G4String &name) const;
-	G4Material* GetVacuum(const G4String &name) const;
+	G4Material* GetVacuum() const;
 	G4Element* GetElement(const G4String &name) const;
 	G4Material* GetMaterial(const G4String &name) const;
 

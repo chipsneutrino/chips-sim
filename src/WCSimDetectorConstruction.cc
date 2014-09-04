@@ -23,9 +23,8 @@ std::map<int, G4Transform3D> WCSimDetectorConstruction::tubeIDMap;
 hash_map<std::string, int, hash<std::string> > 
 WCSimDetectorConstruction::tubeLocationMap;
 
-WCSimDetectorConstruction::WCSimDetectorConstruction(G4int DetConfig){
+WCSimDetectorConstruction::WCSimDetectorConstruction(G4int DetConfig) : fPMTBuilder(){
 	// Initialize daughter classes
-	fPMTBuilder = NULL;
 
 	
   // Decide if (only for the case of !1kT detector) should be upright or horizontal

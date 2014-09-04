@@ -220,6 +220,7 @@ void WCSimDetectorConstruction::CHIPS_25kton_10inch_HQE_10perCent()
 //  WCPMTRadius           = .127*m;
 //  WCPMTExposeHeight	    = WCPMTRadius - 0.01*m;
   fPMTConfigs.push_back(fPMTManager->GetPMTByName("10inch_HQE"));
+  fPMTConfigs.push_back(fPMTManager->GetPMTByName("10inch"));
 
 	std::cout << "=== PMT LOG ===" << std::endl;
 	std::cout << "PMT Vector Size = " << fPMTConfigs.size() << std::endl;

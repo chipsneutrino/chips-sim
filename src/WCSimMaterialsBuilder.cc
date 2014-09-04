@@ -22,6 +22,7 @@ WCSimMaterialsBuilder::WCSimMaterialsBuilder() {
 	BuildVacuum();
 	BuildElements();
 	BuildMaterials();
+  BuildSurfaces();
 	BuildMaterialPropertiesTable();
 
 }
@@ -51,7 +52,9 @@ void WCSimMaterialsBuilder::BuildVacuum() {
 	G4double pressure = 1.e-19 * pascal;
 	G4double temperature = 0.1 * kelvin;
 	a = 1.01 * g / mole;
-	new G4Material("Vacuum", 1., a, density, kStateGas, temperature, pressure);
+  G4String name = "Vacuum";
+	new G4Material(name, 1., a, density, kStateGas, temperature, pressure);
+  fMaterials.push_back(name);
 }
 
 void WCSimMaterialsBuilder::BuildElements() {
@@ -163,35 +166,35 @@ void WCSimMaterialsBuilder::BuildMaterials() {
 
 	density = 1.00 * g / cm3;
 	name = "Water";
-	G4Material* Water = new G4Material("Water", density, 2);
+	G4Material* Water = new G4Material(name, density, 2);
 	Water->AddElement(GetElement("Hydrogen"), 2);
 	Water->AddElement(GetElement("Oxygen"), 1);
 	fMaterials.push_back(name);
 
 	density = 1.00 * g / cm;
 	name = "PitWater";
-	G4Material* PitWater = new G4Material("PitWater", density, 2);
+	G4Material* PitWater = new G4Material(name, density, 2);
 	PitWater->AddElement(GetElement("Hydrogen"), 2);
 	PitWater->AddElement(GetElement("Oxygen"), 1);
 	fMaterials.push_back(name);
 
 	density = 1.00 * g / cm3;
-	name = "Doped Water";
-	G4Material* DopedWater = new G4Material("Doped Water", density, 2);
+	name = "DopedWater";
+	G4Material* DopedWater = new G4Material(name, density, 2);
 	DopedWater->AddMaterial(Water, 99.9 * perCent);
 	DopedWater->AddElement(GetElement("Gadolinium"), 0.1 * perCent);
 	fMaterials.push_back(name);
 
 	density = 0.92 * g / cm3;
 	name = "Ice";
-	G4Material* Ice = new G4Material("Ice", density, 2);
+	G4Material* Ice = new G4Material(name, density, 2);
 	Ice->AddElement(GetElement("Hydrogen"), 2);
 	Ice->AddElement(GetElement("Oxygen"), 1);
 	fMaterials.push_back(name);
 
 	density = 7.8 * g / cm3;
 	name = "Steel";
-	G4Material* Steel = new G4Material("Steel", density, 2);
+	G4Material* Steel = new G4Material(name, density, 2);
 	Steel->AddElement(GetElement("Carbon"), 1. * perCent);
 	Steel->AddElement(GetElement("Iron"), 99. * perCent);
 	fMaterials.push_back(name);
@@ -199,7 +202,7 @@ void WCSimMaterialsBuilder::BuildMaterials() {
 	// Stainless steel 304L
 	density = 7.81 * g / cm3;
 	name = "StainlessSteel";
-	G4Material* StainlessSteel = new G4Material("StainlessSteel", density, 8);
+	G4Material* StainlessSteel = new G4Material(name, density, 8);
 	StainlessSteel->AddElement(GetElement("Iron"), 70.44 * perCent);
 	StainlessSteel->AddElement(GetElement("Chromium"), 18 * perCent);
 	StainlessSteel->AddElement(GetElement("Carbon"), 0.08 * perCent);
@@ -212,14 +215,14 @@ void WCSimMaterialsBuilder::BuildMaterials() {
 
 	density = 1.563 * g / cm3;
 	name = "SolidDryIce";
-	G4Material* DryIce = new G4Material("SolidDryIce", density, 2);
+	G4Material* DryIce = new G4Material(name, density, 2);
 	DryIce->AddElement(GetElement("Carbon"), 1);
-	DryIce->AddElement(GetElement("Oxygend"), 2);
+	DryIce->AddElement(GetElement("Oxygen"), 2);
 	fMaterials.push_back(name);
 
 	density = 1.290 * mg / cm3;
 	name = "Air";
-	G4Material* Air = new G4Material("Air", density, 3);
+	G4Material* Air = new G4Material(name, density, 3);
 	Air->AddElement(GetElement("Nitrogen"), 78. * perCent);
 	Air->AddElement(GetElement("Oxygen"), 21. * perCent);
 	Air->AddElement(GetElement("Argon"), 1. * perCent);
@@ -227,27 +230,27 @@ void WCSimMaterialsBuilder::BuildMaterials() {
 
 	density = 0.95 * g / cm3;
 	name = "Plastic";
-	G4Material* Plastic = new G4Material("Plastic", density, 2);
+	G4Material* Plastic = new G4Material(name, density, 2);
 	Plastic->AddElement(GetElement("Carbon"), 1);
 	Plastic->AddElement(GetElement("Hydrogen"), 2);
 	fMaterials.push_back(name);
 
 	density = 2.7 * g / cm3;
 	name = "Aluminum";
-	G4Material* Aluminum = new G4Material("Aluminum", density, 1);
+	G4Material* Aluminum = new G4Material(name, density, 1);
 	Aluminum->AddElement(GetElement("Aluminum"), 1);
 	fMaterials.push_back(name);
 
 	density = 0.95 * g / cm3;
 	name = "Blacksheet";
-	G4Material* Blacksheet = new G4Material("Blacksheet", density, 2);
+	G4Material* Blacksheet = new G4Material(name, density, 2);
 	Blacksheet->AddElement(GetElement("Carbon"), 1);
 	Blacksheet->AddElement(GetElement("Hydrogen"), 2);
 	fMaterials.push_back(name);
 
 	density = 0.38 * g / cm3;  //cf. DuPont product handbook
 	name = "Tyvek";
-	G4Material* Tyvek = new G4Material("Tyvek", density, 2);
+	G4Material* Tyvek = new G4Material(name, density, 2);
 	Tyvek->AddElement(GetElement("Carbon"), 1);  //polyethylene
 	Tyvek->AddElement(GetElement("Oxygen"), 2);
 	fMaterials.push_back(name);
@@ -255,35 +258,35 @@ void WCSimMaterialsBuilder::BuildMaterials() {
 	// Components for making glass
 	density = 2.20 * g / cm3;
 	name = "SiO2";
-	G4Material* SiO2 = new G4Material("SiO2", density, 2);
+	G4Material* SiO2 = new G4Material(name, density, 2);
 	SiO2->AddElement(GetElement("Silicon"), 1);
 	SiO2->AddElement(GetElement("Oxygen"), 2);
 	fMaterials.push_back(name);
 
 	density = 2.46 * g / cm3;
 	name = "B2O3";
-	G4Material* B2O3 = new G4Material("B2O3", density, 2);
+	G4Material* B2O3 = new G4Material(name, density, 2);
 	B2O3->AddElement(GetElement("Boron"), 2);
 	B2O3->AddElement(GetElement("Oxygen"), 3);
 	fMaterials.push_back(name);
 
 	density = 2.27 * g / cm3;
-	name = "Na20";
-	G4Material* Na2O = new G4Material("Na2O", density, 2);
+	name = "Na2O";
+	G4Material* Na2O = new G4Material(name, density, 2);
 	Na2O->AddElement(GetElement("Sodium"), 2);
 	Na2O->AddElement(GetElement("Oxygen"), 1);
 	fMaterials.push_back(name);
 
 	density = 4.00 * g / cm3;
-	name = "Al203";
-	G4Material* Al2O3 = new G4Material("Al2O3", density, 2);
+	name = "Al2O3";
+	G4Material* Al2O3 = new G4Material(name, density, 2);
 	Al2O3->AddElement(GetElement("Aluminum"), 2);
 	Al2O3->AddElement(GetElement("Oxygen"), 3);
 	fMaterials.push_back(name);
 
 	density = 2.23 * g / cm3;
 	name = "Glass";
-	G4Material* Glass = new G4Material("Glass", density, 4);
+	G4Material* Glass = new G4Material(name, density, 4);
 	Glass->AddMaterial(GetMaterial("SiO2"), 80.6 * perCent);
 	Glass->AddMaterial(GetMaterial("B2O3"), 13.0 * perCent);
 	Glass->AddMaterial(GetMaterial("Na2O"), 4.0 * perCent);
@@ -292,7 +295,7 @@ void WCSimMaterialsBuilder::BuildMaterials() {
 
 	density = 2.7 * g / cm3;
 	name = "Rock";
-	G4Material* Rock = new G4Material("Rock", density, 8);
+	G4Material* Rock = new G4Material(name, density, 8);
 
 	//From Daya-Bay
 	Rock->AddElement(GetElement("Oxygen"), 48.50 * perCent);
@@ -306,8 +309,9 @@ void WCSimMaterialsBuilder::BuildMaterials() {
 	fMaterials.push_back(name);
 }
 
-G4Material* WCSimMaterialsBuilder::GetVacuum(const G4String& name) const {
-	return G4Material::GetMaterial("name");
+G4Material* WCSimMaterialsBuilder::GetVacuum() const {
+  G4String name = "Vacuum";
+	return GetMaterial(name);
 }
 
 G4Element* WCSimMaterialsBuilder::GetElement(const G4String& name) const {
@@ -324,8 +328,10 @@ G4Element* WCSimMaterialsBuilder::GetElement(const G4String& name) const {
 }
 
 G4Material* WCSimMaterialsBuilder::GetMaterial(const G4String& name) const {
-	assert(
-			std::find(fMaterials.begin(), fMaterials.end(), name) != fMaterials.end());
+	if(std::find(fMaterials.begin(), fMaterials.end(), name) == fMaterials.end()){
+    std::cerr << "Could not find material: " << name << std::endl;
+    assert(false);
+  }
 	return G4Material::GetMaterial(name);
 }
 
@@ -767,15 +773,18 @@ void WCSimMaterialsBuilder::BuildSurfaces() {
 
 	//	------------- Surfaces --------------
 	if (fOpWaterBSSurface == NULL) {
-		fOpWaterBSSurface = new G4OpticalSurface("WaterBSCellSurface");
+    G4String name = "WaterBSCellSurface";
+		fOpWaterBSSurface = new G4OpticalSurface(name);
 		fOpWaterBSSurface->SetType(dielectric_dielectric);
 		fOpWaterBSSurface->SetModel(unified);
 		fOpWaterBSSurface->SetFinish(groundfrontpainted);
 		fOpWaterBSSurface->SetSigmaAlpha(0.1);
+    fOpticalSurfaces[name] = fOpWaterBSSurface;
 	}
 
 	if (fOpGlassCathodeSurface == NULL) {
-		fOpGlassCathodeSurface = new G4OpticalSurface("GlassCathodeSurface");
+    G4String name = "GlassCathodeSurface";
+		fOpGlassCathodeSurface = new G4OpticalSurface(name);
 		fOpGlassCathodeSurface->SetType(dielectric_dielectric);
 		fOpGlassCathodeSurface->SetModel(unified);
 		//   fOpGlassCathodeSurface->SetFinish(groundbackpainted);
@@ -783,16 +792,19 @@ void WCSimMaterialsBuilder::BuildSurfaces() {
 		//fOpGlassCathodeSurface->SetSigmaAlpha(0.002);
 		// was 1.0
 		// totally unphysical anyway
+    fOpticalSurfaces[name] = fOpGlassCathodeSurface;
 	}
 
 	// jl145 ----
 	//
 	if (fOpWaterTySurface == NULL) {
-		fOpWaterTySurface = new G4OpticalSurface("WaterTyCellSurface");
+    G4String name = "WaterTyCellSurface";
+		fOpWaterTySurface = new G4OpticalSurface(name);
 		fOpWaterTySurface->SetType(dielectric_dielectric);
 		fOpWaterTySurface->SetModel(unified);
 		fOpWaterTySurface->SetFinish(groundbackpainted); //a guess, but seems to work
 		fOpWaterTySurface->SetSigmaAlpha(0.5); //cf. A. Chavarria's ~30deg
+    fOpticalSurfaces[name] = fOpWaterTySurface;
 	}
 }
 

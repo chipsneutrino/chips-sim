@@ -328,7 +328,7 @@ protected: // Changed this from private to let WCSimCherenkovBuilder
  
   std::vector<WCSimPmtInfo*> fpmts;
   
-  WCSimPMTBuilder * fPMTBuilder;
+  WCSimPMTBuilder fPMTBuilder;
 
 };
 

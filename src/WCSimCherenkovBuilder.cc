@@ -418,9 +418,10 @@ void WCSimCherenkovBuilder::PlaceBarrelPMTs()
                                   + G4ThreeVector(0, pmtCellPosition.x(), -1.0*pmtCellPosition.y()); // top left of cell to PMT
       std::cout << "Position = " << PMTPosition << "   rotation = " << WCPMTRotation << std::endl;
       std::cout << "Cell mother height and width: " << heightPerCell/2. << "  "  << segmentWidth/2. << std::endl;
+      WCSimPMTConfig config = unitCell->GetPMTPlacement(nPMT).GetPMTConfig();
 			G4VPhysicalVolume* physiWCBarrelPMT = new G4PVPlacement(WCPMTRotation,     // its rotation
 																	PMTPosition,
-																	logicWCPMT,        // its logical volume // TODO: GET THIS SOMEHOW/
+																	fPMTBuilder.GetPMTLogicalVolume(config),        // its logical volume // TODO: GET THIS SOMEHOW/
 																	"WCPMT",           // its name
 																	fSegmentLogic,      // its mother volume
 																	false,             // no boolean operations
@@ -1105,5 +1106,6 @@ void WCSimCherenkovBuilder::SetPositions()
 
 void WCSimCherenkovBuilder::ConstructPMTs()
 {
-	fPMTBuilder->ConstructPMTs( fPMTConfigs );
+  std::cout << "SIZE OF CONFIGS VECTOR = " << fPMTConfigs.size() << std::endl;
+	fPMTBuilder.ConstructPMTs( fPMTConfigs );
 }

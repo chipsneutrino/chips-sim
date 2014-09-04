@@ -32,11 +32,16 @@ WCSimPMTBuilder::~WCSimPMTBuilder() {
 G4LogicalVolume* WCSimPMTBuilder::GetPMTLogicalVolume(WCSimPMTConfig config) {
 
 	G4LogicalVolume * vol = NULL;
+  std::cout << "Config name = " << config.GetPMTName() << std::endl;
 	if( fPMTLogicalVolumes.find(config.GetPMTName()) != fPMTLogicalVolumes.end()){
 		vol = fPMTLogicalVolumes[config.GetPMTName()];
 	}
 	else{
 		std::cerr << "Could not find PMT config in the list of PMT logical volumes" << std::endl;
+    std::map<std::string, G4LogicalVolume*>::iterator mapItr2 = fPMTLogicalVolumes.begin();
+    for( ; mapItr2 != fPMTLogicalVolumes.end(); ++mapItr2){
+      std::cout << (*mapItr2).first << std::endl;
+    }
 		assert(0);
 	}
 	return vol;
@@ -122,6 +127,8 @@ void WCSimPMTBuilder::ConstructPMT(WCSimPMTConfig config) {
 
 void WCSimPMTBuilder::ConstructPMTs(std::vector<WCSimPMTConfig> configVec) {
 	std::vector<WCSimPMTConfig>::const_iterator confItr = configVec.begin();
+  std::cout << "Number of CONFIGS = " << configVec.size() << std::endl;
+  std::cout << "Config name = " << configVec.at(0).GetPMTName() << std::endl;
 	for( ; confItr != configVec.end(); ++confItr){
 		ConstructPMT((*confItr));
 	}
