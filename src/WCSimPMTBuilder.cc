@@ -20,6 +20,7 @@
 #include "G4SurfaceProperty.hh"
 #include "G4ThreeVector.hh"
 #include "G4VisAttributes.hh"
+#include <cassert>
 #include <vector>
 #include <map>
 

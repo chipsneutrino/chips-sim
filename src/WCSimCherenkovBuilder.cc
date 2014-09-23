@@ -9,6 +9,7 @@
 #include "WCSimDetectorConstruction.hh"
 #include "WCSimGeoConfig.hh"
 #include "WCSimGeoManager.hh"
+#include "WCSimMaterialsBuilder.hh"
 #include "WCSimPMTConfig.hh"
 #include "WCSimPMTManager.hh"
 #include "WCSimPolygonTools.hh"
@@ -90,7 +91,7 @@ void WCSimCherenkovBuilder::ConstructEnvironment() {
 	G4double lakeIR     	   = 0.0; // inner radius of lake
 	G4double lakeOR     	   = innerRadius + shoreDistance*m; // outer radius of lake
 	G4double lakeHeight 	   = innerHeight + 20. * m;
-	G4Material * lakeWater 	   = G4Material::GetMaterial("PitWater");  // Fill it with purified water
+	G4Material * lakeWater 	   = WCSimMaterialsBuilder::Instance()->GetMaterial("PitWater");  // Fill it with purified water
 	G4VisAttributes* lakeColor = new G4VisAttributes(G4Colour(0.0, 0.0, 1.0));
 
 	// The geometry objects themselves:
@@ -114,7 +115,7 @@ void WCSimCherenkovBuilder::ConstructFrame() {
 	G4double barrelIR 	     = 0.0 * m;
 	G4double barrelOR 	     = innerRadius + 1.0 * m; // Allow an extra metre of space
 	G4double barrelHeight    = 0.5 * innerHeight;
-	G4Material * barrelWater = G4Material::GetMaterial("Water");  // Fill it with purified water
+	G4Material * barrelWater = WCSimMaterialsBuilder::Instance()->GetMaterial("Water");  // Fill it with purified water
 
 	G4Tubs* barrelTubs = new G4Tubs("barrelTubs", barrelIR, barrelOR, barrelHeight,
 									0. * deg, 360. * deg);
@@ -181,7 +182,7 @@ void WCSimCherenkovBuilder::CreatePrism() {
 											  mainAnnulusRmin, mainAnnulusRmax); // inner and outer radii
 
 	fPrismLogic = new G4LogicalVolume(
-											  prismSolid, G4Material::GetMaterial("Water"),
+											  prismSolid, WCSimMaterialsBuilder::Instance()->GetMaterial("Water"),
 											  "prism", 0, 0, 0);
 
 	G4VPhysicalVolume* prismPhysic = new G4PVPlacement(0, G4ThreeVector(0., 0., 0.),
@@ -204,7 +205,7 @@ void WCSimCherenkovBuilder::CreatePrismRings() {
 								  + fBlacksheetThickness + 1. * mm;
 
 	double ringHeight 			= GetBarrelLengthForCells() / fWallCellsZ;
-	G4Material * pureWater  = G4Material::GetMaterial("Water");
+	G4Material * pureWater  = WCSimMaterialsBuilder::Instance()->GetMaterial("Water");
 
 	// Zip them up into arrays to pass to Geant
   std::cout << "Ring height = " << ringHeight << std::endl;
@@ -257,7 +258,7 @@ void WCSimCherenkovBuilder::CreateRingSegments() {
 
 
 	double ringHeight 			= GetBarrelLengthForCells() / fWallCellsZ;
-	G4Material * pureWater = G4Material::GetMaterial("Water");
+	G4Material * pureWater = WCSimMaterialsBuilder::Instance()->GetMaterial("Water");
 
 	// Zip them up into arrays to pass to Geant
 	G4double RingZ[2] 			= { -0.5 * ringHeight, 0.5 * ringHeight };
@@ -310,7 +311,7 @@ void WCSimCherenkovBuilder::CreateRingSegments() {
 														  annulusBlacksheetRmax);
 
 	G4LogicalVolume * segmentBlacksheetLogic = new G4LogicalVolume( segmentBlacksheetSolid,
-																	G4Material::GetMaterial("Blacksheet"),
+																	WCSimMaterialsBuilder::Instance()->GetMaterial("Blacksheet"),
 																	"segmentBlacksheet",
 																	0, 0, 0);
 
@@ -408,8 +409,8 @@ void WCSimCherenkovBuilder::PlaceBarrelPMTs()
     G4ThreeVector offsetToUnitCell = G4ThreeVector(0, 0.5*(widthPerCell - fWallCellSize), 0.5*(heightPerCell - fWallCellSize)); // Offset to the bottom left corner of the unit cell itself
 
 		WCSimUnitCell * unitCell = GetBarrelUnitCell();
-		for(unsigned int nPMT = 0; nPMT < unitCell->GetNumPMTs(); ++nPMT){
-			G4TwoVector pmtCellPosition = unitCell->GetPMTPos(nPMT, fWallCellSize); // PMT position in cell, relative to top left of cell
+		for(unsigned int nPMT = 0; nPMT < unitCell->GetNumPMTContainers(); ++nPMT){
+			G4TwoVector pmtCellPosition = unitCell->GetPMTContainerPos(nPMT, fWallCellSize); // PMT position in cell, relative to top left of cell
       std::cout << std::endl << "Placing PMT " << nPMT << "in wall cell " << i << std::endl;
       std::cout << "PMT position in cell = " << pmtCellPosition.x() / m << "," << pmtCellPosition.y() / m << "in m" << std::endl;
       std::cout << "Cell size = " << fWallCellSize << std::endl;// pmtCellPosition.x() << "," << pmtCellPosition.y() << std::endl;
@@ -418,14 +419,14 @@ void WCSimCherenkovBuilder::PlaceBarrelPMTs()
                                   + G4ThreeVector(0, pmtCellPosition.x(), -1.0*pmtCellPosition.y()); // top left of cell to PMT
       std::cout << "Position = " << PMTPosition << "   rotation = " << WCPMTRotation << std::endl;
       std::cout << "Cell mother height and width: " << heightPerCell/2. << "  "  << segmentWidth/2. << std::endl;
-      WCSimPMTConfig config = unitCell->GetPMTPlacement(nPMT).GetPMTConfig();
+      WCSimPMTConfig config = unitCell->GetPMTContainer(nPMT).GetPMTConfig();
 			G4VPhysicalVolume* physiWCBarrelPMT = new G4PVPlacement(WCPMTRotation,     // its rotation
 																	PMTPosition,
 																	fPMTBuilder.GetPMTLogicalVolume(config),        // its logical volume // TODO: GET THIS SOMEHOW/
 																	"WCPMT",           // its name
 																	fSegmentLogic,      // its mother volume
 																	false,             // no boolean operations
-																	(int) (i*unitCell->GetNumPMTs() + nPMT), true);
+																	(int) (i*unitCell->GetNumPMTContainers() + nPMT), true);
 
 			// logicWCPMT->GetDaughter(0),physiCapPMT is the glass face. If you add more
 			// daugter volumes to the PMTs (e.g. a acryl cover) you have to check, if
@@ -674,7 +675,7 @@ void WCSimCherenkovBuilder::ConstructEndCapFrame(G4int zflip){
 	//	G4double mainAnnulusRmin[2] = { innerAnnulusRadius, innerAnnulusRadius };
 	//	G4double mainAnnulusRmax[2] = { outerAnnulusRadius, outerAnnulusRadius };
 
-	G4Material * pureWater = G4Material::GetMaterial("Water");
+	G4Material * pureWater = WCSimMaterialsBuilder::Instance()->GetMaterial("Water");
 
 	G4double capAssemblyHeight = (fGeoConfig->GetInnerHeight() - GetBarrelLengthForCells())/2
 			  	  	  	  	  	   +1*mm + fBlacksheetThickness;
@@ -706,8 +707,8 @@ void WCSimCherenkovBuilder::ConstructEndCapAnnuli( G4int zflip ){
 	  G4double totalAngle = 2.0 * pi * rad;
 	  G4double capAssemblyHeight = (fGeoConfig->GetInnerHeight()-GetBarrelLengthForCells())/2.0
 			  		  	  	  	   + 1*mm + fBlacksheetThickness;
-	  G4Material * pureWater = G4Material::GetMaterial("Water");
-	  G4Material * blacksheet = G4Material::GetMaterial("Blacksheet");
+	  G4Material * pureWater = WCSimMaterialsBuilder::Instance()->GetMaterial("Water");
+	  G4Material * blacksheet = WCSimMaterialsBuilder::Instance()->GetMaterial("Blacksheet");
 
 	  G4double borderAnnulusZ[3] = {-0.5 * GetMaxBarrelExposeHeight()*zflip,
 	                                (-0.5 * GetBarrelLengthForCells() +
@@ -780,8 +781,8 @@ void WCSimCherenkovBuilder::ConstructEndCapWalls(G4int zflip)
 	  G4double totalAngle = 2.0 * pi * rad;
 	  G4double capAssemblyHeight = (fGeoConfig->GetInnerHeight()-GetBarrelLengthForCells())/2.0
 			  		  	  	  	   + 1*mm + fBlacksheetThickness;
-	  G4Material * pureWater = G4Material::GetMaterial("Water");
-	  G4Material * blacksheet = G4Material::GetMaterial("Blacksheet");
+	  G4Material * pureWater = WCSimMaterialsBuilder::Instance()->GetMaterial("Water");
+	  G4Material * blacksheet = WCSimMaterialsBuilder::Instance()->GetMaterial("Blacksheet");
 
 	  G4double WCBarrelPMTOffset = 0.0; // I think the new placement method takes care of this already (AJP 27/8/14)
 	  	  	  	  	  	  	  	  	  	// Leaving it here in case not - don't want to lose where it's used
@@ -993,7 +994,7 @@ G4VPhysicalVolume* WCSimCherenkovBuilder::Construct()
   
   G4LogicalVolume* logicExpHall = 
     new G4LogicalVolume(solidExpHall,
-			G4Material::GetMaterial("Vacuum"),
+			WCSimMaterialsBuilder::Instance()->GetMaterial("Vacuum"),
 			"expHall",
 			0,0,0);
 

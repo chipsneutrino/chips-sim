@@ -1,5 +1,6 @@
 #include "WCSimDetectorConstruction.hh"
 #include "WCSimDetectorMessenger.hh"
+#include "WCSimMaterialsBuilder.hh"
 #include "WCSimTuningParameters.hh"
 #include "WCSimPMTManager.hh"
 
@@ -167,7 +168,7 @@ G4VPhysicalVolume* WCSimDetectorConstruction::Construct()
   
   G4LogicalVolume* logicExpHall = 
     new G4LogicalVolume(solidExpHall,
-			G4Material::GetMaterial("Vacuum"),
+			WCSimMaterialsBuilder::Instance()->GetMaterial("Vacuum"),
 			"expHall",
 			0,0,0);
 
