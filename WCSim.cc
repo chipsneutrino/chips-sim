@@ -46,6 +46,7 @@ int main(int argc,char** argv)
     WCSimDetectorConstruction(WCSimConfiguration,tuningpars);
 
   runManager->SetUserInitialization(WCSimdetector);
+  UI->ApplyCommand("/control/execute geoSetup.mac");
 
   // Added selectable physics lists 2010-07 by DMW
   // Set up the messenger hooks here, initialize the actual list after loading jobOptions.mac
