@@ -154,19 +154,25 @@ G4VPhysicalVolume* WCSimDetectorConstruction::Construct()
   // Now make the detector Hall.  The lengths of the subdectors 
   // were set above.
 
-  G4double expHallLength = 3.*WCLength; //jl145 - extra space to simulate cosmic muons more easily
+
+  // We want a big lake so that CRY can generate cosmics above it
+  // - it does that in a 300m x 300m square so we need at least that
+  // much space
+  G4double expHallWidth = WCDiameter + 300*m
+  G4double expHallLength = WCLength + 2*40*m // Depth is 40m - for now just have it floating in water
 
   G4cout << " expHallLength = " << expHallLength / m << G4endl;
+  G4double expHallHalfWidth = 0.5*expHallWidth;
   G4double expHallHalfLength = 0.5*expHallLength;
 
   G4Box* solidExpHall = new G4Box("expHall",
-				  expHallHalfLength,
-				  expHallHalfLength,
+				  expHallHalfWidth,
+				  expHallHalfWidth,
 				  expHallHalfLength);
   
   G4LogicalVolume* logicExpHall = 
     new G4LogicalVolume(solidExpHall,
-			G4Material::GetMaterial("Vacuum"),
+			G4Material::GetMaterial("PitWater"),
 			"expHall",
 			0,0,0);
 
