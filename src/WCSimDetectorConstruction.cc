@@ -158,8 +158,8 @@ G4VPhysicalVolume* WCSimDetectorConstruction::Construct()
   // We want a big lake so that CRY can generate cosmics above it
   // - it does that in a 300m x 300m square so we need at least that
   // much space
-  G4double expHallWidth = WCDiameter + 300*m
-  G4double expHallLength = WCLength + 2*40*m // Depth is 40m - for now just have it floating in water
+  G4double expHallWidth = WCDiameter + 300*m;
+  G4double expHallLength = WCLength + 2*40*m; // Depth is 40m - for now just have it floating in water
 
   G4cout << " expHallLength = " << expHallLength / m << G4endl;
   G4double expHallHalfWidth = 0.5*expHallWidth;
