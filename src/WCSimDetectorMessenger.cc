@@ -35,6 +35,7 @@ WCSimDetectorMessenger::WCSimDetectorMessenger(WCSimDetectorConstruction* WCSimD
 							"100kTMailbox_50perCent \n"
 							"Mailbox_100x20x30 \n"
 							"CHIPS_25kton_10inch_HQE_10perCent \n"
+							"CHIPS_10kton_10inch_HQE_10perCent \n"
 							"GiantPhotonTest");
   PMTConfig->SetParameterName("PMTConfig", false);
   PMTConfig->SetCandidates("SuperK "
@@ -55,6 +56,7 @@ WCSimDetectorMessenger::WCSimDetectorMessenger(WCSimDetectorConstruction* WCSimD
 							"100kTMailbox_50perCent "
 							"Mailbox_100x20x30 "
 							"CHIPS_25kton_10inch_HQE_10perCent "
+							"CHIPS_10kton_10inch_HQE_10perCent "
 							"GiantPhotonTest ");
   PMTConfig->AvailableForStates(G4State_PreInit, G4State_Idle);
 
@@ -158,6 +160,9 @@ void WCSimDetectorMessenger::SetNewValue(G4UIcommand* command,G4String newValue)
 		}
 		else if( newValue == "CHIPS_25kton_10inch_HQE_10perCent"){
 			WCSimDetector->CHIPS_25kton_10inch_HQE_10perCent();
+		}
+		else if( newValue == "CHIPS_10kton_10inch_HQE_10perCent"){
+			WCSimDetector->CHIPS_10kton_10inch_HQE_10perCent();
 		}
 		else if( newValue == "GiantPhotonTest"){
 			WCSimDetector->GiantPhotonTest();

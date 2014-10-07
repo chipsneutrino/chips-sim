@@ -69,6 +69,7 @@ public:
   void DUSEL_200kton_12inch_HQE_10perCent();
   void DUSEL_200kton_12inch_HQE_14perCent();
   void CHIPS_25kton_10inch_HQE_10perCent();
+  void CHIPS_10kton_10inch_HQE_10perCent();
   void GiantPhotonTest();
   void UpdateGeometry();
   

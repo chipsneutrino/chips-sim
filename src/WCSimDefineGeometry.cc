@@ -244,6 +244,36 @@ void WCSimDetectorConstruction::CHIPS_25kton_10inch_HQE_10perCent()
   WCAddGd               = false;
 }
 
+void WCSimDetectorConstruction::CHIPS_10kton_10inch_HQE_10perCent()
+{
+//  WCPMTName             = "10inchHQE";
+//  WCPMTRadius           = .127*m;
+//  WCPMTExposeHeight	    = WCPMTRadius - 0.01*m;
+  fPMTConfigs.push_back(fPMTManager->GetPMTByName("10inch_HQE"));
+
+	std::cout << "=== PMT LOG ===" << std::endl;
+	std::cout << "PMT Vector Size = " << fPMTConfigs.size() << std::endl;
+	fPMTConfigs[0].Print();
+
+  WCIDDiameter          = 25.0*m;
+  WCIDHeight            = 20.0*m;
+//  WCBarrelPMTOffset	    = WCPMTRadius;
+  WCBarrelPMTOffset	    = fPMTConfigs[0].GetRadius();
+  WCPMTperCellHorizontal = 4.0;
+  WCPMTperCellVertical	 = 3.0;
+  WCPMTPercentCoverage	 = 10.0;
+  WCBarrelNumPMTHorizontal = round(WCIDDiameter*sqrt(pi*WCPMTPercentCoverage)/
+                                    (10.0*fPMTConfigs[0].GetRadius()));
+  WCBarrelNRings        = round(((WCBarrelNumPMTHorizontal*((WCIDHeight-
+                                    2*WCBarrelPMTOffset)/(pi*WCIDDiameter)))/
+                                    WCPMTperCellVertical));
+  WCCapPMTSpacing       = (pi*WCIDDiameter/WCBarrelNumPMTHorizontal);
+  WCCapEdgeLimit        = WCIDDiameter/2.0 - fPMTConfigs[0].GetRadius();
+//  WCPMTGlassThickness   = .55*cm;
+  WCBlackSheetThickness = 2.0*cm;
+  WCAddGd               = false;
+}
+
 void WCSimDetectorConstruction::GiantPhotonTest()
 {
 //  WCPMTName             = "10inchHQE";

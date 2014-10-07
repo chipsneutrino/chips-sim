@@ -72,7 +72,8 @@ WCSimDetectorConstruction::WCSimDetectorConstruction(G4int DetConfig,WCSimTuning
   //DUSEL_200kton_12inch_HQE_14perCent();
   // SetMailBox300KTGeometry();
 	//  SetMailBox100x20x30Geometry();
-	CHIPS_25kton_10inch_HQE_10perCent();
+	// CHIPS_25kton_10inch_HQE_10perCent();
+	CHIPS_10kton_10inch_HQE_10perCent();
 
   //----------------------------------------------------- 
   // Set whether or not Pi0-specific info is saved
@@ -162,6 +163,7 @@ G4VPhysicalVolume* WCSimDetectorConstruction::Construct()
   G4double expHallLength = WCLength + 2*40*m; // Depth is 40m - for now just have it floating in water
 
   G4cout << " expHallLength = " << expHallLength / m << G4endl;
+  G4cout << " expHallWidth  = " << expHallWidth  / m << G4endl;
   G4double expHallHalfWidth = 0.5*expHallWidth;
   G4double expHallHalfLength = 0.5*expHallLength;
 

@@ -220,7 +220,7 @@ void WCSimPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 		// We are only interested in the particles
 		// that leave the nucleus, tagged by "0"
 
-
+    // G4cout << "Token[6] = " << token[6] << std::endl;
 		if ( token[6] == "0")
 		  {
 				// Leigh Hack for Coh events with the nucleus in the final state
