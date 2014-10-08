@@ -95,7 +95,6 @@ void WCSimCherenkovBuilder::ConstructDetectorWrapper() {
 
 		std::cout << "Top cap logical volume: " << fCapLogicTop->GetName() << std::endl;
 	}
-  else{ assert(0); }
 	fConstructed = true;
 }
 
@@ -373,7 +372,7 @@ void WCSimCherenkovBuilder::CreateSegmentCells() {
 
 void WCSimCherenkovBuilder::PlacePMTs() {
 
-  // PlaceBarrelPMTs(); //< Side wall PMTs
+  PlaceBarrelPMTs(); //< Side wall PMTs
   std::cout << "Now placing end cap PMTs!" << std::endl;
   PlaceEndCapPMTs(1); //< Top PMTs
   PlaceEndCapPMTs(-1); //< Bottom PMTs
@@ -665,8 +664,8 @@ double WCSimCherenkovBuilder::GetOptimalWallCellSize() {
 }
 
 void WCSimCherenkovBuilder::ConstructEndCaps(){
-	ConstructEndCap(+1);
 	ConstructEndCap(-1);
+	ConstructEndCap(+1);
   ConstructEndCapPhysicalVolumes();
 }
 
@@ -721,8 +720,8 @@ void WCSimCherenkovBuilder::ConstructEndCapFrame(G4int zflip){
     capLogic = new G4LogicalVolume(capSolid, pureWater,"cap",0,0,0);
 
 
-    if( zflip == -1) { fCapLogicTop = capLogic; std::cout << fCapLogicTop->GetName() << std::endl;}
-	else { fCapLogicBottom = capLogic; std::cout << fCapLogicBottom->GetName() << std::endl; }
+    if( zflip == -1) { fCapLogicTop = capLogic; std::cout << "TOP " << fCapLogicTop->GetName() << std::endl;}
+	  else { fCapLogicBottom = capLogic; std::cout << "BOTTOM " << fCapLogicBottom->GetName() << std::endl; }
     return;
 }
 
@@ -811,7 +810,7 @@ void WCSimCherenkovBuilder::ConstructEndCapAnnuli( G4int zflip ){
 void WCSimCherenkovBuilder::ConstructEndCapWalls(G4int zflip){
 
 	  G4LogicalVolume * capLogic = NULL;
-	  if( zflip ) { capLogic = fCapLogicTop; }
+	  if( zflip == -1 ) { capLogic = fCapLogicTop; }
 	  else { capLogic = fCapLogicBottom; }
 
 	// TODO: put these into a function
@@ -923,7 +922,7 @@ void WCSimCherenkovBuilder::ConstructEndCapWalls(G4int zflip){
 void WCSimCherenkovBuilder::PlaceEndCapPMTs(G4int zflip){
 
 	  G4LogicalVolume * capLogic = NULL;
-	  if( zflip ) { capLogic = fCapLogicTop; }
+	  if( zflip == -1 ) { capLogic = fCapLogicTop; }
 	  else { capLogic = fCapLogicBottom; }
 
 	  //---------------------------------------------------------
@@ -932,7 +931,7 @@ void WCSimCherenkovBuilder::PlaceEndCapPMTs(G4int zflip){
     std::cout << " *** PlaceEndCapPMTs ***    zflip = " << zflip << std::endl;
 
 	  G4RotationMatrix* WCCapPMTRotation = new G4RotationMatrix;
-	  if(zflip==-1){
+	  if(zflip==1){
 	    WCCapPMTRotation->rotateY(180.*deg);
 	  }
 
@@ -989,8 +988,13 @@ void WCSimCherenkovBuilder::PlaceEndCapPMTs(G4int zflip){
 }
 
 void WCSimCherenkovBuilder::ConstructEndCapPhysicalVolumes(){
-	mainAnnulusHeight = WCIDHeight - 2. * WCBarrelPMTOffset - 2. * barrelCellHeight;
+	mainAnnulusHeight = GetBarrelLengthForCells();
 	G4double capAssemblyHeight = (fGeoConfig->GetInnerHeight() - GetBarrelLengthForCells())/2  +1*mm + fBlacksheetThickness;
+  std::cout << "mainAnnulusHeight = " << mainAnnulusHeight << " (in m = " << mainAnnulusHeight/m << ")" << std::endl;
+  std::cout << "capAssemblyHeight = " << capAssemblyHeight << " (in m = " << capAssemblyHeight/m << ")" << std::endl;
+  std::cout << "InnerHeight=  " << fGeoConfig->GetInnerHeight() << " (in m = " << fGeoConfig->GetInnerHeight()/m << ")" << std::endl;
+  std::cout << "BarrelLengthForCells = " << GetBarrelLengthForCells() << " (in m = " << GetBarrelLengthForCells()/m << ")" << std::endl;
+  std::cout << "fBlacksheet thickness = " << fBlacksheetThickness << " (in m = " << fBlacksheetThickness/m << ")" << std::endl;
   G4VPhysicalVolume* physiTopCapAssembly = new G4PVPlacement(0,  
                                                              G4ThreeVector(0.,0.,(mainAnnulusHeight/2.+ capAssemblyHeight/2.)),
                                                              fCapLogicTop,
@@ -998,11 +1002,13 @@ void WCSimCherenkovBuilder::ConstructEndCapPhysicalVolumes(){
                                                              fBarrelLogic,
                                                              false, 0,true);
   G4VPhysicalVolume* physiBottomCapAssembly = new G4PVPlacement(0,
-                                                                G4ThreeVector(0.,0.,(-mainAnnulusHeight/2.- capAssemblyHeight/2.)),
+                                                                G4ThreeVector(0.,0.,-(mainAnnulusHeight/2.+ capAssemblyHeight/2.)),
                                                                 fCapLogicBottom,
                                                                 "BottomCapAssembly",
                                                                 fBarrelLogic,
                                                                 false, 0,true);
+    // G4cout << "physiTopCapAssembly: " << physiTopCapAssembly << std::endl;
+    G4cout << "physiBottomCapAssembly: " << physiBottomCapAssembly << std::endl;
     std::cout << "Build end cap physical volumes" << std::endl;
     return;
 }
