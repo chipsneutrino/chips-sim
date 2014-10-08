@@ -35,6 +35,20 @@ WCSimGeantPMTWrapper::WCSimGeantPMTWrapper(G4LogicalVolume* PMTLogicalVolume,
 		fGlassFaceLogicalVolume(glassFaceLogicalVolume){
 }
 
+void WCSimGeantPMTWrapper::Delete()
+{
+	if( fPMTLogicalVolume != NULL ) { delete fPMTLogicalVolume; }
+	if( fGlassFaceLogicalVolume != NULL) { delete fGlassFaceLogicalVolume; }
+	Reset();
+}
+
+void WCSimGeantPMTWrapper::Reset()
+{
+	fPMTLogicalVolume = NULL;
+	fGlassFaceLogicalVolume = NULL;
+	return;
+}
+
 G4LogicalVolume* WCSimGeantPMTWrapper::GetPMTLogicalVolume() const {
 	assert(fPMTLogicalVolume != NULL);
 	return fPMTLogicalVolume;
@@ -57,10 +71,10 @@ WCSimPMTBuilder::~WCSimPMTBuilder() {
 G4LogicalVolume* WCSimPMTBuilder::GetPMTLogicalVolume(WCSimPMTConfig config) {
 
 	G4LogicalVolume * vol = NULL;
-    std::cout << "Config name = " << config.GetPMTName() << std::endl;
+    // std::cout << "Config name = " << config.GetPMTName() << std::endl;
 	if( fPMTLogicalVolumes.find(config.GetPMTName()) != fPMTLogicalVolumes.end()){
 		WCSimGeantPMTWrapper wrapper = (fPMTLogicalVolumes[config.GetPMTName()]);
-    vol = wrapper.GetPMTLogicalVolume();
+		vol = wrapper.GetPMTLogicalVolume();
 	}
 	else{
 		std::cerr << "Could not find PMT config in the list of PMT logical volumes" << std::endl;
@@ -158,13 +172,15 @@ void WCSimPMTBuilder::ConstructPMT(WCSimPMTConfig config) {
 	                                    																		 OpGlassCathodeSurface);
                                       
 	fPMTLogicalVolumes[config.GetPMTName()] = WCSimGeantPMTWrapper( logicWCPMT, logicGlassFaceWCPMT);
+	std::cout << "PMT object constructed ... " << config.GetPMTName() << "   " << logicWCPMT->GetName() << std::endl;
 }
 
 void WCSimPMTBuilder::ConstructPMTs(std::vector<WCSimPMTConfig> configVec) {
-	std::vector<WCSimPMTConfig>::const_iterator confItr = configVec.begin();
-  std::cout << "Number of CONFIGS = " << configVec.size() << std::endl;
-  std::cout << "Config name = " << configVec.at(0).GetPMTName() << std::endl;
-	for( ; confItr != configVec.end(); ++confItr){
+    std::cout << "Number of CONFIGS = " << configVec.size() << std::endl;
+
+    Reset();
+    for( std::vector<WCSimPMTConfig>::iterator confItr = configVec.begin(); confItr != configVec.end(); ++confItr){
+        std::cout << "Config name = " << (*confItr).GetPMTName() << std::endl;
 		ConstructPMT((*confItr));
 	}
 	return;
@@ -177,4 +193,13 @@ void WCSimPMTBuilder::SetSensitiveDetector(WCSimWCSD * sensDet){
     wrapper.GetGlassFaceLogicalVolume()->SetSensitiveDetector(sensDet);
   }
   return;
+}
+
+void WCSimPMTBuilder::Reset() {
+	std::map<std::string, WCSimGeantPMTWrapper>::iterator mapItr;
+	for(mapItr = fPMTLogicalVolumes.begin(); mapItr != fPMTLogicalVolumes.end(); ++mapItr)
+	{
+		(*mapItr).second.Reset();
+	}
+	fPMTLogicalVolumes.clear();
 }

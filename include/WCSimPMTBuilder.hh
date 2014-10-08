@@ -20,6 +20,8 @@ public:
   WCSimGeantPMTWrapper();
 	WCSimGeantPMTWrapper( G4LogicalVolume* PMTLogicalVolume,
 			       	      G4LogicalVolume* glassFaceLogicalVolume);
+	void Delete();
+	void Reset();
 	G4LogicalVolume * GetPMTLogicalVolume() const;
 	G4LogicalVolume * GetGlassFaceLogicalVolume() const;
 private:
@@ -36,7 +38,7 @@ public:
 	G4LogicalVolume * GetGlassFaceLogicalVolume(WCSimPMTConfig config);
 	void ConstructPMTs(std::vector<WCSimPMTConfig> configVec);
   void SetSensitiveDetector(WCSimWCSD * sensDet);
-
+  void Reset();
 private:
 	void ConstructPMT(WCSimPMTConfig config);
 	std::map<std::string, WCSimGeantPMTWrapper> fPMTLogicalVolumes;

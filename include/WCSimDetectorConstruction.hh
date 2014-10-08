@@ -145,6 +145,7 @@ protected: // Changed this from private to let WCSimCherenkovBuilder
 
 	// Vector of WCSimPMTConfig objects.
 	std::vector<WCSimPMTConfig> fPMTConfigs;
+  void ResetPMTConfigs();
 
   // Sensitive Detectors. We declare the pointers here because we need
   // to check their state if we change the geometry.
@@ -167,7 +168,7 @@ protected: // Changed this from private to let WCSimCherenkovBuilder
 
   // The Construction routines
   G4LogicalVolume*   ConstructMailboxWC();
-  G4LogicalVolume*   ConstructWC();
+  virtual G4LogicalVolume*   ConstructWC();
   void  ConstructPMT();
   G4LogicalVolume* ConstructCaps(G4int zflip);
 

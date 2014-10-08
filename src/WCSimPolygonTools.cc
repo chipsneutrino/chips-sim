@@ -10,6 +10,7 @@
 #include <cassert>
 #include <math.h>
 #include <vector>
+#include <iostream>
 
 namespace WCSimPolygonTools {
   
@@ -19,8 +20,9 @@ namespace WCSimPolygonTools {
   	// Construct our n-gon:
   	std::vector<double> vertX, vertY;
   	for( unsigned int iVert = 0; iVert < nSides; ++iVert ){
-  		vertX.push_back(radius * cos(M_PI / nSides));
-  		vertY.push_back(radius * sin(M_PI / nSides));
+  		double theta = (2. * iVert + 1.) * M_PI / nSides;
+  		vertX.push_back(radius * cos(theta));
+  		vertY.push_back(radius * sin(theta));
   	}
   
   	bool contained = false;  // The polygon contains the point if you have to cross
@@ -45,6 +47,7 @@ namespace WCSimPolygonTools {
 
   bool PolygonContainsSquare(unsigned int nSides, double radius, G4TwoVector squareCorner, double squareSide){
     assert(CheckPolygon( nSides, radius));
+    // std::cout << "Checking square" << std::endl;
     std::vector<G4TwoVector> squareCorners;
     squareCorners.push_back( squareCorner );
     squareCorners.push_back( squareCorner + G4TwoVector( 0.0, squareSide ) );

@@ -18,6 +18,7 @@
 #include "G4PhysicalVolumeStore.hh"
 #include "G4LogicalVolumeStore.hh"
 #include "G4SolidStore.hh"
+#include <map>
 
 std::map<int, G4Transform3D> WCSimDetectorConstruction::tubeIDMap;
 //std::map<int, cyl_location>  WCSimDetectorConstruction::tubeCylLocation;
@@ -37,12 +38,12 @@ WCSimDetectorConstruction::WCSimDetectorConstruction(G4int DetConfig) : fPMTBuil
 // Initilize SD pointers
 //-----------------------------------------------------
 
-      aWCPMT     = NULL;
+  aWCPMT     = NULL;
 
   myConfiguration = DetConfig;
 
-	// Create the PMT manager
-	fPMTManager = new WCSimPMTManager();
+  // Create the PMT manager
+  fPMTManager = new WCSimPMTManager();
 
   //-----------------------------------------------------
   // Create Materials
@@ -144,12 +145,12 @@ G4VPhysicalVolume* WCSimDetectorConstruction::Construct()
   // Note the order is important because they rearrange themselves depending
   // on their size and detector ordering.
 
-  G4LogicalVolume* logicWCBox;
+  G4LogicalVolume* logicWCBox = NULL;
   // Select between cylinder and mailbox
-  if (isMailbox) logicWCBox = ConstructMailboxWC();
-  else logicWCBox = ConstructWC(); 
+  if (isMailbox) { logicWCBox = ConstructMailboxWC(); assert(false) ;}
+  else { logicWCBox = ConstructWC(); }
 
-  G4cout << " WCLength       = " << WCLength/m << " m"<< G4endl;
+  G4cout << " WCLength (base)      = " << WCLength/m << " m"<< G4endl;
 
   //-------------------------------
 
@@ -174,8 +175,8 @@ G4VPhysicalVolume* WCSimDetectorConstruction::Construct()
 
   // Now set the visualization attributes of the logical volumes.
 
-  //   logicWCBox->SetVisAttributes(G4VisAttributes::Invisible);
-  logicExpHall->SetVisAttributes(G4VisAttributes::Invisible);
+     // logicWCBox->SetVisibility(true);
+     // logicExpHall->SetVisibility(true);
 
   //-----------------------------------------------------
   // Create and place the physical Volumes
@@ -191,11 +192,13 @@ G4VPhysicalVolume* WCSimDetectorConstruction::Construct()
   // Water Cherenkov Detector (WC) mother volume
   // WC Box, nice to turn on for x and y views to provide a frame:
 
-	  //G4RotationMatrix* rotationMatrix = new G4RotationMatrix;
-	  //rotationMatrix->rotateX(90.*deg);
-	  //rotationMatrix->rotateZ(90.*deg);
+	  G4RotationMatrix* rotationMatrix = new G4RotationMatrix;
+	  rotationMatrix->rotateX(90.*deg);
+	  rotationMatrix->rotateZ(90.*deg);
 
   G4ThreeVector genPosition = G4ThreeVector(0., 0., WCPosition);
+  std::cout << "logicWCBox name = " << logicWCBox->GetName() << std::endl;
+  std::cout << "logicExpHall name = " << logicExpHall->GetName() << std::endl;
   G4VPhysicalVolume* physiWCBox = 
     new G4PVPlacement(0,
 		      genPosition,
@@ -229,4 +232,10 @@ WCSimPMTManager* WCSimDetectorConstruction::GetPMTManager() const{
 
 std::vector<WCSimPMTConfig> WCSimDetectorConstruction::GetPMTVector() const{
 	return fPMTConfigs;
+}
+
+void WCSimDetectorConstruction::ResetPMTConfigs()
+{
+	fPMTConfigs.clear();
+	return;
 }

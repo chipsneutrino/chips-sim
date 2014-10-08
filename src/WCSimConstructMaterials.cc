@@ -12,7 +12,7 @@
 
 void WCSimDetectorConstruction::ConstructMaterials()
 {
-
+	return;
   G4double density;
   G4double a;
 

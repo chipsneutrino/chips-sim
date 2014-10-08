@@ -225,6 +225,7 @@ void WCSimDetectorMessenger::SetNewValue(G4UIcommand* command,G4String newValue)
 	}
 
 	if(command == WCConstruct) {
+    std::cout << "Updating geometry" << std::endl;
 		WCSimDetector->UpdateGeometry();
 	}
 

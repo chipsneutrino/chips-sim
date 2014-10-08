@@ -37,7 +37,7 @@ pmtRatio
 <geoDef
 	name="CHIPS_25kton_10inch_HQE_10perCent"
 	innerRadius="20"
-	innerHeight="40"
+	innerHeight="20"
 	nSides="20"
 	perCentCoverage="10">
   <cellPMTDef

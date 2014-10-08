@@ -1676,6 +1676,8 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructCaps(G4int zflip)
 {
 
   capAssemblyHeight = (WCIDHeight-mainAnnulusHeight)/2+1*mm+WCBlackSheetThickness;
+  std::cout << "capAssemblyHeight = " << capAssemblyHeight << "  WCIDHeight = " << WCIDHeight << " mainAnnulusHeight = " << mainAnnulusHeight << std::endl;
+  assert(0);
 
   G4Tubs* solidCapAssembly = new G4Tubs("CapAssembly",
 							0.0*m,
@@ -1702,13 +1704,13 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructCaps(G4int zflip)
   G4double borderAnnulusRmin[3] = { WCIDRadius, innerAnnulusRadius, innerAnnulusRadius};
   G4double borderAnnulusRmax[3] = {outerAnnulusRadius, outerAnnulusRadius,outerAnnulusRadius};
   G4Polyhedra* solidWCBarrelBorderRing = new G4Polyhedra("WCBarrelBorderRing",
-                                                   0.*deg, // phi start
-                                                   totalAngle,
-                                                   (G4int)WCBarrelRingNPhi, //NPhi-gon
-                                                   3,
-                                                   borderAnnulusZ,
-                                                   borderAnnulusRmin,
-                                                   borderAnnulusRmax);
+														   0.*deg, // phi start
+														   totalAngle,
+														   (G4int)WCBarrelRingNPhi, //NPhi-gon
+														   3,
+														   borderAnnulusZ,
+														   borderAnnulusRmin,
+														   borderAnnulusRmax);
   G4LogicalVolume* logicWCBarrelBorderRing =
     new G4LogicalVolume(solidWCBarrelBorderRing,
                         WCSimMaterialsBuilder::Instance()->GetMaterial(water),
@@ -1847,9 +1849,9 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructCaps(G4int zflip)
  // -----------------------------------------------------------
  
   G4double capZ[4] = { (-WCBlackSheetThickness-1.*mm)*zflip,
-                      WCBarrelPMTOffset*zflip,
-		      WCBarrelPMTOffset*zflip,
-		      (WCBarrelPMTOffset+(WCIDRadius-innerAnnulusRadius))*zflip} ;
+                       WCBarrelPMTOffset*zflip,
+                       WCBarrelPMTOffset*zflip,
+                       (WCBarrelPMTOffset+(WCIDRadius-innerAnnulusRadius))*zflip} ;
   G4double capRmin[4] = {  0. , 0., 0., 0.} ;
   G4double capRmax[4] = {outerAnnulusRadius, outerAnnulusRadius,  WCIDRadius, innerAnnulusRadius};
   G4VSolid* solidWCCap;

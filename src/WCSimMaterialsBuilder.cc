@@ -18,7 +18,10 @@
 
 static WCSimMaterialsBuilder* fgMaterialsBuilder = 0;
 
-WCSimMaterialsBuilder::WCSimMaterialsBuilder() {
+WCSimMaterialsBuilder::WCSimMaterialsBuilder() : fOpWaterBSSurface(NULL),
+	                                               fOpGlassCathodeSurface(NULL),
+                                                 fOpWaterTySurface(NULL) 
+{
 	BuildVacuum();
 	BuildElements();
 	BuildMaterials();

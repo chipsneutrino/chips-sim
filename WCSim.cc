@@ -42,7 +42,6 @@ int main(int argc,char** argv)
     WCSimCherenkovBuilder(WCSimConfiguration);
 
   runManager->SetUserInitialization(WCSimdetector);
-
   // Added selectable physics lists 2010-07 by DMW
   // Set up the messenger hooks here, initialize the actual list after loading jobOptions.mac
   WCSimPhysicsListFactory *physFactory = new WCSimPhysicsListFactory();
@@ -87,9 +86,9 @@ int main(int argc,char** argv)
 
   runManager->SetUserAction(new WCSimSteppingAction);
 
-
   // Initialize G4 kernel
   runManager->Initialize();
+
 
   if (argc==1)   // Define UI terminal for interactive mode  
   { 
