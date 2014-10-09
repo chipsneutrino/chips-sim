@@ -40,6 +40,7 @@
 
 #include <cassert>
 #include <math.h>
+#include <cmath>
 
 WCSimCherenkovBuilder::WCSimCherenkovBuilder(G4int DetConfig) :
 		fConstructed(false), fGeoConfig(NULL), WCSimDetectorConstruction(DetConfig) {
@@ -520,16 +521,18 @@ double WCSimCherenkovBuilder::GetOptimalTopCellSize() {
 	// is in general non-trivial.  Here we'll lay them out in a regular
 	// grid and then iterate making the cells slightly smaller or larger
 	// to get close to the desired coverage.
-  std::cout << "optimising the top cell" << std::endl;
+  std::cout << " *** WCSimCherenkovBuilder::GetOptimalTopCellSide *** " << std::endl;
 
 	// Fit our n-gon inside a square:
-	double squareSide = fGeoConfig->GetInnerRadius();
+	double squareSide = 2.0*fGeoConfig->GetInnerRadius();
 
 
 	WCSimUnitCell topCell = *(GetTopUnitCell());
 	double defaultSide = topCell.GetCellSizeForCoverage(fGeoConfig->GetCoverageFraction());
+  std::cout << "Default side = " << defaultSide << " Coverage = " << topCell.GetPhotocathodeCoverage(defaultSide) << std::endl;
 
-	unsigned int cellRows = (unsigned int)(squareSide/defaultSide); // Round down
+	int cellRows = (int)(squareSide/defaultSide); // Round down
+  std::cout << "cellRows = " << cellRows << std::endl;
 
 /*	TODO: implement this feature
     G4TwoVector centreOffset;
@@ -555,14 +558,15 @@ double WCSimCherenkovBuilder::GetOptimalTopCellSize() {
 	double bestSide = cellSide;
 	double bestCoverage = 0;
 
-	for( unsigned int iteration = 0; iteration < 5; ++iteration ){
+	for( int iteration = 0; iteration < 10; ++iteration ){
 
 		// Use this to translate between coordinate systems where (0,0) is the middle of
 		// the square enclosing the polygon, and where it is the top left of that square
 		G4TwoVector centreToTopLeft = G4TwoVector(-0.5*squareSide, 0.5 * squareSide);
 		unsigned int cellsInPolygon = 0;
-		for( unsigned int iHoriz = 0; iHoriz < cellRows; ++iHoriz ){
-			for( unsigned int iVert = 0; iVert < cellRows; ++iVert ){
+    std::cout << "Iteration... " << iteration << std::endl;
+		for( int iHoriz = 0; iHoriz < cellRows; ++iHoriz ){
+			for( int iVert = 0; iVert < cellRows; ++iVert ){
 				// Unit cell corners.  Use coordinates where (0,0) is the centre of the square enclosing our polygon
 				// because that's what WCSimPolygonTools expects
 				G4TwoVector topLeft     = G4TwoVector(iHoriz * cellSide,     -iVert * cellSide) + centreToTopLeft;
@@ -571,6 +575,9 @@ double WCSimCherenkovBuilder::GetOptimalTopCellSize() {
 				G4TwoVector bottomRight = G4TwoVector((iHoriz+1) * cellSide, -(iVert+1) * cellSide) + centreToTopLeft;
 
 				bool cellInPolygon = true;
+        // std::cout << "iHoriz = " << iHoriz << "  " << "iVert = " << iVert << std::endl
+        //           << "(" << topLeft.x() << ", " << topLeft.y() << ") (" << topRight.x() << ", " << topRight.y() 
+        //           << ") (" << bottomLeft.x() << ", " << bottomLeft.y() << ") (" << bottomRight.x() << bottomRight.y() << ")" << std::endl;
 				if(    !(WCSimPolygonTools::PolygonContains(nSides, fGeoConfig->GetInnerRadius(), topLeft))
 					|| !(WCSimPolygonTools::PolygonContains(nSides, fGeoConfig->GetInnerRadius(), topRight))
 					|| !(WCSimPolygonTools::PolygonContains(nSides, fGeoConfig->GetInnerRadius(), bottomLeft))
@@ -582,6 +589,12 @@ double WCSimCherenkovBuilder::GetOptimalTopCellSize() {
 		}
 		double topCoverage =   (cellsInPolygon * topCell.GetPhotocathodeCoverage(cellSide) * cellSide * cellSide)
 							 / (WCSimPolygonTools::GetAreaFromRadius(nSides, fGeoConfig->GetInnerRadius()));
+		std::cout << "Coverage = " << (cellsInPolygon * topCell.GetPhotocathodeCoverage(cellSide) * cellSide * cellSide)
+							<< " / " << (WCSimPolygonTools::GetAreaFromRadius(nSides, fGeoConfig->GetInnerRadius()))
+              << " = " << topCoverage << std::endl;
+    std::cout << "Cells in polygon = " << cellsInPolygon << std::endl;
+    std::cout << "cellSide = " << cellSide << std::endl;
+    std::cout << "innerRadius = " << fGeoConfig->GetInnerRadius() << std::endl;
 
 		if( fabs(topCoverage-fGeoConfig->GetCoverageFraction()) < bestCoverage ){
 			bestCoverage = topCoverage;
@@ -589,7 +602,12 @@ double WCSimCherenkovBuilder::GetOptimalTopCellSize() {
 		}
 
 		// Scale the cell by the difference and iterate again
-		cellSide = cellSide * sqrt(fGeoConfig->GetCoverageFraction() / topCoverage);
+    std::cout << "topCoverage = " << topCoverage << std::endl;
+		if(topCoverage > 0){ 
+      std::cout << "cellSide was " << cellSide << std::endl;
+      cellSide = cellSide * sqrt(topCoverage / fGeoConfig->GetCoverageFraction() ); 
+      std::cout << "now cellSide is " << cellSide << std::endl;
+    }
 	}
   std::cout << "Best top size = " << bestSide << std::endl;
 	return bestSide;
@@ -937,28 +955,27 @@ void WCSimCherenkovBuilder::PlaceEndCapPMTs(G4int zflip){
 
 	  // loop over the cap
 	  // Build a square that contains the cap:
-	  G4double squareEdge = fGeoConfig->GetInnerRadius();
-	  G4TwoVector squareCentreToTopLeft(-0.5 * squareEdge, 0.5 * squareEdge);
+	  G4double squareEdge = 2.0 * fGeoConfig->GetInnerRadius();
+    squareEdge = squareEdge + fmod(squareEdge, 2*fTopCellSize);
 
 	  G4double xpos = -0.5 * squareEdge;
 	  G4double ypos = -0.5 * squareEdge;
     std::cout << "Starting loop!" << std::endl;
 	  while( fabs(ypos) <= 0.5 * squareEdge  ){
       xpos = -0.5 * squareEdge;
-		  while(fabs(xpos) <= squareEdge){
-        assert( fTopCellSize > 0.2);
+		  while(fabs(xpos) <= 0.5 * squareEdge){
 			  G4ThreeVector cellpos = G4ThreeVector(xpos, ypos, 0.0); // Coordinates of the bottom left corner of the unit cell
 
 
 			  WCSimUnitCell * unitCell = GetTopUnitCell();
-			  if( WCSimPolygonTools::PolygonContainsSquare(5, fGeoConfig->GetInnerRadius(), G4TwoVector(cellpos.x(), cellpos.y()), fTopCellSize)){
+			  if( WCSimPolygonTools::PolygonContainsSquare(fGeoConfig->GetNSides(), fGeoConfig->GetInnerRadius(), G4TwoVector(cellpos.x(), cellpos.y()), fTopCellSize)){
 
-				  for(unsigned int nPMT = 0; nPMT < unitCell->GetNumPMTs(); ++nPMT){
+				  for(unsigned int nPMT = 0; nPMT < 1 ; ++nPMT){//nPMT < unitCell->GetNumPMTs(); ++nPMT){
 					  G4TwoVector pmtCellPosition = unitCell->GetPMTPos(nPMT, fTopCellSize); // PMT position in cell, relative to top left of cell
-					  G4ThreeVector PMTPosition = cellpos   // bottom left of unit cell
-							  	  	  	  	  	  + G4ThreeVector(fTopCellSize - pmtCellPosition.x(),
-							  	  	  	  	  			  	  	  fTopCellSize - pmtCellPosition.y(),
-							  	  	  	  	  			  	  	  0.0); // top left of cell to PMT
+					  G4ThreeVector PMTPosition = cellpos;   // bottom left of unit cell
+							  	  	  	  	  	//  + G4ThreeVector(pmtCellPosition.x(),
+							  	  	  	  	  	//		  	  	  fTopCellSize - pmtCellPosition.y(),
+							  	  	  	  	  	//		  	  	  0.0); // top left of cell to PMT
 					  WCSimPMTConfig config = unitCell->GetPMTPlacement(nPMT).GetPMTConfig();
 					  G4VPhysicalVolume* physiCapPMT = new G4PVPlacement(WCCapPMTRotation,     // its rotation
 							  	  	  	  	  	  	  	  	  	  	  	 PMTPosition,
@@ -970,8 +987,8 @@ void WCSimCherenkovBuilder::PlaceEndCapPMTs(G4int zflip){
 					  if(fNumPMTs == 0){
               std::cout << "inner radius = " << fGeoConfig->GetInnerRadius() << "   xpos = " << xpos << "   ypos = " << ypos << "  top cell size = " << fTopCellSize << "   wall cell size = " << fWallCellSize << std::endl;
               std::cout << "PMT position in cell = " << pmtCellPosition.x() / m << "," << pmtCellPosition.y() / m << "in m" << std::endl;
-					    std::cout << "Cell size = " << fWallCellSize << std::endl;// pmtCellPosition.x() << "," << pmtCellPosition.y() << std::endl;
-					    std::cout << " PMT logical volume name = " << fPMTBuilder.GetPMTLogicalVolume(config)->GetName() << std::endl;
+					    std::cout << "Cell size = " << fTopCellSize << std::endl;// pmtCellPosition.x() << "," << pmtCellPosition.y() << std::endl;
+					    std::cout << "PMT logical volume name = " << fPMTBuilder.GetPMTLogicalVolume(config)->GetName() << std::endl;
 					    std::cout << "Placed endcap PMT!" << std::endl;
             }
 					  fNumPMTs++;

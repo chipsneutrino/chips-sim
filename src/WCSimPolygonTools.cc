@@ -15,33 +15,43 @@
 namespace WCSimPolygonTools {
   
   bool PolygonContains(unsigned int nSides, double radius, G4TwoVector point) {
-  	
+    // We have a regular polygon which means we don't need to do raytracing or winding numbers
     assert(CheckPolygon( nSides, radius )); 
-  	// Construct our n-gon:
+    
+    double innerRadius = radius * cos(M_PI/nSides);
+    if( point.x() * point.x() + point.y() * point.y() <= innerRadius * innerRadius ) { return true; } // Point is inside the circle described by middle of the sides
+    
+    if( point.x() * point.x() + point.y() * point.y() >= radius * radius ) { return false; } // Point is outside the circle described by the corners
+  	
+    // It's in the overlap between these two circles; let's be more careful
+    
+    // Construct our n-gon:
   	std::vector<double> vertX, vertY;
   	for( unsigned int iVert = 0; iVert < nSides; ++iVert ){
-  		double theta = (2. * iVert + 1.) * M_PI / nSides;
+  		double theta = (2. * iVert) * M_PI / nSides;
   		vertX.push_back(radius * cos(theta));
   		vertY.push_back(radius * sin(theta));
   	}
-  
-  	bool contained = false;  // The polygon contains the point if you have to cross
-  							 // an odd number of walls to reach it.  So far we've crossed
-  							 // no walls, so initialise to false
-  
-  	// Trace a ray from (-infinity, 0) to the desired point and count how many sides it crosses
-  	for( unsigned int vert = 0; vert < nSides; ++vert ){
-  		double x1 = vertX.at(vert);
-  		double y1 = vertY.at(vert);
-  		double x2 = vertX.at((vert+1) % nSides);
-  		double y2 = vertY.at((vert+1) % nSides);
-  
-  		if(    ( point.x() > x1 || point.x() > x2 ) 			// Point lies to the right of the top or bottom of the side
-  			&& ( (y1 - point.y()) * (y2 - point.y()) < 0.0 ) ){ // && point height is between top and bottom of side
-  				contained = !contained; // Have to cross a side to reach the point -> flip the contained flag
-  		}
-  	}
-  	return contained;
+
+    // std::cout << "Point = (" << point.x() << "," << point.y() << std::endl;
+    double angleToPoint = point.phi();
+    angleToPoint = (angleToPoint > 0.0) ? angleToPoint : angleToPoint + 2 * M_PI;
+    std::cout << std::endl << "angleToPoint = " << angleToPoint << std::endl;
+    int whichSide = (int)floor(angleToPoint * nSides / (2 * M_PI)) % nSides; // The appropriate side joins whichSide and whichSide+1
+    std::cout << "whichSide = " << whichSide << std::endl;
+
+    // Line containing our point and the origin: y = mPoint * x + cPoint, cPoint = 0
+    double mPoint = point.y() / point.x();
+
+    // Line containing the required polygon side: y = mSide * x + cSide
+    double mSide = ( vertY.at((whichSide+1) % nSides) - vertY.at(whichSide) ) / ( vertX.at((whichSide+1) % nSides) - vertX.at(whichSide) );
+    double cSide = vertY.at(whichSide) - mSide * vertX.at(whichSide);
+
+    // Intersect where these two functions for y are the same:
+    double intersectX = cSide / (mPoint - mSide);
+    double intersectY = mPoint * intersectX;
+
+    return ((intersectX * intersectX + intersectY * intersectY) <= (point.x() * point.x() + point.y() * point.y())); // Is the point before the intersection?
   }
   
 
@@ -57,9 +67,19 @@ namespace WCSimPolygonTools {
 
     for( std::vector<G4TwoVector>::const_iterator itr = squareCorners.begin() ;
          itr != squareCorners.end(); ++itr ){
+      // std::cout << "itr = ( " << (*itr).x() << ", " << (*itr).y() << std::endl;
       contained = ( contained && PolygonContains(nSides, radius, (*itr)) );
       if( !contained ){ break; }
     }
+    
+    for( std::vector<G4TwoVector>::const_iterator itr = squareCorners.begin() ;
+         itr != squareCorners.end(); ++itr ){
+      std::cout << (*itr).x() << " " << (*itr).y() << " " << contained << std::endl;
+    }
+//     if( squareCorner.x() < -19000 )
+//     { 
+//       std::cout << squareCorners.at(0) << ", " << squareCorners.at(1) << ", " << squareCorners.at(2) << ", " << squareCorners.at(3) << "   Contained? " << contained << std::endl;
+//     }
     return contained;
   }
   
