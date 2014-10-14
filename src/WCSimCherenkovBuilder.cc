@@ -61,6 +61,58 @@ WCSimCherenkovBuilder::WCSimCherenkovBuilder(G4int DetConfig) :
 	fCapLogicBottom = NULL;
 	fNumPMTs = 0;
 
+	// Initialize all the constants:
+    fGotMeasurements = false;
+	fBarrelRadius = -999 * m; // Barrel is a cylinder - this is its actual radius
+	fBarrelHeight = -999 * m;
+	fBarrelLengthForCells = -999 * m;
+
+	fPrismRadiusInside = -999 * m; // Radius is to centre of wall not the vertex
+	fPrismRadiusOutside = -999 * m;
+	fPrismHeight = -999 * m;
+
+	fPrismRingRadiusInside = -999 * m; // Radius is to centre of wall not the vertex
+	fPrismRingRadiusOutside = -999 * m;
+	fPrismRingHeight = -999 * m;
+
+	fPrismRingSegmentRadiusInside = -999 * m; // To centre of segment not edge
+	fPrismRingSegmentRadiusInside = -999 * m;
+	fPrismRingSegmentHeight = -999 * m;
+	fPrismRingSegmentDPhi = -999 * m;
+
+	fPrismRingSegmentBSRadiusInside = -999 * m; // To centre not edge
+	fPrismRingSegmentBSRadiusOutside = -999 * m;
+	fPrismRingSegmentBSHeight = -999 * m;
+
+	fCapAssemblyHeight = -999 * m;
+	fCapAssemblyRadius = -999 * m;
+
+	fCapRingHeight = -999 * m;
+	fCapRingRadiusInside = -999 * m;
+	fCapRingRadiusOutside = -999 * m;
+
+	fCapRingSegmentDPhi = -999 * m;
+  fCapRingSegmentHeight = -999 * m;
+	fCapRingSegmentRadiusInside = -999 * m;
+	fCapRingSegmentRadiusOutside = -999 * m;
+
+	fCapRingSegmentBSHeight = -999 * m;
+	fCapRingSegmentBSRadiusInside = -999 * m;
+	fCapRingSegmentBSRadiusOutside = -999 * m;
+
+	fCapPolygonRadius = -999 * m;
+	fCapPolygonHeight = -999 * m;
+	
+  fCapPolygonCentreRadius = -999 * m;
+	fCapPolygonCentreHeight = -999 * m;
+
+	fCapPolygonEdgeBSRadiusInside = -999 * m;
+	fCapPolygonEdgeBSRadiusOutside = -999 * m;
+	fCapPolygonEdgeBSHeight = -999 * m;
+
+	fCapPolygonEndBSRadius = -999 * m;
+	fCapPolygonEndBSHeight = -999 * m;
+
 
 }
 
@@ -83,7 +135,9 @@ G4LogicalVolume * WCSimCherenkovBuilder::ConstructDetector() {
 
 void WCSimCherenkovBuilder::ConstructDetectorWrapper() {
 	if (!fConstructed) {
-		CalculateCellSizes();
+
+		if( !fGotMeasurements ) { GetMeasurements(); }
+
 		ConstructUnitCells();
 		ConstructEnvironment();
 		ConstructFrame();
@@ -104,7 +158,7 @@ void WCSimCherenkovBuilder::ConstructEnvironment() {
 
 
 	// The water barrel is placed in a cylinder tub of water, representing the lake
-	G4double innerRadius = fGeoConfig->GetInnerRadius();
+	G4double innerRadius = fGeoConfig->GetOuterRadius();
 	G4double innerHeight= fGeoConfig->GetInnerHeight();
 	G4double shoreDistance = 20; // Distance from detector to shore (m)
 
@@ -133,21 +187,10 @@ void WCSimCherenkovBuilder::ConstructEnvironment() {
 void WCSimCherenkovBuilder::ConstructFrame() {
 
 	// Make a large cylinder to hold the PMTs and water
-	G4double innerRadius     = fGeoConfig->GetInnerRadius();
-	G4double innerHeight     = fGeoConfig->GetInnerHeight();
-
-	G4double barrelIR 	     = 0.0 * m;
-	G4double barrelOR 	     = innerRadius + 1.0 * m; // Allow an extra metre of space
-	G4double barrelHeight    = 0.5 * innerHeight;
 	G4Material * barrelWater = WCSimMaterialsBuilder::Instance()->GetMaterial("Water");  // Fill it with purified water
 
-	G4Tubs* barrelTubs = new G4Tubs("barrelTubs", barrelIR, barrelOR, barrelHeight,
-									0. * deg, 360. * deg);
-
-	fBarrelLogic = new G4LogicalVolume(barrelTubs, barrelWater,
-													   "barrelTubs", 0, 0, 0);
-
-
+	G4Tubs* barrelTubs = new G4Tubs("barrelTubs", 0, fBarrelRadius, fBarrelHeight/2.0, 0. * deg, 360. * deg);
+	fBarrelLogic = new G4LogicalVolume(barrelTubs, barrelWater, "barrelTubs", 0, 0, 0);
 	G4VPhysicalVolume* barrelPhysic = new G4PVPlacement(0, G4ThreeVector(0., 0., 0.),
 														fBarrelLogic, "barrelTubs",
 														fLakeLogic, false, 0);
@@ -167,33 +210,19 @@ void WCSimCherenkovBuilder::ConstructInnerDetector() {
 void WCSimCherenkovBuilder::CreatePrism() {
 	G4double WCPosition = 0.;	  //Set the WC tube offset to zero
 
-	G4double WCIDRadius = fGeoConfig->GetInnerRadius();
-	G4double WCIDHeight = fGeoConfig->GetInnerHeight();
-	G4double WCBarrelRingNPhi = fGeoConfig->GetNSides();
-
-	// the part of one ring, that is covered by the regular cells:
-	G4double totalAngle = 2.0 * pi * rad;
-
-	// angle per regular cell:
-	G4double dPhi = totalAngle / WCBarrelRingNPhi;
 
 	//-----------------------------------------------------
 	// Form annular section of barrel to hold PMTs
 	//----------------------------------------------------
 
-	G4double innerAnnulusRadius = fGeoConfig->GetInnerRadius()
-								  - GetMaxBarrelExposeHeight() - 1. * mm;
-	G4double outerAnnulusRadius = fGeoConfig->GetInnerRadius()
-								  + fBlacksheetThickness + 1. * mm;
 	// + structure of the frame etc.
 	// The radii are measured to the center of the surfaces
 	// (tangent distance). Thus distances between the corner and the center are bigger.
 
 	// Zip them up into arrays to pass to Geant
-	G4double mainAnnulusZ[2] = { -0.5 * GetBarrelLengthForCells(),
-								  0.5 * GetBarrelLengthForCells() };
-	G4double mainAnnulusRmin[2] = { innerAnnulusRadius, innerAnnulusRadius };
-	G4double mainAnnulusRmax[2] = { outerAnnulusRadius, outerAnnulusRadius };
+	G4double mainAnnulusZ[2] = { -0.5 * fPrismHeight, 0.5 * fPrismHeight };
+	G4double mainAnnulusRmin[2] = { fPrismRadiusInside, fPrismRadiusInside };
+	G4double mainAnnulusRmax[2] = { fPrismRadiusOutside, fPrismRadiusOutside };
 
 
 
@@ -205,14 +234,12 @@ void WCSimCherenkovBuilder::CreatePrism() {
 											  2, mainAnnulusZ, // number and location of z planes
 											  mainAnnulusRmin, mainAnnulusRmax); // inner and outer radii
 
-	fPrismLogic = new G4LogicalVolume(
-											  prismSolid, WCSimMaterialsBuilder::Instance()->GetMaterial("Water"),
-											  "prism", 0, 0, 0);
+	fPrismLogic = new G4LogicalVolume(prismSolid, WCSimMaterialsBuilder::Instance()->GetMaterial("Water"),
+									  "prism", 0, 0, 0);
 
 	G4VPhysicalVolume* prismPhysic = new G4PVPlacement(0, G4ThreeVector(0., 0., 0.),
 														fPrismLogic, "prism",
 														fBarrelLogic, false, 0, true);
-
 }
 
 void WCSimCherenkovBuilder::CreatePrismRings() {
@@ -223,42 +250,29 @@ void WCSimCherenkovBuilder::CreatePrismRings() {
 	// Subdivide the BarrelAnnulus into rings
 	//-----------------------------------------------------
   std::cout << "Wall cells in z = " << fWallCellsZ << std::endl;
-	G4double innerAnnulusRadius = fGeoConfig->GetInnerRadius()
-								  - (GetMaxBarrelExposeHeight() / cos(M_PI/fGeoConfig->GetNSides())) - 1. * mm;
-	G4double outerAnnulusRadius = fGeoConfig->GetInnerRadius()
-								  + fBlacksheetThickness + 1. * mm;
-
-	double ringHeight 			= GetBarrelLengthForCells() / fWallCellsZ;
 	G4Material * pureWater  = WCSimMaterialsBuilder::Instance()->GetMaterial("Water");
 
-	// Zip them up into arrays to pass to Geant
-  std::cout << "Ring height = " << ringHeight << std::endl;
-  std::cout << "Barrel length = " << GetBarrelLengthForCells() << std::endl;
-	std::cout << "Inner radius = " << innerAnnulusRadius << std::endl;
-	std::cout << "Outer radius = " << outerAnnulusRadius << std::endl;
-  G4double RingZ[2] 			= { -0.5 * ringHeight, 0.5 * ringHeight };
-	G4double mainAnnulusZ[2] = { -0.5 * GetBarrelLengthForCells(),
-								  0.5 * GetBarrelLengthForCells() };
-	G4double mainAnnulusRmin[2] = { innerAnnulusRadius, innerAnnulusRadius };
-	G4double mainAnnulusRmax[2] = { outerAnnulusRadius, outerAnnulusRadius };
+  G4double RingZ[2] 			= { -0.5 * fPrismRingHeight, 0.5 * fPrismRingHeight };
+	G4double mainAnnulusRmin[2] = { fPrismRingRadiusInside, fPrismRingRadiusInside };
+	G4double mainAnnulusRmax[2] = { fPrismRingRadiusOutside, fPrismRingRadiusOutside };
 
 	// Now make all the volumes
-  std::cout << "Making solid" << fGeoConfig->GetNSides() << std::endl;
+    std::cout << "Making solid, nSides = " << fGeoConfig->GetNSides() << std::endl;
+    std::cout << "fPrismRingHeight = " << fPrismRingHeight << "  fPrismRingSegmentRadiusInside = " << fPrismRingSegmentRadiusInside << " and fPrismRingSegmentRadiusOutside = " << fPrismRingRadiusOutside << std::endl;
 	G4Polyhedra* prismRingSolid = new G4Polyhedra("prismRing", 0. * deg,// phi start
 													 360.0 * deg, //phi end
 													 (G4int) fGeoConfig->GetNSides(), //NPhi-gon
 													 2, RingZ, mainAnnulusRmin, mainAnnulusRmax);
 
-  std::cout << "Making logic" << std::endl;
+    std::cout << "Making logic" << std::endl;
 	fPrismRingLogic = new G4LogicalVolume(prismRingSolid,
-														  pureWater, "prismRing",
-														  0, 0, 0);
+                                          pureWater, "prismRing", 0, 0, 0);
 
-  std::cout << "Making physic" << std::endl;
+    std::cout << "Making physic" << std::endl;
 	G4VPhysicalVolume* prismRingPhysic = new G4PVReplica("prismRing",
-														 fPrismRingLogic, fPrismLogic, kZAxis,
-														 (G4int) fWallCellsZ, ringHeight);
-  std::cout << "What-what?!" << std::endl;
+                                                         fPrismRingLogic, fPrismLogic, kZAxis,
+		                          						 (G4int) fWallCellsZ, fPrismRingHeight);
+    std::cout << "Made!" << std::endl;
 	if (!fDebugMode)
 		fPrismLogic->SetVisAttributes(G4VisAttributes::Invisible);
 	else {
@@ -271,31 +285,18 @@ void WCSimCherenkovBuilder::CreatePrismRings() {
 void WCSimCherenkovBuilder::CreateRingSegments() {
 
 	// Set up constants (factorise these somewhere else later)
-	double dPhi = (360.0 / fGeoConfig->GetNSides() ) * deg;
-	G4double innerAnnulusRadius = fGeoConfig->GetInnerRadius()
-								  - GetMaxBarrelExposeHeight() - 1. * mm;
-	G4double outerAnnulusRadius = fGeoConfig->GetInnerRadius()
-								  + fBlacksheetThickness + 1. * mm;
-  std::cout << "Inner annulus radius = " << innerAnnulusRadius << std::endl
-            << "Outer annulus radius = " << outerAnnulusRadius << std::endl
-            << "dPhi = " << dPhi << std::endl;
-
-
-	double ringHeight 			= GetBarrelLengthForCells() / fWallCellsZ;
 	G4Material * pureWater = WCSimMaterialsBuilder::Instance()->GetMaterial("Water");
 
-	// Zip them up into arrays to pass to Geant
-	G4double RingZ[2] 			= { -0.5 * ringHeight, 0.5 * ringHeight };
-	G4double mainAnnulusZ[2] = { -0.5 * GetBarrelLengthForCells(),
-								  0.5 * GetBarrelLengthForCells() };
-	G4double mainAnnulusRmin[2] = { innerAnnulusRadius, innerAnnulusRadius };
-	G4double mainAnnulusRmax[2] = { outerAnnulusRadius, outerAnnulusRadius };
+	// Zip these up into arrays to pass to Geant
+	G4double RingZ[2] 			= { -0.5 * fPrismRingSegmentHeight, 0.5 * fPrismRingSegmentHeight};
+	G4double mainAnnulusRmin[2] = { fPrismRingSegmentRadiusInside, fPrismRingSegmentRadiusInside};
+	G4double mainAnnulusRmax[2] = { fPrismRingSegmentRadiusOutside, fPrismRingSegmentRadiusOutside };
 
 
 	// Now divide each ring (an n-gon prism) into n rectangular segments
 	G4Polyhedra* segmentSolid = new G4Polyhedra("segment",
-												-dPhi / 2. + 0. * deg, // phi start
-												dPhi, //total Phi
+												-fPrismRingSegmentDPhi/2.0, // phi start
+												fPrismRingSegmentDPhi, //total Phi
 												1, //NPhi-gon
 												2, RingZ,
 												mainAnnulusRmin, mainAnnulusRmax);
@@ -304,11 +305,11 @@ void WCSimCherenkovBuilder::CreateRingSegments() {
 										pureWater,
 										"segment",
 										0, 0, 0);
-	
+
     G4VPhysicalVolume* segmentPhysic = new G4PVReplica("segment",
 													   fSegmentLogic, fPrismRingLogic, kPhi,
 													   fGeoConfig->GetNSides(),
-													   dPhi, 0.);
+													   fPrismRingSegmentDPhi, 0.);
 
 	if (!fDebugMode)
 		fSegmentLogic->SetVisAttributes(G4VisAttributes::Invisible);
@@ -322,17 +323,21 @@ void WCSimCherenkovBuilder::CreateRingSegments() {
 	//-------------------------------------------------------------
 	// add barrel blacksheet to the normal barrel cells
 	// ------------------------------------------------------------
-	G4double annulusBlacksheetRmax[2] = { (fGeoConfig->GetInnerRadius() + fBlacksheetThickness),
-										   fGeoConfig->GetInnerRadius() + fBlacksheetThickness };
-	G4double annulusBlacksheetRmin[2] = { fGeoConfig->GetInnerRadius(), fGeoConfig->GetInnerRadius() };
+	G4double segmentBlacksheetZ[2] = { -fPrismRingSegmentBSHeight/2.0,
+                                        fPrismRingSegmentBSHeight/2.0 };
+	G4double segmentBlacksheetRmax[2] = { fPrismRingSegmentBSRadiusOutside,
+										  fPrismRingSegmentBSRadiusOutside };
+	G4double segmentBlacksheetRmin[2] = { fPrismRingSegmentBSRadiusInside,
+                                          fPrismRingSegmentBSRadiusInside,};
 
 	G4Polyhedra* segmentBlacksheetSolid = new G4Polyhedra("segmentBlacksheet",
 														  -0.5 * dPhi, // phi start
 														  dPhi, //total phi
 														  1, //NPhi-gon
-														  2, RingZ,
-														  annulusBlacksheetRmin,
-														  annulusBlacksheetRmax);
+														  2,
+														  segmentBlacksheetZ,
+														  segmentBlacksheetRmin,
+														  segmentBlacksheetRmax);
 
 	G4LogicalVolume * segmentBlacksheetLogic = new G4LogicalVolume( segmentBlacksheetSolid,
 																	WCSimMaterialsBuilder::Instance()->GetMaterial("Blacksheet"),
@@ -392,28 +397,27 @@ void WCSimCherenkovBuilder::PlaceBarrelPMTs()
 	// (we may have to leave some space between them)
 	// Then we'll place each PMT type relative to that
 
-	G4double dPhi = 2 * pi * rad / fGeoConfig->GetNSides();
-	G4double segmentWidth = 2. * fGeoConfig->GetInnerRadius() * sin(dPhi / 2.);
+	G4double segmentWidth = 2. * (fPrismRingSegmentBSRadiusInside) * sin(fPrismRingSegmentDPhi / 2.);
 	G4double widthPerCell = segmentWidth / fWallCellsX;
 	G4double heightPerCell = GetBarrelLengthForCells() / fWallCellsZ;
   std::cout << "segment width = " << segmentWidth << std::endl;
   std::cout << "width per cell = " << widthPerCell << std::endl;
   std::cout << "height per cell " << heightPerCell << std::endl;
-  std::cout << "wall cell size = " << fWallCellSize << std::endl; 
+  std::cout << "wall cell size = " << fWallCellSize << std::endl;
   std::cout << "x cells" << fWallCellsX << std::endl;
   std::cout << "z cells" << fWallCellsZ << std::endl;
 	G4TwoVector unitCellOffset = G4TwoVector(0.5 * (widthPerCell - fWallCellSize) ,
-											                     0.5 * (heightPerCell - fWallCellSize) ); 
+											                     0.5 * (heightPerCell - fWallCellSize) );
   std::cout << unitCellOffset << std::endl;
 	/* Go-go gadget ascii drawing!
-   * |-----------------------------------------------------|     
+   * |-----------------------------------------------------|
    * |             |             |            |            |    /|\
    * |  /=======\  |             |            |            |     |
    * |  | unit  |  |             |            |            | heightPerCell
    * |  | cell  |  |             |            |            |     |
    * |  \=======/  |             |            |            |     |
    * |             |             |            |            |    \|/
-   * ------------------------------------------------------|     
+   * ------------------------------------------------------|
    * <-------------------- SEGMENT WIDTH ------------------>
    *               <------------->
 	 *    <------>     widthPerCell
@@ -423,7 +427,7 @@ void WCSimCherenkovBuilder::PlaceBarrelPMTs()
 	for (G4double i = 0; i < fWallCellsX; i++) {
 
 		// Note that these coordinates get rotated around
-		G4double expandedX = fGeoConfig->GetInnerRadius();
+		G4double expandedX = fPrismRingSegmentBSRadiusInside;
     G4double expandedY = -0.5 * segmentWidth + i * widthPerCell;
 		//G4double expandedY = -0.5 * widthPerCell * i + unitCellOffset.x();
 		G4double expandedZ = -0.5 * heightPerCell;  // 0.5 * heightPerCell + unitCellOffset.y(); // Only one row by construction
@@ -467,6 +471,70 @@ void WCSimCherenkovBuilder::SetGeoConfig(WCSimGeoConfig* config) {
 
 WCSimGeoConfig * WCSimCherenkovBuilder::GetGeoConfig() const {
 	return fGeoConfig;
+}
+
+void WCSimCherenkovBuilder::GetMeasurements()
+{
+    if( fGotMeasurements) { return; }
+
+    // Barrel measurements
+    fBarrelRadius = fGeoConfig->GetOuterRadius() + 1*m; // Make it 1m bigger in radius
+    fBarrelHeight = fGeoConfig->GetInnerHeight() + 2* fBlacksheetThickness + 2 * GetMaxTopExposeHeight() + 2*m;  // and half-height
+    fBarrelLengthForCells = fGeoConfig->GetInnerHeight() - 2.0 * GetMaxTopExposeHeight();
+
+    fPrismRadiusInside = fGeoConfig->GetInnerRadius();
+    fPrismRadiusOutside = fGeoConfig->GetInnerRadius() + fBlacksheetThickness + GetMaxBarrelExposeHeight();
+    fPrismHeight = fBarrelLengthForCells;
+
+    fPrismRingRadiusInside = fPrismRadiusInside;
+    fPrismRingRadiusOutside = fPrismRadiusOutside;
+
+    fPrismRingSegmentRadiusInside = fPrismRadiusInside;
+    fPrismRingSegmentRadiusOutside = fPrismRadiusOutside;
+    fPrismRingSegmentDPhi = 360*deg / fGeoConfig->GetNSides();
+
+    fPrismRingSegmentBSRadiusInside = fPrismRadiusOutside - fBlacksheetThickness;
+    fPrismRingSegmentBSRadiusOutside = fPrismRadiusOutside;
+    
+    // Now optimize the cell sizes to work out the prism ring heights:
+    CalculateCellSizes();
+    
+    fPrismRingHeight = fPrismHeight / fWallCellsZ;
+    fPrismRingSegmentHeight = fPrismRingHeight;
+    fPrismRingSegmentBSHeight = fPrismRingHeight;
+
+    // Cap measurements
+	  fCapAssemblyHeight = fBlacksheetThickness + GetMaxTopExposeHeight() + 0.5 * (fGeoConfig->GetInnerHeight() - fBarrelLengthForCells);
+    // nb. fCapAssemblyHeight = fCapRingHeight + fCapPolygonHeight
+	  fCapAssemblyRadius = fBarrelRadius;
+
+	  fCapRingRadiusInside = fPrismRadiusInside;
+	  fCapRingRadiusOutside = fPrismRadiusOutside;
+	  fCapRingHeight = 0.5 * (fGeoConfig->GetInnerHeight() - fBarrelLengthForCells);
+
+	  fCapRingSegmentDPhi = fPrismRingSegmentDPhi;
+	  fCapRingSegmentRadiusInside = fPrismRadiusInside;
+	  fCapRingSegmentRadiusOutside = fPrismRadiusOutside;
+	  fCapRingSegmentHeight = fCapRingHeight;
+
+	  fCapRingSegmentBSRadiusInside = fPrismRingSegmentBSRadiusInside;
+	  fCapRingSegmentBSRadiusOutside = fPrismRingSegmentBSRadiusOutside;
+	  fCapRingSegmentBSHeight = fCapRingHeight;
+
+	  fCapPolygonRadius = fGeoConfig->GetInnerRadius() + GetMaxBarrelExposeHeight() + fBlacksheetThickness;
+	  fCapPolygonHeight = GetMaxTopExposeHeight() + fBlacksheetThickness;
+
+    fCapPolygonCentreRadius = fGeoConfig->GetInnerRadius() + GetMaxBarrelExposeHeight();
+    fCapPolygonCentreHeight = GetMaxTopExposeHeight();
+
+	  fCapPolygonEdgeBSRadiusInside = fGeoConfig->GetInnerRadius() + GetMaxBarrelExposeHeight();
+	  fCapPolygonEdgeBSRadiusOutside = fCapPolygonRadius;
+	  fCapPolygonEdgeBSHeight = fCapPolygonHeight;
+
+	  fCapPolygonEndBSRadius = fGeoConfig->GetInnerRadius() + GetMaxBarrelExposeHeight();
+	  fCapPolygonEndBSHeight = fBlacksheetThickness;
+
+    fGotMeasurements = true;
 }
 
 double WCSimCherenkovBuilder::GetBarrelLengthForCells() {
@@ -524,7 +592,7 @@ double WCSimCherenkovBuilder::GetOptimalTopCellSize() {
   std::cout << " *** WCSimCherenkovBuilder::GetOptimalTopCellSide *** " << std::endl;
 
 	// Fit our n-gon inside a square:
-	double squareSide = 2.0*fGeoConfig->GetInnerRadius();
+	double squareSide = 2.0*(fCapPolygonCentreRadius);
 
 
 	WCSimUnitCell topCell = *(GetTopUnitCell());
@@ -564,7 +632,7 @@ double WCSimCherenkovBuilder::GetOptimalTopCellSize() {
 		// the square enclosing the polygon, and where it is the top left of that square
 		G4TwoVector centreToTopLeft = G4TwoVector(-0.5*squareSide, 0.5 * squareSide);
 		unsigned int cellsInPolygon = 0;
-    std::cout << "Iteration... " << iteration << std::endl;
+    // std::cout << "Iteration... " << iteration << std::endl;
 		for( int iHoriz = 0; iHoriz < cellRows; ++iHoriz ){
 			for( int iVert = 0; iVert < cellRows; ++iVert ){
 				// Unit cell corners.  Use coordinates where (0,0) is the centre of the square enclosing our polygon
@@ -576,25 +644,25 @@ double WCSimCherenkovBuilder::GetOptimalTopCellSize() {
 
 				bool cellInPolygon = true;
         // std::cout << "iHoriz = " << iHoriz << "  " << "iVert = " << iVert << std::endl
-        //           << "(" << topLeft.x() << ", " << topLeft.y() << ") (" << topRight.x() << ", " << topRight.y() 
+        //           << "(" << topLeft.x() << ", " << topLeft.y() << ") (" << topRight.x() << ", " << topRight.y()
         //           << ") (" << bottomLeft.x() << ", " << bottomLeft.y() << ") (" << bottomRight.x() << bottomRight.y() << ")" << std::endl;
-				if(    !(WCSimPolygonTools::PolygonContains(nSides, fGeoConfig->GetInnerRadius(), topLeft))
-					|| !(WCSimPolygonTools::PolygonContains(nSides, fGeoConfig->GetInnerRadius(), topRight))
-					|| !(WCSimPolygonTools::PolygonContains(nSides, fGeoConfig->GetInnerRadius(), bottomLeft))
-					|| !(WCSimPolygonTools::PolygonContains(nSides, fGeoConfig->GetInnerRadius(), bottomRight)) ){
+				if(    !(WCSimPolygonTools::PolygonContains(nSides, fCapPolygonCentreRadius, topLeft))
+					|| !(WCSimPolygonTools::PolygonContains(nSides,   fCapPolygonCentreRadius, topRight))
+					|| !(WCSimPolygonTools::PolygonContains(nSides,   fCapPolygonCentreRadius, bottomLeft))
+					|| !(WCSimPolygonTools::PolygonContains(nSides,   fCapPolygonCentreRadius, bottomRight)) ){
 					cellInPolygon = false;
 				}
 				cellsInPolygon += cellInPolygon;
 			}
 		}
 		double topCoverage =   (cellsInPolygon * topCell.GetPhotocathodeCoverage(cellSide) * cellSide * cellSide)
-							 / (WCSimPolygonTools::GetAreaFromRadius(nSides, fGeoConfig->GetInnerRadius()));
-		std::cout << "Coverage = " << (cellsInPolygon * topCell.GetPhotocathodeCoverage(cellSide) * cellSide * cellSide)
-							<< " / " << (WCSimPolygonTools::GetAreaFromRadius(nSides, fGeoConfig->GetInnerRadius()))
-              << " = " << topCoverage << std::endl;
-    std::cout << "Cells in polygon = " << cellsInPolygon << std::endl;
-    std::cout << "cellSide = " << cellSide << std::endl;
-    std::cout << "innerRadius = " << fGeoConfig->GetInnerRadius() << std::endl;
+							 / (WCSimPolygonTools::GetAreaFromRadius(nSides, fGeoConfig->GetOuterRadius()));
+		// std::cout << "Coverage = " << (cellsInPolygon * topCell.GetPhotocathodeCoverage(cellSide) * cellSide * cellSide)
+		// 					<< " / " << (WCSimPolygonTools::GetAreaFromRadius(nSides, fGeoConfig->GetOuterRadius()))
+    //           << " = " << topCoverage << std::endl;
+    // std::cout << "Cells in polygon = " << cellsInPolygon << std::endl;
+    // std::cout << "cellSide = " << cellSide << std::endl;
+    // std::cout << "innerRadius = " << fGeoConfig->GetOuterRadius() << std::endl;
 
 		if( fabs(topCoverage-fGeoConfig->GetCoverageFraction()) < bestCoverage ){
 			bestCoverage = topCoverage;
@@ -602,28 +670,27 @@ double WCSimCherenkovBuilder::GetOptimalTopCellSize() {
 		}
 
 		// Scale the cell by the difference and iterate again
-    std::cout << "topCoverage = " << topCoverage << std::endl;
-		if(topCoverage > 0){ 
-      std::cout << "cellSide was " << cellSide << std::endl;
-      cellSide = cellSide * sqrt(topCoverage / fGeoConfig->GetCoverageFraction() ); 
-      std::cout << "now cellSide is " << cellSide << std::endl;
+    // std::cout << "topCoverage = " << topCoverage << std::endl;
+		if(topCoverage > 0){
+      // std::cout << "cellSide was " << cellSide << std::endl;
+      cellSide = cellSide * sqrt(topCoverage / fGeoConfig->GetCoverageFraction() );
+      // std::cout << "now cellSide is " << cellSide << std::endl;
     }
 	}
-  std::cout << "Best top size = " << bestSide << std::endl;
+  // std::cout << "Best top size = " << bestSide << std::endl;
 	return bestSide;
 }
 
 double WCSimCherenkovBuilder::GetOptimalWallCellSize() {
 	double coverage 		= fGeoConfig->GetCoverageFraction(); // Photocathode coverage
 	double wallHeight 		= GetBarrelLengthForCells(); // Height of walls
-	double wallSide 		= 2.0 * fGeoConfig->GetInnerRadius() *
-					  	  	  sin(M_PI / fGeoConfig->GetNSides()); // Side length of walls
-	double wallCentreRadius = fGeoConfig->GetInnerRadius() *
-							  cos(M_PI / fGeoConfig->GetNSides()); // Distance from centre of detector to centre of wall
+	double wallSide 		= 2.0 * fPrismRingSegmentBSRadiusInside * sin(M_PI / fGeoConfig->GetNSides()); // Side length of walls
+	double wallCentreRadius = fPrismRingSegmentBSRadiusInside;; // Distance from centre of detector to centre of wall
 	WCSimUnitCell *wallCell  = (GetBarrelUnitCell()); // Make a copy because we'll mess with it
+  
   std::cout << "Wall height = " << wallHeight << " ( * m = " << wallHeight * m << ")" << std::endl;
   std::cout << "Wall side = " << wallSide << std::endl;
-  wallCell->Print(); 
+  wallCell->Print();
   std::cout << "Minimum side length allowed = " << wallCell->GetMinimumCellSize() << std::endl;
 
 	// Number of unit cells spanning across the width of the wall
@@ -657,14 +724,14 @@ double WCSimCherenkovBuilder::GetOptimalWallCellSize() {
 			}
 
 			// Does this beat the last configuration?
-			double newCoverage = wallCell->GetPhotocathodeCoverage(length) * (xNums[xIndex] * zNums[zIndex]) * length * length / (wallSide * wallHeight); 
+			double newCoverage = wallCell->GetPhotocathodeCoverage(length) * (xNums[xIndex] * zNums[zIndex]) * length * length / (wallSide * wallHeight);
 			double coverageDiff = fabs(coverage - newCoverage);
       std::cout << "Test: wall coverage is " << newCoverage << std::endl;
       std::cout << "Difference from ideal = " << coverageDiff << std::endl;
       std::cout << "Side = " << length << std::endl;
       std::cout << "Are there overlaps? Computer says... " << wallCell->ContainsOverlaps(length) << std::endl;
       std::cout << "Minimum side length allowed = " << wallCell->GetMinimumCellSize() << std::endl;
- 
+
 			if( (!wallCell->ContainsOverlaps(length)) && coverageDiff < minCoverageDiff){
 				minCoverageDiff = coverageDiff;
 				bestCoverage    = newCoverage;
@@ -689,8 +756,9 @@ void WCSimCherenkovBuilder::ConstructEndCaps(){
 
 void WCSimCherenkovBuilder::ConstructEndCap(G4int zflip) {
 	ConstructEndCapFrame(zflip);
-	ConstructEndCapAnnuli(zflip);
-	ConstructEndCapWalls(zflip);
+	ConstructEndCapRings(zflip);
+	ConstructEndCapRingSegments(zflip);
+	ConstructEndCapSurfaces(zflip);
 
 }
 
@@ -699,241 +767,322 @@ void WCSimCherenkovBuilder::ConstructEndCapFrame(G4int zflip){
 	G4LogicalVolume * capLogic = NULL;
 	assert( capLogic == NULL);
 
-
-	// angle per regular cell:
-	G4double totalAngle = 2.0 * pi * rad;
-	G4double dPhi = totalAngle / fGeoConfig->GetNSides();
-
-	//-----------------------------------------------------
-	// Form annular section of barrel to hold PMTs
-	//----------------------------------------------------
-
-	G4double innerAnnulusRadius = fGeoConfig->GetInnerRadius()
-								  - GetMaxBarrelExposeHeight() - 1. * mm;
-	G4double outerAnnulusRadius = fGeoConfig->GetInnerRadius()
-								  + fBlacksheetThickness + 1. * mm;
-	// + structure of the frame etc.
-	// The radii are measured to the center of the surfaces
-	// (tangent distance). Thus distances between the corner and the center are bigger.
-
-	// Zip them up into arrays to pass to Geant
-	//	G4double mainAnnulusZ[2] = { -0.5 * GetBarrelLengthForCells(),
-	//								  0.5 * GetBarrelLengthForCells() };
-	//	G4double mainAnnulusRmin[2] = { innerAnnulusRadius, innerAnnulusRadius };
-	//	G4double mainAnnulusRmax[2] = { outerAnnulusRadius, outerAnnulusRadius };
-
 	G4Material * pureWater = WCSimMaterialsBuilder::Instance()->GetMaterial("Water");
 
-	G4double capAssemblyHeight = (fGeoConfig->GetInnerHeight() - GetBarrelLengthForCells())/2
-			  	  	  	  	  	   +1*mm + fBlacksheetThickness;
-	std::cout << "capAssemblyHeight = " << capAssemblyHeight << "  WCIDHeight = " << WCIDHeight << " mainAnnulusHeight = " << mainAnnulusHeight << std::endl;
-	std::cout << "dPhi = " << dPhi << "  outerAnnulusRadiu = " << outerAnnulusRadius << std::endl;
-
-	G4Tubs* capSolid = new G4Tubs("cap", 0.0*m,
-								  outerAnnulusRadius/cos(dPhi/2.),
-								  capAssemblyHeight/2,
+	G4Tubs* capSolid = new G4Tubs("CapAssembly", 0.0*m,
+								  fCapAssemblyRadius,
+								  0.5 * fCapAssemblyHeight, // G4Tubs takes the half-height
 								  0.*deg,
 								  360.*deg);
 
-    capLogic = new G4LogicalVolume(capSolid, pureWater,"cap",0,0,0);
+    capLogic = new G4LogicalVolume(capSolid, pureWater,"CapAssembly",0,0,0);
 
 
     if( zflip == -1) { fCapLogicTop = capLogic; std::cout << "TOP " << fCapLogicTop->GetName() << std::endl;}
-	  else { fCapLogicBottom = capLogic; std::cout << "BOTTOM " << fCapLogicBottom->GetName() << std::endl; }
+	else { fCapLogicBottom = capLogic; std::cout << "BOTTOM " << fCapLogicBottom->GetName() << std::endl; }
     return;
 }
 
-void WCSimCherenkovBuilder::ConstructEndCapAnnuli( G4int zflip ){
+void WCSimCherenkovBuilder::ConstructEndCapRings( G4int zflip ){
 
-	  G4LogicalVolume * capLogic = NULL;
-	  if( zflip == -1 ) { capLogic = fCapLogicTop; }
-	  else { capLogic = fCapLogicBottom; }
+	G4LogicalVolume * capLogic = NULL;
+	if( zflip == -1 ) { capLogic = fCapLogicTop; }
+	else { capLogic = fCapLogicBottom; }
     G4cout << "G4cout capLogic" << capLogic << std::endl;
 
-	  //----------------------------------------------------
-	  // extra rings for the top and bottom of the annulus
-	  //---------------------------------------------------
-	  G4double innerAnnulusRadius = fGeoConfig->GetInnerRadius()
-								    - GetMaxBarrelExposeHeight() - 1. * mm;
-	  G4double outerAnnulusRadius = fGeoConfig->GetInnerRadius()
-									  + fBlacksheetThickness + 1. * mm;
-	  G4double totalAngle = 360 * deg;
-	  G4double capAssemblyHeight = (fGeoConfig->GetInnerHeight()-GetBarrelLengthForCells())/2.0
-			  		  	  	  	   + 1*mm + fBlacksheetThickness;
-	  G4Material * pureWater = WCSimMaterialsBuilder::Instance()->GetMaterial("Water");
-	  G4Material * blacksheet = WCSimMaterialsBuilder::Instance()->GetMaterial("Blacksheet");
+	G4Material * pureWater = WCSimMaterialsBuilder::Instance()->GetMaterial("Water");
+	G4Material * blacksheet = WCSimMaterialsBuilder::Instance()->GetMaterial("Blacksheet");
 
-	  G4double borderAnnulusZ[3] = {-0.5 * GetMaxBarrelExposeHeight()*zflip,
-	                                (-0.5 * GetBarrelLengthForCells() +
-	                                (fGeoConfig->GetInnerRadius() - innerAnnulusRadius))*zflip,
-	                                0.5 * GetBarrelLengthForCells() *zflip};
-	  G4double borderAnnulusRmin[3] = { fGeoConfig->GetInnerRadius(), innerAnnulusRadius, innerAnnulusRadius};
-	  G4double borderAnnulusRmax[3] = {outerAnnulusRadius, outerAnnulusRadius,outerAnnulusRadius};
 
-    for(int i = 0; i < 3; ++i){
-      std::cout << "borderAnnulusZ" << borderAnnulusZ[i] << std::endl;
-      std::cout << "borderAnnulusRmin" << borderAnnulusRmin[i] << std::endl;
-      std::cout << "borderAnnulusRmax" << borderAnnulusRmax[i] << std::endl;
+
+	G4double borderRingZ[2] = {-0.5 * fCapRingHeight * zflip, 0.5 * fCapRingHeight * zflip };
+	G4double borderRingRMin[2] = { fCapRingRadiusInside, fCapRingRadiusInside};
+	G4double borderRingRMax[2] = { fCapRingRadiusOutside, fCapRingRadiusOutside};
+
+
+    for(int i = 0; i < 2; ++i){
+      std::cout << "borderRingZ  [" << i << "] = " << borderRingZ[i] << std::endl;
+      std::cout << "borderRingRmin  [" << i << "] = " << borderRingRMin[i] << std::endl;
+      std::cout << "borderRingRmax  [" << i << "] = " << borderRingRMax[i] << std::endl;
     }
-
-	  G4Polyhedra* solidWCBarrelBorderRing = new G4Polyhedra("WCBarrelBorderRing",
-	                                                   0.*deg, // phi start
-	                                                   totalAngle,
-	                                                   fGeoConfig->GetNSides(), //NPhi-gon
-	                                                   3,
-	                                                   borderAnnulusZ,
-	                                                   borderAnnulusRmin,
-	                                                   borderAnnulusRmax);
-	  G4LogicalVolume* logicWCBarrelBorderRing = new G4LogicalVolume(solidWCBarrelBorderRing,
+    std::cout << "fCapRingHeight = " << fCapRingHeight << std::endl;
+    
+	  G4Polyhedra* solidEndCapRing = new G4Polyhedra("EndCapRing",
+														   	 0.*deg, // phi start
+														   	 360.0 * deg,
+														   	 fGeoConfig->GetNSides(), //NPhi-gon
+														   	 2,
+														   	 borderRingZ,
+														   	 borderRingRMin,
+														   	 borderRingRMax);
+	  G4LogicalVolume* logicEndCapRing = new G4LogicalVolume(solidEndCapRing,
 																	 pureWater,
 																	 "WCBarrelRing",
 																	 0,0,0);
 
+	  if( zflip == -1 ){ fCapLogicTopRing = logicEndCapRing; }
+	  else{ fCapLogicBottomRing = logicEndCapRing; }
+
 	  std::cout << " Physics cap volume lives at " << (capAssemblyHeight/2.- GetBarrelLengthForCells()/2.)*zflip << std::endl;
- 	  G4VPhysicalVolume* physiWCBarrelBorderRing =
+ 						std::cout <<  "Place phsyiEndCapRing at "
+ 								  << ((capAssemblyHeight/2.- (fGeoConfig->GetInnerHeight() - GetBarrelLengthForCells())/2.)*zflip)
+ 								  << " - height is " << borderRingZ[2] - borderRingZ[0]
+ 								  << " c.f. capAssemblyHeight = " << capAssemblyHeight << std::endl;
+ 	  G4VPhysicalVolume* physiEndCapRing =
        new G4PVPlacement(0,
- 						G4ThreeVector(0.,0.,(capAssemblyHeight/2.- GetBarrelLengthForCells()/2.)*zflip),
- 						logicWCBarrelBorderRing,
- 						"WCBarrelBorderRing",
+ 						G4ThreeVector(0.,0., (0.5 * fCapAssemblyHeight - 0.5 * fCapRingHeight) * zflip),
+ 						logicEndCapRing,
+ 						"EndCapRing",
  						capLogic,
  						false, 0,true);
-// 
-// 
-// 
-// 	  // These have no PMTs by construction so we just need to back them out with blacksheet
-// 	  // TODO: check this section thoroughly - I've rejigged it from old WCSim - AJP 27/08/2014
- 	  G4LogicalVolume* logicWCBarrelBorderBlacksheet = new G4LogicalVolume(solidWCBarrelBorderRing,
- 																	 	   blacksheet,
- 																	 	   "WCBarrelBorderBlacksheet",
- 																	 	   0,0,0);
+}
+
+void WCSimCherenkovBuilder::ConstructEndCapRingSegments( G4int zflip )
+{
+	// Set up constants (factorise these somewhere else later)
+	G4Material * pureWater = WCSimMaterialsBuilder::Instance()->GetMaterial("Water");
+
+	// Zip these up into arrays to pass to Geant
+	G4double capRingZ[2] 			= { -0.5 * fCapRingSegmentHeight, 0.5 * fCapRingSegmentHeight};
+	G4double capRingRMin[2] = { fCapRingSegmentRadiusInside, fCapRingSegmentRadiusInside};
+	G4double capRingRMax[2] = { fCapRingSegmentRadiusOutside, fCapRingSegmentRadiusOutside };
+
+	// Now divide each ring (an n-gon prism) into n rectangular segments
+	G4Polyhedra* capSegmentSolid = new G4Polyhedra("EndCapSegment",
+												   -fCapRingSegmentDPhi/2.0, // phi start
+												   fCapRingSegmentDPhi, //total Phi
+												   1, //NPhi-gon
+												   2, capRingZ,
+												   capRingRMin, capRingRMax);
+
+	G4LogicalVolume * capSegmentLogic = new G4LogicalVolume(capSegmentSolid,
+														    pureWater,
+														    "EndCapSegment",
+														    0, 0, 0);
+
+	G4LogicalVolume * capRingLogic = NULL;
+	if( zflip == -1 ) { capRingLogic = fCapLogicTopRing; }
+	else{ capRingLogic = fCapLogicBottomRing; }
+	assert( capRingLogic != NULL );
+
+    G4VPhysicalVolume* capSegmentPhysic = new G4PVReplica("EndCapSegment",
+    													  capSegmentLogic, capRingLogic, kPhi,
+    													  fGeoConfig->GetNSides(),
+    													  fCapRingSegmentDPhi, 0.);
 
 
-	  G4VPhysicalVolume* physiWCBarrelBorderCellBlacksheet = new G4PVPlacement(0,
-																			   G4ThreeVector(0.,0.,0.),
-																			   logicWCBarrelBorderRing,
-																			   "WCBarrelBorderBlacksheet",
-																			   capLogic,
-																			   false,
-																			   0,true);
+    // Now we've placed the physical volume, let's add some blacksheet:
 
-	  G4LogicalBorderSurface * WaterBSBarrelBorderCellSurface
-	    = new G4LogicalBorderSurface("WaterBSBarrelCellSurface",
-	                                 physiWCBarrelBorderRing,
-	                                 physiWCBarrelBorderCellBlacksheet,
-	                                 OpWaterBSSurface);
+	G4double capSegmentBlacksheetZ[2] = { -fCapRingSegmentBSHeight/2.0, fCapRingSegmentBSHeight/2.0 };
+	G4double capSegmentBlacksheetRmax[2] = { fCapRingSegmentBSRadiusOutside, fCapRingSegmentBSRadiusOutside };
+	G4double capSegmentBlacksheetRmin[2] = { fCapRingSegmentBSRadiusInside, fCapRingSegmentBSRadiusInside,};
+
+	G4Polyhedra* capSegmentBlacksheetSolid = new G4Polyhedra("EndCapSegmentBlacksheet",
+														  -0.5 * fCapRingSegmentDPhi, // phi start
+														  fCapRingSegmentDPhi, //total phi
+														  1, //NPhi-gon
+														  2,
+														  capSegmentBlacksheetZ,
+														  capSegmentBlacksheetRmin,
+														  capSegmentBlacksheetRmax);
+
+	G4LogicalVolume * capSegmentBlacksheetLogic = new G4LogicalVolume( capSegmentBlacksheetSolid,
+																	   WCSimMaterialsBuilder::Instance()->GetMaterial("Blacksheet"),
+																	   "EndCapSegmentBlacksheet",
+																	   0, 0, 0);
+
+  std::cout << "Here" << std::endl;
+  std::cout << "capSegmentBlacksheetLogic = " << capSegmentBlacksheetLogic->GetName() << std::endl;
+  std::cout << "capSegmentLogic = " << capSegmentLogic->GetName() << std::endl;
+	G4VPhysicalVolume* capSegmentBlacksheetPhysic = new G4PVPlacement( 0,
+																	   G4ThreeVector(0., 0., 0.),
+																	   capSegmentBlacksheetLogic,
+																	   "EndCapSegmentBlacksheet",
+																	   capSegmentLogic,
+																	   false, 0, true);
+
+  std::cout << "But not here?" << std::endl;
+	G4LogicalBorderSurface * WaterBSCapCellSurface = NULL;
+	// TODO: rip this out of WCSimConstructMaterials
+	WaterBSCapCellSurface = new G4LogicalBorderSurface("WaterBSCapCellSurface",
+														capSegmentPhysic,
+														capSegmentBlacksheetPhysic,
+														OpWaterBSSurface);
+
+	G4VisAttributes* WCCellBlacksheetCellVisAtt = new G4VisAttributes(G4Colour(0.2, 0.9, 0.2));
+	if (fDebugMode ){
+		capSegmentBlacksheetLogic->SetVisAttributes(WCCellBlacksheetCellVisAtt);
+	}
+	else{
+		capSegmentBlacksheetLogic->SetVisAttributes(G4VisAttributes::Invisible);
+	}
 
 	  return;
 }
 
-void WCSimCherenkovBuilder::ConstructEndCapWalls(G4int zflip){
+void WCSimCherenkovBuilder::ConstructEndCapSurfaces(G4int zflip){
 
 	  G4LogicalVolume * capLogic = NULL;
 	  if( zflip == -1 ) { capLogic = fCapLogicTop; }
 	  else { capLogic = fCapLogicBottom; }
 
-	// TODO: put these into a function
-	  G4double innerAnnulusRadius = fGeoConfig->GetInnerRadius()
-								    - GetMaxBarrelExposeHeight() - 1. * mm;
-	  G4double outerAnnulusRadius = fGeoConfig->GetInnerRadius()
-									  + fBlacksheetThickness + 1. * mm;
-	  G4double totalAngle = 2.0 * pi * rad;
-	  G4double capAssemblyHeight = (fGeoConfig->GetInnerHeight()-GetBarrelLengthForCells())/2.0
-			  		  	  	  	   + 1*mm + fBlacksheetThickness;
 	  G4Material * pureWater = WCSimMaterialsBuilder::Instance()->GetMaterial("Water");
 	  G4Material * blacksheet = WCSimMaterialsBuilder::Instance()->GetMaterial("Blacksheet");
 
-	  G4double WCBarrelPMTOffset = 0.0; // I think the new placement method takes care of this already (AJP 27/8/14)
-	  	  	  	  	  	  	  	  	  	// Leaving it here in case not - don't want to lose where it's used
-	 //------------------------------------------------------------
-	 // add caps
-	 // -----------------------------------------------------------
+	  //------------------------------------------------------------
+	  // Add the flat section of the cap
+	  // -----------------------------------------------------------
+    std::cout << "Blacksheet thickness = " << fBlacksheetThickness << std::endl;
 
-	  G4double capZ[4] = { (-fBlacksheetThickness-1.*mm)*zflip,
-	                      WCBarrelPMTOffset*zflip,
-	                      WCBarrelPMTOffset*zflip,
-	                      (WCBarrelPMTOffset+(fGeoConfig->GetInnerRadius()-innerAnnulusRadius))*zflip} ;
-	  G4double capRmin[4] = {  0. , 0., 0., 0.} ;
-	  G4double capRmax[4] = {outerAnnulusRadius, outerAnnulusRadius,  fGeoConfig->GetInnerRadius(), innerAnnulusRadius};
-	  G4VSolid* solidWCCap = new G4Polyhedra("WCCap",
-											 0.*deg, // phi start
-											 totalAngle, //phi end
-											 fGeoConfig->GetNSides(), //NPhi-gon
-											 4, // 2 z-planes
-											 capZ, //position of the Z planes
-											 capRmin, // min radius at the z planes
-											 capRmax// max radius at the Z planes
-											);
+    std::cout << "fCapPolygonHeight = " << fCapPolygonHeight << std::endl;
+    std::cout << "fCapAssemblyHeight = " << fCapAssemblyHeight << std::endl;
+	  G4double capPolygonZ[2] = { -fCapPolygonHeight * zflip/2.0, fCapPolygonHeight * zflip/2.0 };
+	  G4double capPolygonRMin[2] = {  0. , 0. } ;
+	  G4double capPolygonRMax[2] = {fCapPolygonRadius, fCapPolygonRadius};
+	  G4VSolid* solidCapPolygon = new G4Polyhedra("CapPolygon",
+											                     0. * deg, // phi start
+											                     360. * deg, //phi end
+											                     fGeoConfig->GetNSides(), //NPhi-gon
+											                     2, // 2 z-planes
+											                     capPolygonZ, //position of the Z planes
+											                     capPolygonRMin, // min radius at the z planes
+											                     capPolygonRMax// max radius at the Z planes
+											                    );
 
-	  G4cout << *solidWCCap << G4endl;
-	  G4LogicalVolume* logicWCCap = new G4LogicalVolume(solidWCCap,
-														pureWater,
-														"WCCapPolygon",
-														0,0,0);
-	  std::cout << "physical cap volume at " << (-capAssemblyHeight/2.+1*mm+fBlacksheetThickness)*zflip << std::endl;
-	  G4VPhysicalVolume* physiWCCap =
-	    new G4PVPlacement(0,                           // no rotation
-						  G4ThreeVector(0.,0.,(-capAssemblyHeight/2.+1*mm+fBlacksheetThickness)*zflip),     // its position
-						  logicWCCap,          // its logical volume
-						  "WCCap",             // its name
-						  capLogic,           // its mother volume
-						  false,               // no boolean operations
-						  0,true);             // Copy #
+	  // G4cout << *solidCapPolygon << G4endl;
+	  G4LogicalVolume* logicCapPolygon = new G4LogicalVolume(solidCapPolygon, pureWater, "CapPolygon",0,0,0);
+
+
+    // First make the centre:
+	  G4double capPolygonCentreZ[2] = { -fCapPolygonCentreHeight * zflip/2.0, fCapPolygonCentreHeight * zflip/2.0 };
+	  G4double capPolygonCentreRMin[2] = {  0. , 0. } ;
+	  G4double capPolygonCentreRMax[2] = {fCapPolygonCentreRadius, fCapPolygonCentreRadius};
+    G4VSolid* solidCapPolygonCentre = new G4Polyhedra("CapPolygonCentre", 
+                                                      0.0 * deg, 360.0 * deg,
+                                                      fGeoConfig->GetNSides(),
+                                                      2,
+                                                      capPolygonCentreZ,
+                                                      capPolygonCentreRMin,
+                                                      capPolygonCentreRMax);
+    G4LogicalVolume* logicCapPolygonCentre = new G4LogicalVolume(solidCapPolygonCentre, pureWater, "CapPolygonCentre",0,0,0);
+    G4VPhysicalVolume* physiCapPolygonCentre = new G4PVPlacement( 0,
+                                                                 G4ThreeVector(0.,0., (-0.5 * fCapPolygonHeight + 0.5 * fCapPolygonCentreHeight) * zflip),
+                                                                 logicCapPolygonCentre,
+                                                                 "CapPolygonCentre",
+                                                                 logicCapPolygon,
+                                                                 false, 0, true );
+    std::cout << *solidCapPolygonCentre << std::endl;
+
+    // Now the outside edges:
+
 
 
 
 	  if(fDebugMode){
 		  G4VisAttributes* tmpVisAtt2 = new G4VisAttributes(G4Colour(.6,0.5,0.5));
 		  tmpVisAtt2->SetForceWireframe(true);
-		  logicWCCap->SetVisAttributes(tmpVisAtt2);
+		  logicCapPolygon->SetVisAttributes(tmpVisAtt2);
 	  }
 	  else{
-	    logicWCCap->SetVisAttributes(G4VisAttributes::Invisible);
+	    logicCapPolygon->SetVisAttributes(G4VisAttributes::Invisible);
 	  }
 
 	  //---------------------------------------------------------------------
 	  // add cap blacksheet
 	  // -------------------------------------------------------------------
 
-	  G4double capBlacksheetZ[4] = {-fBlacksheetThickness*zflip, 0., 0., WCBarrelPMTOffset*zflip};
-	  G4double capBlacksheetRmin[4] = {0., 0.,
-			  	  	  	  	  	  	   fGeoConfig->GetInnerRadius(),
-			  	  	  	  	  	  	   fGeoConfig->GetInnerRadius()};
-	  G4double capBlacksheetRmax[4] = {fGeoConfig->GetInnerRadius()+fBlacksheetThickness,
-	                                   fGeoConfig->GetInnerRadius()+fBlacksheetThickness,
-									   fGeoConfig->GetInnerRadius()+fBlacksheetThickness,
-									   fGeoConfig->GetInnerRadius()+fBlacksheetThickness};
-	  G4VSolid* solidWCCapBlacksheet = new G4Polyhedra("WCCapBlacksheet",
+	  // To the edge...
+    std::cout << "fCapPolygonEdgeBSHeightInside = " << fCapPolygonEdgeBSHeight << std::endl
+              << "fCapPolygonCentreHeight = " << fCapPolygonCentreHeight << std::endl
+              << "fCapPolygonHeight = " << fCapPolygonHeight << std::endl;
+
+	  G4double capEdgeBlacksheetZ[2] = {-0.5 * fCapPolygonEdgeBSHeight * zflip, 0.5 * fCapPolygonEdgeBSHeight * zflip};
+	  G4double capEdgeBlacksheetRmin[2] = {fCapPolygonEdgeBSRadiusInside, fCapPolygonEdgeBSRadiusInside};
+	  G4double capEdgeBlacksheetRmax[2] = {fCapPolygonEdgeBSRadiusOutside, fCapPolygonEdgeBSRadiusOutside};
+
+	  G4VSolid* solidWCCapEdgeBlacksheet = new G4Polyhedra("WCCapEdgeBlacksheet",
 														0.*deg, // phi start
-														totalAngle, //total phi
+														360.0, //total phi
 														fGeoConfig->GetNSides(), //NPhi-gon
-														4, //  z-planes
-														capBlacksheetZ, //position of the Z planes
-														capBlacksheetRmin, // min radius at the z planes
-														capBlacksheetRmax// max radius at the Z planes
+														2, //  z-planes
+														capEdgeBlacksheetZ, //position of the Z planes
+														capEdgeBlacksheetRmin, // min radius at the z planes
+														capEdgeBlacksheetRmax// max radius at the Z planes
 														);
 
-	  G4LogicalVolume* logicWCCapBlacksheet = new G4LogicalVolume(solidWCCapBlacksheet,
+	  G4LogicalVolume* logicWCCapEdgeBlacksheet = new G4LogicalVolume(solidWCCapEdgeBlacksheet,
 																  blacksheet,
-																  "WCCapBlacksheet",
+																  "WCCapEdgeBlacksheet",
 																  0,0,0);
-	  G4VPhysicalVolume* physiWCCapBlacksheet = new G4PVPlacement(0,
-																  G4ThreeVector(0.,0.,0.),
-																  logicWCCapBlacksheet,
-																  "WCCapBlacksheet",
-																  logicWCCap,
+	  G4VPhysicalVolume* physiWCCapEdgeBlacksheet = new G4PVPlacement(0,
+                                  G4ThreeVector(0.,0., (-0.5 * fCapPolygonHeight + 0.5 * fCapPolygonEdgeBSHeight) * zflip),
+																  logicWCCapEdgeBlacksheet,
+																  "WCCapEdgeBlacksheet",
+																  logicCapPolygon,
 																  false,
 																  0,true);
-	   G4LogicalBorderSurface * WaterBSBottomCapSurface = NULL;
-	   WaterBSBottomCapSurface = new G4LogicalBorderSurface("WaterBSCapPolySurface",
-	                                   	   	   	   	   	    physiWCCap,physiWCCapBlacksheet,
+
+	  // And to the end...
+	  G4double capEndBlacksheetZ[2] = {-0.5 * fCapPolygonEndBSHeight * zflip, 0.5 * fCapPolygonEndBSHeight * zflip};
+	  G4double capEndBlacksheetRmin[2] = {0, 0};
+	  G4double capEndBlacksheetRmax[2] = {fCapPolygonEndBSRadius, fCapPolygonEndBSRadius};
+
+	  G4VSolid* solidWCCapEndBlacksheet = new G4Polyhedra("WCCapEndBlacksheet",
+														0.*deg, // phi start
+														360.0 * deg, //total phi
+														fGeoConfig->GetNSides(), //NPhi-gon
+														2, //  z-planes
+														capEndBlacksheetZ, //position of the Z planes
+														capEndBlacksheetRmin, // min radius at the z planes
+														capEndBlacksheetRmax// max radius at the Z planes
+														);
+
+	  G4LogicalVolume* logicWCCapEndBlacksheet = new G4LogicalVolume(solidWCCapEndBlacksheet,
+																  blacksheet,
+																  "WCCapEndBlacksheet",
+																  0,0,0);
+	  G4VPhysicalVolume* physiWCCapEndBlacksheet = new G4PVPlacement(0,
+                                  G4ThreeVector(0.,0., (0.5 * fCapPolygonHeight - 0.5 * fCapPolygonEndBSHeight) * zflip),
+																  logicWCCapEndBlacksheet,
+																  "WCCapEndBlacksheet",
+																  logicCapPolygon,
+																  false,
+																  0,true);
+
+
+	  // And finally place the whole container volume
+    
+    std::cout << "physical cap volume at " << (-capAssemblyHeight/2.+1*mm+fBlacksheetThickness)*zflip << std::endl;
+	  G4VPhysicalVolume* physiCapPolygon = new G4PVPlacement(0,                           // no rotation
+						  	  	  	  	  	  	  	  	G4ThreeVector(0.,0., (-0.5 * fCapAssemblyHeight + 0.5 * fCapPolygonHeight) * zflip),     // its position
+													                                logicCapPolygon,  // its logical volume
+													                                "CapPolygon",     // its name
+													                                capLogic,    // its mother volume
+													                                false,       // no boolean operations
+													                                0,true);     // Copy #
+
+
+	  G4LogicalBorderSurface * WaterBSBottomCapEdgeSurface = NULL;
+	  WaterBSBottomCapEdgeSurface = new G4LogicalBorderSurface("WaterBSCapPolySurface",
+	                                   	   	   	   	   	    physiCapPolygon,physiWCCapEdgeBlacksheet,
 	                                   	   	   	   	   	    OpWaterBSSurface);
 
-	   G4VisAttributes* WCCapBlacksheetVisAtt
-	      = new G4VisAttributes(G4Colour(0.9,0.2,0.2));
+	  G4LogicalBorderSurface * WaterBSBottomCapEndSurface = NULL;
+	  WaterBSBottomCapEndSurface = new G4LogicalBorderSurface("WaterBSCapPolySurface",
+	                                   	   	   	   	   	    physiCapPolygon,physiWCCapEdgeBlacksheet,
+	                                   	   	   	   	   	    OpWaterBSSurface);
+
+	  G4VisAttributes* WCCapBlacksheetVisAtt = new G4VisAttributes(G4Colour(0.9,0.2,0.2));
 	    if(fDebugMode || 1)
-	        logicWCCapBlacksheet->SetVisAttributes(WCCapBlacksheetVisAtt);
+	    {
+	    	logicWCCapEndBlacksheet->SetVisAttributes(WCCapBlacksheetVisAtt);
+        	logicWCCapEdgeBlacksheet->SetVisAttributes(WCCapBlacksheetVisAtt);
+	    }
 	    else
-	        logicWCCapBlacksheet->SetVisAttributes(G4VisAttributes::Invisible);
+	    {
+	        logicWCCapEndBlacksheet->SetVisAttributes(G4VisAttributes::Invisible);
+        	logicWCCapEdgeBlacksheet->SetVisAttributes(G4VisAttributes::Invisible);
+	    }
 	    return;
 }
 
@@ -942,6 +1091,8 @@ void WCSimCherenkovBuilder::PlaceEndCapPMTs(G4int zflip){
 	  G4LogicalVolume * capLogic = NULL;
 	  if( zflip == -1 ) { capLogic = fCapLogicTop; }
 	  else { capLogic = fCapLogicBottom; }
+    G4cout << "G4cout capLogic again" << capLogic << std::endl;
+    G4cout << "capLogic top = " << fCapLogicTop << "  and bottom ... " << fCapLogicBottom << std::endl;
 
 	  //---------------------------------------------------------
 	  // Add top and bottom PMTs
@@ -955,12 +1106,14 @@ void WCSimCherenkovBuilder::PlaceEndCapPMTs(G4int zflip){
 
 	  // loop over the cap
 	  // Build a square that contains the cap:
-	  G4double squareEdge = 2.0 * fGeoConfig->GetInnerRadius();
+	  G4double squareEdge = 2.0*(fCapPolygonCentreRadius);
     squareEdge = squareEdge + fmod(squareEdge, 2*fTopCellSize);
 
 	  G4double xpos = -0.5 * squareEdge;
 	  G4double ypos = -0.5 * squareEdge;
     std::cout << "Starting loop!" << std::endl;
+    std::cout << "The unit cell on the top has " << GetTopUnitCell()->GetNumPMTs() << " PMTs in it"  << std::endl;
+
 	  while( fabs(ypos) <= 0.5 * squareEdge  ){
       xpos = -0.5 * squareEdge;
 		  while(fabs(xpos) <= 0.5 * squareEdge){
@@ -968,28 +1121,29 @@ void WCSimCherenkovBuilder::PlaceEndCapPMTs(G4int zflip){
 
 
 			  WCSimUnitCell * unitCell = GetTopUnitCell();
-			  if( WCSimPolygonTools::PolygonContainsSquare(fGeoConfig->GetNSides(), fGeoConfig->GetInnerRadius(), G4TwoVector(cellpos.x(), cellpos.y()), fTopCellSize)){
+			  if( WCSimPolygonTools::PolygonContainsSquare(fGeoConfig->GetNSides(), fCapPolygonCentreRadius, G4TwoVector(cellpos.x(), cellpos.y()), fTopCellSize)){
 
-				  for(unsigned int nPMT = 0; nPMT < 1 ; ++nPMT){//nPMT < unitCell->GetNumPMTs(); ++nPMT){
+				  for(unsigned int nPMT = 0; nPMT < unitCell->GetNumPMTs(); ++nPMT){
 					  G4TwoVector pmtCellPosition = unitCell->GetPMTPos(nPMT, fTopCellSize); // PMT position in cell, relative to top left of cell
-					  G4ThreeVector PMTPosition = cellpos;   // bottom left of unit cell
-							  	  	  	  	  	//  + G4ThreeVector(pmtCellPosition.x(),
-							  	  	  	  	  	//		  	  	  fTopCellSize - pmtCellPosition.y(),
-							  	  	  	  	  	//		  	  	  0.0); // top left of cell to PMT
+					  G4ThreeVector PMTPosition = cellpos   // bottom left of unit cell
+							  	  	  	  	  	      + G4ThreeVector(pmtCellPosition.x(),
+							  	  	  	  	  			          	  	  fTopCellSize - pmtCellPosition.y(),
+							  	  	  	  	  			  	  	          0.0); // top left of cell to PMT
 					  WCSimPMTConfig config = unitCell->GetPMTPlacement(nPMT).GetPMTConfig();
 					  G4VPhysicalVolume* physiCapPMT = new G4PVPlacement(WCCapPMTRotation,     // its rotation
 							  	  	  	  	  	  	  	  	  	  	  	 PMTPosition,
-							  	  	  	  	  	  	  	  	  	  	  	 fPMTBuilder.GetPMTLogicalVolume(config),        // its logical volume // TODO: GET THIS SOMEHOW/
+							  	  	  	  	  	  	  	  	  	  	  	 fPMTBuilder.GetPMTLogicalVolume(config),        // its logical volume
 							  	  	  	  	  	  	  	  	  	  	  	 "WCPMT",           // its name
 							  	  	  	  	  	  	  	  	  	  	  	 capLogic,      // its mother volume
 							  	  	  	  	  	  	  	  	  	  	  	 false,             // no boolean operations
 							  	  	  	  	  	  	  	  	  	  	  	 fNumPMTs);
-					  if(fNumPMTs == 0){
-              std::cout << "inner radius = " << fGeoConfig->GetInnerRadius() << "   xpos = " << xpos << "   ypos = " << ypos << "  top cell size = " << fTopCellSize << "   wall cell size = " << fWallCellSize << std::endl;
-              std::cout << "PMT position in cell = " << pmtCellPosition.x() / m << "," << pmtCellPosition.y() / m << "in m" << std::endl;
-					    std::cout << "Cell size = " << fTopCellSize << std::endl;// pmtCellPosition.x() << "," << pmtCellPosition.y() << std::endl;
-					    std::cout << "PMT logical volume name = " << fPMTBuilder.GetPMTLogicalVolume(config)->GetName() << std::endl;
-					    std::cout << "Placed endcap PMT!" << std::endl;
+            std::cout << "name of capLogic = " << capLogic->GetName() << std::endl;
+					  if( fNumPMTs == 0){
+               std::cout << "inner radius = " << fGeoConfig->GetOuterRadius() << "   xpos = " << xpos << "   ypos = " << ypos << "  top cell size = " << fTopCellSize << "   wall cell size = " << fWallCellSize << std::endl;
+               std::cout << "PMT position in cell = " << pmtCellPosition.x() / m << "," << pmtCellPosition.y() / m << "in m" << std::endl;
+					     std::cout << "Cell size = " << fTopCellSize << std::endl;// pmtCellPosition.x() << "," << pmtCellPosition.y() << std::endl;
+					     std::cout << "PMT logical volume name = " << fPMTBuilder.GetPMTLogicalVolume(config)->GetName() << std::endl;
+					     std::cout << "Placed endcap PMT!" << std::endl;
             }
 					  fNumPMTs++;
 				// logicWCPMT->GetDaughter(0),physiCapPMT is the glass face. If you add more
@@ -997,6 +1151,9 @@ void WCSimCherenkovBuilder::PlaceEndCapPMTs(G4int zflip){
 				// this is still the case.
 				  }
 			  }
+        else
+        {
+        }
 			  xpos += fTopCellSize;
 		  }
 		  ypos += fTopCellSize;
@@ -1005,28 +1162,25 @@ void WCSimCherenkovBuilder::PlaceEndCapPMTs(G4int zflip){
 }
 
 void WCSimCherenkovBuilder::ConstructEndCapPhysicalVolumes(){
-	mainAnnulusHeight = GetBarrelLengthForCells();
-	G4double capAssemblyHeight = (fGeoConfig->GetInnerHeight() - GetBarrelLengthForCells())/2  +1*mm + fBlacksheetThickness;
-  std::cout << "mainAnnulusHeight = " << mainAnnulusHeight << " (in m = " << mainAnnulusHeight/m << ")" << std::endl;
-  std::cout << "capAssemblyHeight = " << capAssemblyHeight << " (in m = " << capAssemblyHeight/m << ")" << std::endl;
-  std::cout << "InnerHeight=  " << fGeoConfig->GetInnerHeight() << " (in m = " << fGeoConfig->GetInnerHeight()/m << ")" << std::endl;
-  std::cout << "BarrelLengthForCells = " << GetBarrelLengthForCells() << " (in m = " << GetBarrelLengthForCells()/m << ")" << std::endl;
-  std::cout << "fBlacksheet thickness = " << fBlacksheetThickness << " (in m = " << fBlacksheetThickness/m << ")" << std::endl;
-  G4VPhysicalVolume* physiTopCapAssembly = new G4PVPlacement(0,  
-                                                             G4ThreeVector(0.,0.,(mainAnnulusHeight/2.+ capAssemblyHeight/2.)),
+  // std::cout << "mainAnnulusHeight = " << mainAnnulusHeight << " (in m = " << mainAnnulusHeight/m << ")" << std::endl;
+  // std::cout << "capAssemblyHeight = " << capAssemblyHeight << " (in m = " << capAssemblyHeight/m << ")" << std::endl;
+  // std::cout << "InnerHeight=  " << fGeoConfig->GetInnerHeight() << " (in m = " << fGeoConfig->GetInnerHeight()/m << ")" << std::endl;
+  // std::cout << "BarrelLengthForCells = " << GetBarrelLengthForCells() << " (in m = " << GetBarrelLengthForCells()/m << ")" << std::endl;
+  // std::cout << "fBlacksheet thickness = " << fBlacksheetThickness << " (in m = " << fBlacksheetThickness/m << ")" << std::endl;
+  G4VPhysicalVolume* physiTopCapAssembly = new G4PVPlacement(0,
+                                                             G4ThreeVector(0.,0.,0.5 * (fGeoConfig->GetInnerHeight() + fCapAssemblyHeight)),
                                                              fCapLogicTop,
                                                              "TopCapAssembly",
                                                              fBarrelLogic,
                                                              false, 0,true);
   G4VPhysicalVolume* physiBottomCapAssembly = new G4PVPlacement(0,
-                                                                G4ThreeVector(0.,0.,-(mainAnnulusHeight/2.+ capAssemblyHeight/2.)),
+                                                                G4ThreeVector(0.,0., -0.5 * (fGeoConfig->GetInnerHeight() + fCapAssemblyHeight)),
                                                                 fCapLogicBottom,
                                                                 "BottomCapAssembly",
                                                                 fBarrelLogic,
                                                                 false, 0,true);
     // G4cout << "physiTopCapAssembly: " << physiTopCapAssembly << std::endl;
-    G4cout << "physiBottomCapAssembly: " << physiBottomCapAssembly << std::endl;
-    std::cout << "Build end cap physical volumes" << std::endl;
+    // G4cout << "physiBottomCapAssembly: " << physiBottomCapAssembly << std::endl;
     return;
 }
 
@@ -1038,7 +1192,7 @@ void WCSimCherenkovBuilder::CreateSensitiveDetector() {
 	    aWCPMT = new WCSimWCSD( "/WCSim/glassFaceWCPMT",this );
 	    SDman->AddNewDetector( aWCPMT );
 	  }
-    
+
     fPMTBuilder.SetSensitiveDetector( aWCPMT );
 }
 
@@ -1049,7 +1203,7 @@ WCSimUnitCell* WCSimCherenkovBuilder::GetBarrelUnitCell() {
 
 
 /*G4VPhysicalVolume* WCSimCherenkovBuilder::Construct()
-{  
+{
   G4GeometryManager::GetInstance()->OpenGeometry();
 
   G4PhysicalVolumeStore::GetInstance()->Clean();
@@ -1059,12 +1213,12 @@ WCSimUnitCell* WCSimCherenkovBuilder::GetBarrelUnitCell() {
   G4LogicalSkinSurface::CleanSurfaceTable();
 
   totalNumPMTs = 0;
-  
+
   //-----------------------------------------------------
   // Create Logical Volumes
   //-----------------------------------------------------
 
-  // First create the logical volumes of the sub detectors.  After they are 
+  // First create the logical volumes of the sub detectors.  After they are
   // created their size will be used to make the world volume.
   // Note the order is important because they rearrange themselves depending
   // on their size and detector ordering.
@@ -1078,7 +1232,7 @@ WCSimUnitCell* WCSimCherenkovBuilder::GetBarrelUnitCell() {
 
   //-------------------------------
 
-  // Now make the detector Hall.  The lengths of the subdectors 
+  // Now make the detector Hall.  The lengths of the subdectors
   // were set above.
 
   G4double expHallLength = 3.*WCLength; //jl145 - extra space to simulate cosmic muons more easily
@@ -1090,8 +1244,8 @@ WCSimUnitCell* WCSimCherenkovBuilder::GetBarrelUnitCell() {
 				  expHallHalfLength,
 				  expHallHalfLength,
 				  expHallHalfLength);
-  
-  G4LogicalVolume* logicExpHall = 
+
+  G4LogicalVolume* logicExpHall =
     new G4LogicalVolume(solidExpHall,
 			WCSimMaterialsBuilder::Instance()->GetMaterial("Vacuum"),
 			"expHall",
@@ -1107,7 +1261,7 @@ WCSimUnitCell* WCSimCherenkovBuilder::GetBarrelUnitCell() {
   //-----------------------------------------------------
 
   // Experimental Hall
-  G4VPhysicalVolume* physiExpHall = 
+  G4VPhysicalVolume* physiExpHall =
     new G4PVPlacement(0,G4ThreeVector(),
   		      logicExpHall,
   		      "expHall",
@@ -1121,7 +1275,7 @@ WCSimUnitCell* WCSimCherenkovBuilder::GetBarrelUnitCell() {
 	  //rotationMatrix->rotateZ(90.*deg);
 
   G4ThreeVector genPosition = G4ThreeVector(0., 0., WCPosition);
-  G4VPhysicalVolume* physiWCBox = 
+  G4VPhysicalVolume* physiWCBox =
     new G4PVPlacement(0,
 		      genPosition,
 		      logicWCBox,
@@ -1131,19 +1285,19 @@ WCSimUnitCell* WCSimCherenkovBuilder::GetBarrelUnitCell() {
 		      0);
 
   // Traverse and print the geometry Tree
-  
-  //  TraverseReplicas(physiWCBox, 0, G4Transform3D(), 
+
+  //  TraverseReplicas(physiWCBox, 0, G4Transform3D(),
   //	   &WCSimDetectorConstruction::PrintGeometryTree) ;
 
-  TraverseReplicas(physiWCBox, 0, G4Transform3D(), 
+  TraverseReplicas(physiWCBox, 0, G4Transform3D(),
 	           &WCSimCherenkovBuilder::DescribeAndRegisterPMT) ;
-  
-  
-  TraverseReplicas(physiWCBox, 0, G4Transform3D(), 
+
+
+  TraverseReplicas(physiWCBox, 0, G4Transform3D(),
 		   &WCSimCherenkovBuilder::GetWCGeom) ;
-  
+
   DumpGeometryTableToFile();
-  
+
   // Return the pointer to the physical experimental hall
   return physiExpHall;
 }
@@ -1163,7 +1317,7 @@ void WCSimCherenkovBuilder::SetPositions()
 	 fDebugMode = true;
 	 WCPosition = 0.;	  //Set the WC tube offset to zero
 
-	 WCIDRadius = (G4int)fGeoConfig->GetInnerRadius();
+	 WCIDRadius = (G4int)fGeoConfig->GetOuterRadius();
 
 	 // the number of regular cell in phi direction:
 	 WCBarrelRingNPhi = fGeoConfig->GetNSides();
@@ -1179,10 +1333,10 @@ void WCSimCherenkovBuilder::SetPositions()
 	 mainAnnulusHeight = WCIDHeight - 2. * WCBarrelPMTOffset
 	 - 2. * barrelCellHeight;
 
-	 //  innerAnnulusRadius = fGeoConfig->GetInnerRadius() - WCPMTExposeHeight-1.*mm;
-	 innerAnnulusRadius = fGeoConfig->GetInnerRadius() - fPMTConfigs[0].GetExposeHeight()
+	 //  innerAnnulusRadius = fGeoConfig->GetOuterRadius() - WCPMTExposeHeight-1.*mm;
+	 innerAnnulusRadius = fGeoConfig->GetOuterRadius() - fPMTConfigs[0].GetExposeHeight()
 	 - 1. * mm;
-	 outerAnnulusRadius = fGeoConfig->GetInnerRadius() + fBlacksheetThickness + 1. * mm;//+ Stealstructure etc.
+	 outerAnnulusRadius = fGeoConfig->GetOuterRadius() + fBlacksheetThickness + 1. * mm;//+ Stealstructure etc.
 	 // the radii are measured to the center of the surfaces
 	 // (tangent distance). Thus distances between the corner and the center are bigger.
 	 WCLength = WCIDHeight + 2 * 2.3 * m;//jl145 - reflects top veto blueprint, cf. Farshid Feyzi
@@ -1220,6 +1374,28 @@ void WCSimCherenkovBuilder::UpdateGeometry() {
 	fCapLogicBottom = NULL;
 	fConstructed = false;
 	fNumPMTs = 0;
+  
+  fGotMeasurements = false;
+	fBarrelRadius = -999 * m; // Barrel is a cylinder - this is its actual radius
+	fBarrelHeight = -999 * m;
+	fBarrelLengthForCells = -999 * m;
+
+	fPrismRadiusInside = -999 * m; // Radius is to centre of wall not the vertex
+	fPrismRadiusOutside = -999 * m;
+	fPrismHeight = -999 * m;
+
+	fPrismRingRadiusInside = -999 * m; // Radius is to centre of wall not the vertex
+	fPrismRingRadiusOutside = -999 * m;
+	fPrismRingHeight = -999 * m;
+
+	fPrismRingSegmentRadiusInside = -999 * m; // To centre of segment not edge
+	fPrismRingSegmentRadiusInside = -999 * m;
+	fPrismRingSegmentHeight = -999 * m;
+	fPrismRingSegmentDPhi = -999 * m;
+
+	fPrismRingSegmentBSRadiusInside = -999 * m; // To centre not edge
+	fPrismRingSegmentBSRadiusOutside = -999 * m;
+	fPrismRingSegmentBSHeight = -999 * m;
 	WCSimDetectorConstruction::UpdateGeometry();
 
 }

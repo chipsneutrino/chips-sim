@@ -2,6 +2,7 @@
 
 #include "globals.hh"
 #include <cassert>
+#include <math.h>
 
 #include "WCSimGeoConfig.hh"
 
@@ -9,7 +10,7 @@
 WCSimGeoConfig::WCSimGeoConfig(){
 
 	fGeoName = "";
-	fInnerRadius = 0.;
+	fOuterRadius = 0.;
 	fInnerHeight = 0.;
 	fNSides = 0;
 	fPercentCoverage = 0.;
@@ -19,7 +20,7 @@ WCSimGeoConfig::WCSimGeoConfig(){
 WCSimGeoConfig::WCSimGeoConfig(const WCSimGeoConfig &rhs){
 
 	fGeoName = rhs.GetGeoName();
-	fInnerRadius = rhs.GetInnerRadius();
+	fOuterRadius = rhs.GetOuterRadius();
 	fInnerHeight = rhs.GetInnerHeight();
 	fNSides = rhs.GetNSides();
     fPercentCoverage = rhs.GetCoverage();
@@ -45,13 +46,16 @@ void WCSimGeoConfig::SetGeoName(std::string name){
 }
 
 // Inner Radius
-
 double WCSimGeoConfig::GetInnerRadius() const{
-	return fInnerRadius;
+  return fOuterRadius * cos(M_PI / fNSides);
 }
 
-void WCSimGeoConfig::SetInnerRadius(double radius){
-	fInnerRadius = radius;
+double WCSimGeoConfig::GetOuterRadius() const{
+	return fOuterRadius;
+}
+
+void WCSimGeoConfig::SetOuterRadius(double radius){
+	fOuterRadius = radius;
 }
 
 // Inner height 
@@ -164,7 +168,7 @@ void WCSimGeoConfig::Print() const{
 
 	std::cout << "== WCSimGeoConfig object ==" << std::endl;
 	std::cout << "\tName = " << this->GetGeoName() << std::endl;
-	std::cout << "\tInner Radius = " << this->GetInnerRadius()/m << "m" << std::endl;
+	std::cout << "\tOuter Radius = " << this->GetOuterRadius()/m << "m" << std::endl;
 	std::cout << "\tInner Height = " << this->GetInnerHeight()/m << "m" << std::endl;
 	std::cout << "\t# of Sides   = " << this->GetNSides() << std::endl;
 	std::cout << "\tCoverage = " << this->GetCoverage() << std::endl;

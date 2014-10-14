@@ -33,7 +33,7 @@ private:
                         * object.  Has to run before making any geometry objects TODO: reorganise */
 
 
-  	void ConstructDetectorWrapper(); //< Main function to build the detector
+ 	void ConstructDetectorWrapper(); //< Main function to build the detector
 	void ConstructEnvironment(); //< Build the lake for the detector to sit in
 	void ConstructFrame(); //< The external metal frame
 	void ConstructVeto(); //< The veto region (currently not implemented)
@@ -47,16 +47,18 @@ private:
 	void ConstructEndCaps(); //< Build the top and bottom caps of the detector
 	void ConstructEndCap(G4int zflip); //< Construct top (zflip = true) and bottom (false) caps
 	void ConstructEndCapFrame(G4int zflip);
-	void ConstructEndCapAnnuli( G4int zflip );
-	void ConstructEndCapWalls(G4int zflip);
+	void ConstructEndCapRings( G4int zflip );
+	void ConstructEndCapRingSegments( G4int zflip );
+	void ConstructEndCapSurfaces(G4int zflip);
   void ConstructEndCapPhysicalVolumes();
-	
+
   void PlacePMTs(); //< Put the PMTs into each unit cell
 	void PlaceEndCapPMTs(G4int zflip);
   void PlaceBarrelPMTs();
 
 	void CreateSensitiveDetector(); //< Make the photocathodes responsive
 
+    void GetMeasurements();
 	double GetBarrelLengthForCells(); //< Work out much of the barrel wall can hold PMTs without overlapping the top
 	double GetMaxTopExposeHeight(); //< Work out how far PMTs extend down from the top cap
 	double GetMaxBarrelExposeHeight(); //< Work out how far PMTs extend inwars from the blacksheet of the walls
@@ -77,7 +79,7 @@ private:
 	double fTopCellSize;
 	int fNumPMTs;
 
-    WCSimGeoConfig temp; // TODO: deal with this in a much better way
+  WCSimGeoConfig temp; // TODO: deal with this in a much better way
 	WCSimGeoConfig * fGeoConfig;
 	WCSimPMTManager * fPMTManager;
 	std::vector<WCSimUnitCell*> fUnitCells;
@@ -97,8 +99,91 @@ private:
 	G4LogicalVolume* fPrismRingLogic;
 	G4LogicalVolume* fSegmentLogic;
 	G4LogicalVolume* fCapLogicTop;
+	G4LogicalVolume* fCapLogicTopRing;
 	G4LogicalVolume* fCapLogicBottom;
+	G4LogicalVolume* fCapLogicBottomRing;
 
+	// Constants used to specify the geometry
+	G4bool fGotMeasurements;
+
+	// First the main barrel of the detector
+	G4double fBarrelRadius; // Barrel is a cylinder - this is its actual radius
+	G4double fBarrelHeight;
+	G4double fBarrelLengthForCells;
+
+	// Inside the main barrel lives an n-gon prism
+	G4double fPrismRadiusInside; // Radius is to centre of wall not the vertex
+	G4double fPrismRadiusOutside;
+	G4double fPrismHeight;
+
+	// We chop the prism into a whole number of rings
+	G4double fPrismRingRadiusInside; // Radius is to centre of wall not the vertex
+	G4double fPrismRingRadiusOutside;
+	G4double fPrismRingHeight;
+
+	// And chop each n-gon ring into n flat sides
+	G4double fPrismRingSegmentRadiusInside; // To centre of segment not edge
+	G4double fPrismRingSegmentRadiusOutside;
+	G4double fPrismRingSegmentHeight;
+	G4double fPrismRingSegmentDPhi;
+
+	// Then we have a layer of blacksheet on each side
+	G4double fPrismRingSegmentBSRadiusInside; // To centre not edge
+	G4double fPrismRingSegmentBSRadiusOutside;
+	G4double fPrismRingSegmentBSHeight;
+
+	// Now the caps
+	///////////////
+
+	// A tubs for the cap volume to sit in
+	G4double fCapAssemblyHeight;
+	G4double fCapAssemblyRadius;
+
+	// We made a whole number of barrel rings to hold PMTs
+	// Here we two extras to plug the hole between the top of those rings and the cap
+	G4double fCapRingRadiusInside;
+	G4double fCapRingRadiusOutside;
+	G4double fCapRingHeight;
+
+	// We break the extra rings into n flat sides again
+	G4double fCapRingSegmentDPhi;
+	G4double fCapRingSegmentRadiusInside;
+	G4double fCapRingSegmentRadiusOutside;
+	G4double fCapRingSegmentHeight;
+
+	// And put blacksheet on the edge of them
+	G4double fCapRingSegmentBSRadiusInside;
+	G4double fCapRingSegmentBSRadiusOutside;
+	G4double fCapRingSegmentBSHeight;
+
+	// The actual top/bottom of the detector is a polygon - 
+  // we'll make a container that holds the top and edge blacksheet, and the water in the middle
+	G4double fCapPolygonRadius;
+	G4double fCapPolygonHeight;
+
+  // Here's the centre section
+  G4double fCapPolygonCentreRadius;
+  G4double fCapPolygonCentreHeight;
+
+	// We put a layer of blacksheet on the edge
+	G4double fCapPolygonEdgeBSRadiusInside;
+	G4double fCapPolygonEdgeBSRadiusOutside;
+	G4double fCapPolygonEdgeBSHeight;
+
+	// And a layer on top
+	G4double fCapPolygonEndBSRadius;
+	G4double fCapPolygonEndBSHeight;
+
+	// And we're done!
+
+	/* CapSurface looks like this:
+	 *
+	 *					 outside----->
+	 * 		__________________________
+	 * 	   |_						 _|
+	 *		 |			 inside---->|
+	 *		 |______________________|
+	 */
 };
 
 #endif /* WCSIMCHERENKOVBUILDER_HH_ */

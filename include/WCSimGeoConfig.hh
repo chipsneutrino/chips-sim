@@ -19,8 +19,9 @@ public:
 	~WCSimGeoConfig();
 
 	// Getter and setter functions
-	double GetInnerRadius() const;
-	void SetInnerRadius(double radius);
+	double GetOuterRadius() const; //< The radius from the centre to a corner
+  double GetInnerRadius() const; //< The radius from the centre to the middle of a side
+	void SetOuterRadius(double radius);
 
 	double GetInnerHeight() const;
 	void SetInnerHeight(double height);
@@ -53,7 +54,7 @@ public:
 private:
 
 	std::string fGeoName;
-	double fInnerRadius;
+	double fOuterRadius;
 	double fInnerHeight;
 	unsigned int fNSides;
 

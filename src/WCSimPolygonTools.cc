@@ -36,9 +36,9 @@ namespace WCSimPolygonTools {
     // std::cout << "Point = (" << point.x() << "," << point.y() << std::endl;
     double angleToPoint = point.phi();
     angleToPoint = (angleToPoint > 0.0) ? angleToPoint : angleToPoint + 2 * M_PI;
-    std::cout << std::endl << "angleToPoint = " << angleToPoint << std::endl;
+    // std::cout << std::endl << "angleToPoint = " << angleToPoint << std::endl;
     int whichSide = (int)floor(angleToPoint * nSides / (2 * M_PI)) % nSides; // The appropriate side joins whichSide and whichSide+1
-    std::cout << "whichSide = " << whichSide << std::endl;
+    // std::cout << "whichSide = " << whichSide << std::endl;
 
     // Line containing our point and the origin: y = mPoint * x + cPoint, cPoint = 0
     double mPoint = point.y() / point.x();
@@ -72,14 +72,10 @@ namespace WCSimPolygonTools {
       if( !contained ){ break; }
     }
     
-    for( std::vector<G4TwoVector>::const_iterator itr = squareCorners.begin() ;
-         itr != squareCorners.end(); ++itr ){
-      std::cout << (*itr).x() << " " << (*itr).y() << " " << contained << std::endl;
-    }
-//     if( squareCorner.x() < -19000 )
-//     { 
-//       std::cout << squareCorners.at(0) << ", " << squareCorners.at(1) << ", " << squareCorners.at(2) << ", " << squareCorners.at(3) << "   Contained? " << contained << std::endl;
-//     }
+    //for( std::vector<G4TwoVector>::const_iterator itr = squareCorners.begin() ;
+    //     itr != squareCorners.end(); ++itr ){
+    //std::cout << (*itr).x() << " " << (*itr).y() << " " << contained << std::endl;
+    //}
     return contained;
   }
   
