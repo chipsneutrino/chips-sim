@@ -231,12 +231,12 @@ void WCSimPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 		    G4ThreeVector dir = G4ThreeVector(atof(token[3]),
 						      atof(token[4]),
 						      atof(token[5]));
-            if(useXAxisForBeam)
-            {
-		        G4ThreeVector dir = G4ThreeVector(atof(token[5]),
-				    		      atof(token[4]),
-				    		      atof(token[3]));
-            }
+		    if(useXAxisForBeam)
+                    {
+		        dir = G4ThreeVector(atof(token[5]),
+			  		    atof(token[4]),
+				    	    atof(token[3]));
+                    }
 
 		    particleGun->
 		      SetParticleDefinition(particleTable->
