@@ -17,48 +17,49 @@ WCSimDetectorMessenger::WCSimDetectorMessenger(WCSimDetectorConstruction* WCSimD
   PMTConfig = new G4UIcmdWithAString("/WCSim/WCgeom",this);
   PMTConfig->SetGuidance("Set the geometry configuration for the WC.");
   PMTConfig->SetGuidance("Available options are:\n"
-                          "SuperK\n"
-                          "DUSEL_100kton_10inch_40perCent\n"
-                          "DUSEL_100kton_10inch_HQE_12perCent\n"
-                          "DUSEL_100kton_10inch_HQE_30perCent\n"
-                          "DUSEL_100kton_10inch_HQE_30perCent_Gd\n"
-                          "DUSEL_150kton_10inch_HQE_30perCent\n"
-						  "DUSEL_200kton_10inch_HQE_12perCent\n"
-						  "DUSEL_200kton_12inch_HQE_10perCent\n"
-						  "DUSEL_200kton_12inch_HQE_14perCent\n"
-                          "150kTMailbox_10inch_HQE_30perCent\n"
-						  "150kTMailbox_10inch_40perCent \n"
-							"100kTMailbox_10perCent \n"
-							"100kTMailbox_20perCent \n"
-							"100kTMailbox_30perCent \n"
-							"100kTMailbox_40perCent \n"
-							"100kTMailbox_50perCent \n"
-							"Mailbox_100x20x30 \n"
-							"CHIPS_25kton_10inch_HQE_10perCent \n"
-							"CHIPS_10kton_10inch_HQE_10perCent \n"
-							"GiantPhotonTest");
+                         "SuperK\n"
+                         "DUSEL_100kton_10inch_40perCent\n"
+                         "DUSEL_100kton_10inch_HQE_12perCent\n"
+                         "DUSEL_100kton_10inch_HQE_30perCent\n"
+                         "DUSEL_100kton_10inch_HQE_30perCent_Gd\n"
+                         "DUSEL_150kton_10inch_HQE_30perCent\n"
+                         "DUSEL_200kton_10inch_HQE_12perCent\n"
+                         "DUSEL_200kton_12inch_HQE_10perCent\n"
+                         "DUSEL_200kton_12inch_HQE_14perCent\n"
+                         "150kTMailbox_10inch_HQE_30perCent\n"
+                         "150kTMailbox_10inch_40perCent \n"
+                         "100kTMailbox_10perCent \n"
+                         "100kTMailbox_20perCent \n"
+                         "100kTMailbox_30perCent \n"
+                         "100kTMailbox_40perCent \n"
+                         "100kTMailbox_50perCent \n"
+                         "Mailbox_100x20x30 \n"
+                         "CHIPS_25kton_10inch_HQE_10perCent \n"
+                         "CHIPS_10kton_10inch_HQE_10perCent \n"
+                         "GiantPhotonTest");
   PMTConfig->SetParameterName("PMTConfig", false);
   PMTConfig->SetCandidates("SuperK "
-                          "DUSEL_100kton_10inch_40perCent "
-                          "DUSEL_100kton_10inch_HQE_12perCent "
-                          "DUSEL_100kton_10inch_HQE_30perCent "
-                          "DUSEL_100kton_10inch_HQE_30perCent_Gd "
-                          "DUSEL_150kton_10inch_HQE_30perCent "
-						  "DUSEL_200kton_10inch_HQE_12perCent "
-						  "DUSEL_200kton_12inch_HQE_10perCent "
-						  "DUSEL_200kton_12inch_HQE_14perCent "
-                          "150kTMailbox_10inch_HQE_30perCent "
-						  "150kTMailbox_10inch_40perCent "
-							"100kTMailbox_10perCent "
-							"100kTMailbox_20perCent "
-							"100kTMailbox_30perCent "
-							"100kTMailbox_40perCent "
-							"100kTMailbox_50perCent "
-							"Mailbox_100x20x30 "
-							"CHIPS_25kton_10inch_HQE_10perCent "
-							"CHIPS_10kton_10inch_HQE_10perCent "
-							"GiantPhotonTest ");
+                           "DUSEL_100kton_10inch_40perCent "
+                           "DUSEL_100kton_10inch_HQE_12perCent "
+                           "DUSEL_100kton_10inch_HQE_30perCent "
+                           "DUSEL_100kton_10inch_HQE_30perCent_Gd "
+                           "DUSEL_150kton_10inch_HQE_30perCent "
+                           "DUSEL_200kton_10inch_HQE_12perCent "
+                           "DUSEL_200kton_12inch_HQE_10perCent "
+                           "DUSEL_200kton_12inch_HQE_14perCent "
+                           "150kTMailbox_10inch_HQE_30perCent "
+                           "150kTMailbox_10inch_40perCent "
+                           "100kTMailbox_10perCent "
+                           "100kTMailbox_20perCent "
+                           "100kTMailbox_30perCent "
+                           "100kTMailbox_40perCent "
+                           "100kTMailbox_50perCent "
+                           "Mailbox_100x20x30 "
+                           "CHIPS_25kton_10inch_HQE_10perCent "
+                           "CHIPS_10kton_10inch_HQE_10perCent "
+                           "GiantPhotonTest ");
   PMTConfig->AvailableForStates(G4State_PreInit, G4State_Idle);
+  PMTConfig->SetDefaultValue("CHIPS_10kton_10inch_HQE_10perCent ");
 
   PMTSize = new G4UIcmdWithAString("/WCSim/WCPMTsize",this);
   PMTSize->SetGuidance("Set alternate PMT size for the WC (Must be entered after geometry details is set).");
@@ -77,13 +78,13 @@ WCSimDetectorMessenger::WCSimDetectorMessenger(WCSimDetectorConstruction* WCSimD
   PMTQEMethod = new G4UIcmdWithAString("/WCSim/PMTQEMethod", this);
   PMTQEMethod->SetGuidance("Set the PMT configuration.");
   PMTQEMethod->SetGuidance("Available options are:\n"
-			     "Stacking_Only\n"
-			     "Stacking_And_SensitiveDetector\n"
-			     "SensitiveDetector_Only\n");
+                           "Stacking_Only\n"
+                           "Stacking_And_SensitiveDetector\n"
+                           "SensitiveDetector_Only\n");
   PMTQEMethod->SetParameterName("PMTQEMethod", false);
   PMTQEMethod->SetCandidates("Stacking_Only "
-			     "Stacking_And_SensitiveDetector "
-			     "SensitiveDetector_Only ");
+                             "Stacking_And_SensitiveDetector "
+                             "SensitiveDetector_Only ");
   PMTQEMethod->AvailableForStates(G4State_PreInit, G4State_Idle);
 
   PMTCollEff = new G4UIcmdWithAString("/WCSim/PMTCollEff", this);
@@ -124,6 +125,7 @@ void WCSimDetectorMessenger::SetNewValue(G4UIcommand* command,G4String newValue)
 	if( command == PMTConfig ) { 
 		WCSimDetector->SetIsMailbox(false);
 		WCSimDetector->SetIsUpright(false);
+    WCSimDetector->SetDetectorName( newValue );
 		if ( newValue == "150kTMailbox_10inch_HQE_30perCent") {
 			WCSimDetector->SetIsMailbox(true);
 			WCSimDetector->SetMailBox150kTGeometry_10inch_HQE_30perCent();//aah

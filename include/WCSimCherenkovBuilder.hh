@@ -24,7 +24,7 @@ public:
 	G4LogicalVolume * ConstructDetector(); //< Main function to build the detector - has to return a pointer for compatibility with old code
 
 protected:
-  void UpdateGeometry(); //< Reset a bunch of things if we change the geometry to avoid pointer awkwardness
+  void Update(); //< Reset a bunch of things if we change the geometry to avoid pointer awkwardness
 
 private:
   //G4VPhysicalVolume* Construct(); //< Overload this for now TODO: reorganise
@@ -79,7 +79,6 @@ private:
 	double fTopCellSize;
 	int fNumPMTs;
 
-  WCSimGeoConfig temp; // TODO: deal with this in a much better way
 	WCSimGeoConfig * fGeoConfig;
 	WCSimPMTManager * fPMTManager;
 	std::vector<WCSimUnitCell*> fUnitCells;

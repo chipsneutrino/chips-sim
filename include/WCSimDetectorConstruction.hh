@@ -58,6 +58,9 @@ public:
   
   G4VPhysicalVolume* Construct();
 
+  // Related to the new GeoManager
+  void SetDetectorName( const G4String &detName );
+
   // Related to the WC geometry
   void SetSuperKGeometry();
   void DUSEL_100kton_10inch_40perCent();
@@ -72,6 +75,7 @@ public:
   void CHIPS_10kton_10inch_HQE_10perCent();
   void GiantPhotonTest();
   void UpdateGeometry();
+  virtual void Update();
   
   	//Related to MailBox Geometry   aah
 	void SetMailBox100kTGeometry();// Leigh
@@ -207,6 +211,9 @@ protected: // Changed this from private to let WCSimCherenkovBuilder
 				  const G4Transform3D&);
   void GetWCGeom(G4VPhysicalVolume*, int, int, 
 			      const G4Transform3D&);
+
+  G4String fDetectorName;
+
 
   //---Volume lengths
 

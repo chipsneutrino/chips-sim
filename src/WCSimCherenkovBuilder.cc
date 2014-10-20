@@ -44,13 +44,11 @@
 
 WCSimCherenkovBuilder::WCSimCherenkovBuilder(G4int DetConfig) :
 		fConstructed(false), fGeoConfig(NULL), WCSimDetectorConstruction(DetConfig) {
+
 	fBlacksheetThickness = 2 * mm;
 	fDebugMode 			 = true;
 
-  WCSimGeoManager * manager = new WCSimGeoManager();
   fPMTManager = new WCSimPMTManager();
-  temp = manager->GetGeometryByName("CHIPS_25kton_10inch_HQE_10perCent");
-  fGeoConfig = &temp;
 
 	fLakeLogic = NULL;
 	fBarrelLogic = NULL;
@@ -62,7 +60,7 @@ WCSimCherenkovBuilder::WCSimCherenkovBuilder(G4int DetConfig) :
 	fNumPMTs = 0;
 
 	// Initialize all the constants:
-    fGotMeasurements = false;
+  fGotMeasurements = false;
 	fBarrelRadius = -999 * m; // Barrel is a cylinder - this is its actual radius
 	fBarrelHeight = -999 * m;
 	fBarrelLengthForCells = -999 * m;
@@ -113,7 +111,6 @@ WCSimCherenkovBuilder::WCSimCherenkovBuilder(G4int DetConfig) :
 	fCapPolygonEndBSRadius = -999 * m;
 	fCapPolygonEndBSHeight = -999 * m;
 
-
 }
 
 WCSimCherenkovBuilder::~WCSimCherenkovBuilder() {
@@ -128,6 +125,11 @@ WCSimCherenkovBuilder::~WCSimCherenkovBuilder() {
 
 
 G4LogicalVolume * WCSimCherenkovBuilder::ConstructDetector() {
+  std::cout << "*** WCSimCherenkovBuilder::ConstructDetector *** " << std::endl;
+  std::cout << "Constructing " << fDetectorName << std::endl;
+  WCSimGeoManager * manager = new WCSimGeoManager();
+  fGeoConfig = new WCSimGeoConfig(manager->GetGeometryByName(fDetectorName));
+  delete manager;
 	ConstructDetectorWrapper();
 	assert(fLakeLogic != NULL);
 	return fLakeLogic;
@@ -136,7 +138,7 @@ G4LogicalVolume * WCSimCherenkovBuilder::ConstructDetector() {
 void WCSimCherenkovBuilder::ConstructDetectorWrapper() {
 	if (!fConstructed) {
 
-		if( !fGotMeasurements ) { GetMeasurements(); }
+		if( !fGotMeasurements ) { std::cout << "Getting measurements" << std::endl; GetMeasurements(); }
 
 		ConstructUnitCells();
 		ConstructEnvironment();
@@ -1201,108 +1203,6 @@ WCSimUnitCell* WCSimCherenkovBuilder::GetBarrelUnitCell() {
 	return fUnitCells.at(0);
 }
 
-
-/*G4VPhysicalVolume* WCSimCherenkovBuilder::Construct()
-{
-  G4GeometryManager::GetInstance()->OpenGeometry();
-
-  G4PhysicalVolumeStore::GetInstance()->Clean();
-  G4LogicalVolumeStore::GetInstance()->Clean();
-  G4SolidStore::GetInstance()->Clean();
-  G4LogicalBorderSurface::CleanSurfaceTable();
-  G4LogicalSkinSurface::CleanSurfaceTable();
-
-  totalNumPMTs = 0;
-
-  //-----------------------------------------------------
-  // Create Logical Volumes
-  //-----------------------------------------------------
-
-  // First create the logical volumes of the sub detectors.  After they are
-  // created their size will be used to make the world volume.
-  // Note the order is important because they rearrange themselves depending
-  // on their size and detector ordering.
-
-  G4LogicalVolume* logicWCBox;
-  // Select between cylinder and mailbox
-  if (isMailbox){ logicWCBox = ConstructMailboxWC(); }
-  else{ logicWCBox = ConstructWC(); }
-
-  G4cout << " WCLength (child)      = " << WCLength/m << " m"<< G4endl;
-
-  //-------------------------------
-
-  // Now make the detector Hall.  The lengths of the subdectors
-  // were set above.
-
-  G4double expHallLength = 3.*WCLength; //jl145 - extra space to simulate cosmic muons more easily
-
-  G4cout << " expHallLength = " << expHallLength / m << G4endl;
-  G4double expHallHalfLength = 0.5*expHallLength;
-
-  G4Box* solidExpHall = new G4Box("expHall",
-				  expHallHalfLength,
-				  expHallHalfLength,
-				  expHallHalfLength);
-
-  G4LogicalVolume* logicExpHall =
-    new G4LogicalVolume(solidExpHall,
-			WCSimMaterialsBuilder::Instance()->GetMaterial("Vacuum"),
-			"expHall",
-			0,0,0);
-
-  // Now set the visualization attributes of the logical volumes.
-
-  //   logicWCBox->SetVisAttributes(G4VisAttributes::Invisible);
-  logicExpHall->SetVisAttributes(G4VisAttributes::Invisible);
-
-  //-----------------------------------------------------
-  // Create and place the physical Volumes
-  //-----------------------------------------------------
-
-  // Experimental Hall
-  G4VPhysicalVolume* physiExpHall =
-    new G4PVPlacement(0,G4ThreeVector(),
-  		      logicExpHall,
-  		      "expHall",
-  		      0,false,0,true);
-
-  // Water Cherenkov Detector (WC) mother volume
-  // WC Box, nice to turn on for x and y views to provide a frame:
-
-	  //G4RotationMatrix* rotationMatrix = new G4RotationMatrix;
-	  //rotationMatrix->rotateX(90.*deg);
-	  //rotationMatrix->rotateZ(90.*deg);
-
-  G4ThreeVector genPosition = G4ThreeVector(0., 0., WCPosition);
-  G4VPhysicalVolume* physiWCBox =
-    new G4PVPlacement(0,
-		      genPosition,
-		      logicWCBox,
-		      "WCBox",
-		      logicExpHall,
-		      false,
-		      0);
-
-  // Traverse and print the geometry Tree
-
-  //  TraverseReplicas(physiWCBox, 0, G4Transform3D(),
-  //	   &WCSimDetectorConstruction::PrintGeometryTree) ;
-
-  TraverseReplicas(physiWCBox, 0, G4Transform3D(),
-	           &WCSimCherenkovBuilder::DescribeAndRegisterPMT) ;
-
-
-  TraverseReplicas(physiWCBox, 0, G4Transform3D(),
-		   &WCSimCherenkovBuilder::GetWCGeom) ;
-
-  DumpGeometryTableToFile();
-
-  // Return the pointer to the physical experimental hall
-  return physiExpHall;
-}
-*/
-
 G4LogicalVolume * WCSimCherenkovBuilder::ConstructWC()
 {
 	std::cout << " *** In WCSimCherenkovBuilder::ConstructWC() *** " << std::endl;
@@ -1356,15 +1256,28 @@ void WCSimCherenkovBuilder::SetPositions()
 	 }
 }
 
-void WCSimCherenkovBuilder::UpdateGeometry() {
+void WCSimCherenkovBuilder::Update() {
+  std::cout << " *** WCSimCherenkovBuilder::Update *** " << std::endl;
 	for(unsigned int iCell = 0; iCell < fUnitCells.size(); ++iCell)
 	{
 		delete fUnitCells[iCell];
 	}
 	fUnitCells.clear();
 
+  if( fGeoConfig != NULL ) { delete fGeoConfig; }
+  WCSimGeoManager * manager = new WCSimGeoManager();
+  fGeoConfig = new WCSimGeoConfig(manager->GetGeometryByName(fDetectorName));
+  delete manager;
+  std::cout << "Update geometry to " << fDetectorName << std::endl;
+
 	fPMTBuilder.Reset();
-	delete fLakeLogic;
+	delete fCapLogicBottom;
+  delete fCapLogicTop;
+  delete fSegmentLogic;
+  delete fPrismRingLogic;
+  delete fPrismLogic;
+  delete fBarrelLogic;
+  delete fLakeLogic;
 	fLakeLogic = NULL;
 	fBarrelLogic = NULL;
 	fPrismLogic = NULL;
@@ -1373,6 +1286,7 @@ void WCSimCherenkovBuilder::UpdateGeometry() {
 	fCapLogicTop = NULL;
 	fCapLogicBottom = NULL;
 	fConstructed = false;
+  fGotMeasurements = false;
 	fNumPMTs = 0;
   
   fGotMeasurements = false;
@@ -1396,8 +1310,8 @@ void WCSimCherenkovBuilder::UpdateGeometry() {
 	fPrismRingSegmentBSRadiusInside = -999 * m; // To centre not edge
 	fPrismRingSegmentBSRadiusOutside = -999 * m;
 	fPrismRingSegmentBSHeight = -999 * m;
-	WCSimDetectorConstruction::UpdateGeometry();
 
+	WCSimDetectorConstruction::Update();
 }
 
 void WCSimCherenkovBuilder::ConstructPMTs()

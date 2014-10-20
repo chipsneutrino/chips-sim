@@ -31,7 +31,7 @@ WCSimDetectorConstruction::WCSimDetectorConstruction(G4int DetConfig) : fPMTBuil
 	
   // Decide if (only for the case of !1kT detector) should be upright or horizontal
   isUpright = false;
-  isMailbox =false;
+  isMailbox = false;
 
   debugMode = false;
 //-----------------------------------------------------
@@ -59,22 +59,22 @@ WCSimDetectorConstruction::WCSimDetectorConstruction(G4int DetConfig) : fPMTBuil
   //WCSimDetectorConstruction::tubeCylLocation.clear();// (JF) Removed
   WCSimDetectorConstruction::tubeLocationMap.clear();
   totalNumPMTs = 0;
-//  WCPMTExposeHeight= 0.;
+  //  WCPMTExposeHeight= 0.;
   //-----------------------------------------------------
   // Set the default WC geometry.  This can be changed later.
   //-----------------------------------------------------
 
   //SetSuperKGeometry();
-  //DUSEL_100kton_10inch_40perCent();
-//  DUSEL_100kton_10inch_HQE_12perCent();
-  //DUSEL_100kton_10inch_HQE_30perCent();
-  //DUSEL_100kton_10inch_HQE_30perCent_Gd();
-  //DUSEL_150kton_10inch_HQE_30perCent();
-  //DUSEL_200kton_10inch_HQE_12perCent();
-  //DUSEL_200kton_12inch_HQE_10perCent();
-  //DUSEL_200kton_12inch_HQE_14perCent();
+  // DUSEL_100kton_10inch_40perCent();
+  // DUSEL_100kton_10inch_HQE_12perCent();
+  // DUSEL_100kton_10inch_HQE_30perCent();
+  // DUSEL_100kton_10inch_HQE_30perCent_Gd();
+  // DUSEL_150kton_10inch_HQE_30perCent();
+  // DUSEL_200kton_10inch_HQE_12perCent();
+  // DUSEL_200kton_12inch_HQE_10perCent();
+  // DUSEL_200kton_12inch_HQE_14perCent();
   // SetMailBox300KTGeometry();
-	//  SetMailBox100x20x30Geometry();
+	// SetMailBox100x20x30Geometry();
 	// CHIPS_25kton_10inch_HQE_10perCent();
 	CHIPS_10kton_10inch_HQE_10perCent();
 
@@ -88,7 +88,7 @@ WCSimDetectorConstruction::WCSimDetectorConstruction(G4int DetConfig) : fPMTBuil
   // Set the default method for implementing the PMT QE
   //-----------------------------------------------------
   SetPMT_QE_Method(1);
-   //default NOT to use collection efficiency
+  //default NOT to use collection efficiency
   SetPMT_Coll_Eff(0);
 
 	//-----------------------------------------------------
@@ -103,16 +103,27 @@ WCSimDetectorConstruction::WCSimDetectorConstruction(G4int DetConfig) : fPMTBuil
   messenger = new WCSimDetectorMessenger(this);
 }
 
+void WCSimDetectorConstruction::SetDetectorName( const G4String &detName )
+{
+  fDetectorName = detName;
+  return;
+}
+
 #include "G4GeometryManager.hh"
 #include "G4LogicalBorderSurface.hh"
 #include "G4LogicalSkinSurface.hh"
 
+// Put the call to update inside this function so we can call it with
+// this->Update() to ensure that derived classes call their own implementation
 void WCSimDetectorConstruction::UpdateGeometry()
 {
- 
-  
+  this->Update();
+}
+
+void WCSimDetectorConstruction::Update()
+{
   G4bool geomChanged = true;
-  G4RunManager::GetRunManager()->DefineWorldVolume(Construct(), geomChanged);
+  G4RunManager::GetRunManager()->DefineWorldVolume(this->Construct(), geomChanged);
  
  }
 

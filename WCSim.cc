@@ -39,7 +39,7 @@ int main(int argc,char** argv)
   G4int WCSimConfiguration = fwm;
 
   WCSimCherenkovBuilder* WCSimdetector = new 
-    WCSimCherenkovBuilder(WCSimConfiguration);
+  WCSimCherenkovBuilder(WCSimConfiguration);
 
   runManager->SetUserInitialization(WCSimdetector);
   UI->ApplyCommand("/control/execute geoSetup.mac");

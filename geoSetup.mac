@@ -17,6 +17,3 @@
 #/WCSim/PMTQEMethod     Stacking_Only 
 /WCSim/PMTQEMethod     Stacking_And_SensitiveDetector
 #/WCSim/PMTQEMethod     SensitiveDetector_Only
-
-/WCSim/Construct
-
