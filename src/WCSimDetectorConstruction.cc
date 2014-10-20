@@ -1,5 +1,6 @@
 #include "WCSimDetectorConstruction.hh"
 #include "WCSimDetectorMessenger.hh"
+#include "WCSimMaterialsBuilder.hh"
 #include "WCSimTuningParameters.hh"
 #include "WCSimPMTManager.hh"
 
@@ -17,14 +18,16 @@
 #include "G4PhysicalVolumeStore.hh"
 #include "G4LogicalVolumeStore.hh"
 #include "G4SolidStore.hh"
+#include <map>
 
 std::map<int, G4Transform3D> WCSimDetectorConstruction::tubeIDMap;
 //std::map<int, cyl_location>  WCSimDetectorConstruction::tubeCylLocation;
 hash_map<std::string, int, hash<std::string> > 
 WCSimDetectorConstruction::tubeLocationMap;
 
-WCSimDetectorConstruction::WCSimDetectorConstruction(G4int DetConfig,WCSimTuningParameters* WCSimTuningPars):WCSimTuningParams(WCSimTuningPars)
-{
+WCSimDetectorConstruction::WCSimDetectorConstruction(G4int DetConfig) : fPMTBuilder(){
+	// Initialize daughter classes
+
 	
   // Decide if (only for the case of !1kT detector) should be upright or horizontal
   isUpright = false;
@@ -35,12 +38,12 @@ WCSimDetectorConstruction::WCSimDetectorConstruction(G4int DetConfig,WCSimTuning
 // Initilize SD pointers
 //-----------------------------------------------------
 
-      aWCPMT     = NULL;
+  aWCPMT     = NULL;
 
   myConfiguration = DetConfig;
 
-	// Create the PMT manager
-	fPMTManager = new WCSimPMTManager();
+  // Create the PMT manager
+  fPMTManager = new WCSimPMTManager();
 
   //-----------------------------------------------------
   // Create Materials
@@ -143,12 +146,12 @@ G4VPhysicalVolume* WCSimDetectorConstruction::Construct()
   // Note the order is important because they rearrange themselves depending
   // on their size and detector ordering.
 
-  G4LogicalVolume* logicWCBox;
+  G4LogicalVolume* logicWCBox = NULL;
   // Select between cylinder and mailbox
-  if (isMailbox) logicWCBox = ConstructMailboxWC();
-  else logicWCBox = ConstructWC(); 
+  if (isMailbox) { logicWCBox = ConstructMailboxWC(); }
+  else { logicWCBox = ConstructWC(); }
 
-  G4cout << " WCLength       = " << WCLength/m << " m"<< G4endl;
+  G4cout << " WCLength (base)      = " << WCLength/m << " m"<< G4endl;
 
   //-------------------------------
 
@@ -174,7 +177,7 @@ G4VPhysicalVolume* WCSimDetectorConstruction::Construct()
   
   G4LogicalVolume* logicExpHall = 
     new G4LogicalVolume(solidExpHall,
-			G4Material::GetMaterial("PitWater"),
+			WCSimMaterialsBuilder::Instance()->GetMaterial("Vacuum"),
 			"expHall",
 			0,0,0);
 
@@ -197,11 +200,13 @@ G4VPhysicalVolume* WCSimDetectorConstruction::Construct()
   // Water Cherenkov Detector (WC) mother volume
   // WC Box, nice to turn on for x and y views to provide a frame:
 
-	  //G4RotationMatrix* rotationMatrix = new G4RotationMatrix;
-	  //rotationMatrix->rotateX(90.*deg);
-	  //rotationMatrix->rotateZ(90.*deg);
+	  G4RotationMatrix* rotationMatrix = new G4RotationMatrix;
+	  rotationMatrix->rotateX(90.*deg);
+	  rotationMatrix->rotateZ(90.*deg);
 
   G4ThreeVector genPosition = G4ThreeVector(0., 0., WCPosition);
+  std::cout << "logicWCBox name = " << logicWCBox->GetName() << std::endl;
+  std::cout << "logicExpHall name = " << logicExpHall->GetName() << std::endl;
   G4VPhysicalVolume* physiWCBox = 
     new G4PVPlacement(0,
 		      genPosition,
@@ -235,4 +240,10 @@ WCSimPMTManager* WCSimDetectorConstruction::GetPMTManager() const{
 
 std::vector<WCSimPMTConfig> WCSimDetectorConstruction::GetPMTVector() const{
 	return fPMTConfigs;
+}
+
+void WCSimDetectorConstruction::ResetPMTConfigs()
+{
+	fPMTConfigs.clear();
+	return;
 }

@@ -3,6 +3,7 @@
 
 #include "WCSimPmtInfo.hh"
 #include "WCSimPMTConfig.hh"
+#include "WCSimPMTBuilder.hh"
 
 #include "G4Transform3D.hh"
 #include "G4VUserDetectorConstruction.hh"
@@ -33,7 +34,6 @@ class G4Material;
 class G4LogicalVolume;
 class G4AssemblyVolume;
 class G4VPhysicalVolume;
-class WCSimTuningParameters;
 class WCSimDetectorMessenger;
 class WCSimWCSD;
 class WCSimPMTManager;
@@ -53,7 +53,7 @@ class WCSimDetectorConstruction : public G4VUserDetectorConstruction
 {
 public:
 
-  WCSimDetectorConstruction(G4int DetConfig,WCSimTuningParameters* WCSimTuningPars);
+  WCSimDetectorConstruction(G4int DetConfig);
   ~WCSimDetectorConstruction();
   
   G4VPhysicalVolume* Construct();
@@ -137,16 +137,16 @@ public:
 
   std::vector<WCSimPmtInfo*>* Get_Pmts() {return &fpmts;}
 
-private:
+protected: // Changed this from private to let WCSimCherenkovBuilder
+           // inherit and access these.  Anticipate changing back when
+           // this gets refactorized properly - AJP 29/8/2014
 
 	// WCSimPMTManager to access information about the PMTs.
 	WCSimPMTManager* fPMTManager;
 
 	// Vector of WCSimPMTConfig objects.
 	std::vector<WCSimPMTConfig> fPMTConfigs;
-
-  // Tuning parameters
-  WCSimTuningParameters* WCSimTuningParams;
+  void ResetPMTConfigs();
 
   // Sensitive Detectors. We declare the pointers here because we need
   // to check their state if we change the geometry.
@@ -169,7 +169,7 @@ private:
 
   // The Construction routines
   G4LogicalVolume*   ConstructMailboxWC();
-  G4LogicalVolume*   ConstructWC();
+  virtual G4LogicalVolume*   ConstructWC();
   void  ConstructPMT();
   G4LogicalVolume* ConstructCaps(G4int zflip);
 
@@ -330,6 +330,8 @@ private:
  
   std::vector<WCSimPmtInfo*> fpmts;
   
+  WCSimPMTBuilder fPMTBuilder;
+
 };
 
 #endif

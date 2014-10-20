@@ -30,9 +30,13 @@
 
 
 #include "G4SDManager.hh"
+#include "WCSimCherenkovBuilder.hh"
+#include "WCSimMaterialsBuilder.hh"
 #include "WCSimWCSD.hh"
 #include "WCSimPMTConfig.hh"
+#include "WCSimPolygonTools.hh"
 #include "WCSimTuningParameters.hh" //jl145
+
 
 G4float WCSimDetectorConstruction::GetPMTQE(G4float PhotonWavelength, G4int flag, G4float low_wl, G4float high_wl, G4float ratio){
   // XQ  08/17/10
@@ -189,7 +193,7 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructMailboxWC()
 	G4UnionSolid* WC_Cavern=new G4UnionSolid("Cavern",WC_MB_tank_H20,WC_MB_Tank_Airgap_volume_dome,0,ztrans);
 	
 	//Now declare the cavern logical volume with air (I like to breathe).
-	G4LogicalVolume* logic_WC_Cavern=new G4LogicalVolume(WC_Cavern,G4Material::GetMaterial("Air"),"Cavern",0,0,0);
+	G4LogicalVolume* logic_WC_Cavern=new G4LogicalVolume(WC_Cavern,WCSimMaterialsBuilder::Instance()->GetMaterial("Air"),"Cavern",0,0,0);
 	
 	G4VisAttributes* showColor = new G4VisAttributes(G4Colour(0.0,1.0,0.0)); // Note that I should make this visible, at least initially.
 	if (debugMode)		
@@ -198,12 +202,12 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructMailboxWC()
 		logic_WC_Cavern->SetVisAttributes(G4VisAttributes::Invisible); //amb79
 	
 	//Make Logical Water tank. This is just the same volume as  WC_MB_tank_H20, but now filled with water
-	G4LogicalVolume* logic_WC_MB_tank_H20= new G4LogicalVolume(WC_MB_tank_H20,G4Material::GetMaterial(water),"Tank",0,0,0);
+	G4LogicalVolume* logic_WC_MB_tank_H20= new G4LogicalVolume(WC_MB_tank_H20,WCSimMaterialsBuilder::Instance()->GetMaterial(water),"Tank",0,0,0);
 	
 	
 	//Make Fiducial Volume.
 	G4Box* WC_MB_Fiducial = new G4Box ("Fiducial Box",WC_MB_Fid_Length/2.,WC_MB_Fid_Width/2.,WC_MB_Fid_Depth/2.);
-	G4LogicalVolume* logic_WC_MB_Fiducial= new G4LogicalVolume(WC_MB_Fiducial,G4Material::GetMaterial(water),"Fiducial_Log",0,0,0);
+	G4LogicalVolume* logic_WC_MB_Fiducial= new G4LogicalVolume(WC_MB_Fiducial,WCSimMaterialsBuilder::Instance()->GetMaterial(water),"Fiducial_Log",0,0,0);
 	
 	//these volumes will be placed into the cavern just before we exit.
 	
@@ -247,9 +251,9 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructMailboxWC()
 	//**************************try to use replica--here I am making the unit PMT Cell  ***replica
 	//make fundamental square PMT cell, equal to PMT spacing on large side and depth=WC_ActiveLayer_Depth--I will put PMT and blacksheet in this volume  ***replica
 	G4Box* WC_PMT_Cell = new G4Box("PMT_cell",WC_MB_PMT_Spacing/2,WC_MB_PMT_Spacing/2,WC_ActiveLayer_Depth/2);	//***replica
-	G4LogicalVolume* logic_WC_PMT_Cell= new G4LogicalVolume(WC_PMT_Cell,G4Material::GetMaterial(water),"logic_PMT_Cell",0,0,0);	//***replica
+	G4LogicalVolume* logic_WC_PMT_Cell= new G4LogicalVolume(WC_PMT_Cell,WCSimMaterialsBuilder::Instance()->GetMaterial(water),"logic_PMT_Cell",0,0,0);	//***replica
 	G4Box* WC_Blacksheet_Cell = new G4Box("WC_BlackSheet_Cell",WC_MB_PMT_Spacing/2,WC_MB_PMT_Spacing/2,WCBlackSheetThickness/2.);		//blacksheet material to fit in cell ***replica
-	G4LogicalVolume* logic_WC_Blacksheet_Cell=new G4LogicalVolume(WC_Blacksheet_Cell,G4Material::GetMaterial("Blacksheet"),"logic_WC_Blacksheet_Cell",0,0,0);	//***replica
+	G4LogicalVolume* logic_WC_Blacksheet_Cell=new G4LogicalVolume(WC_Blacksheet_Cell,WCSimMaterialsBuilder::Instance()->GetMaterial("Blacksheet"),"logic_WC_Blacksheet_Cell",0,0,0);	//***replica
 	// Lets put this stuff+PMT into the cell		//***replica
 	//First the glass					//***replica
 	G4VPhysicalVolume* phys_WC_GlassFacePMT_Cell=	//this id is needed in order to enable some surface features	//***replica
@@ -312,8 +316,8 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructMailboxWC()
 	//WC_Active_LxW---perp to Z axis
 	
 	G4Box* WC_Active_LxW = new G4Box("LxW",WC_MB_Fid_Length/2+WC_ActiveLayer_Depth,WC_MB_Fid_Width/2+WC_ActiveLayer_Depth,WC_ActiveLayer_Depth/2);	//active volume with PMT's 
-	G4LogicalVolume* logic_WC_Active_LxW_minus=new G4LogicalVolume(WC_Active_LxW,G4Material::GetMaterial(water),"LxWActive_minus",0,0,0);
-	G4LogicalVolume* logic_WC_Active_LxW_plus=new G4LogicalVolume(WC_Active_LxW,G4Material::GetMaterial(water),"LxWActive_plus",0,0,0);
+	G4LogicalVolume* logic_WC_Active_LxW_minus=new G4LogicalVolume(WC_Active_LxW,WCSimMaterialsBuilder::Instance()->GetMaterial(water),"LxWActive_minus",0,0,0);
+	G4LogicalVolume* logic_WC_Active_LxW_plus=new G4LogicalVolume(WC_Active_LxW,WCSimMaterialsBuilder::Instance()->GetMaterial(water),"LxWActive_plus",0,0,0);
 	G4VPhysicalVolume* phys_WC_Active_LxW_minus;
 	G4VPhysicalVolume* phys_WC_ActiveGlass_LxW_minus;
 	G4VPhysicalVolume* phys_WC_Active_LxW_plus;
@@ -329,16 +333,16 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructMailboxWC()
 	G4SubtractionSolid*  WC_BlacksheetLxW_donut= new G4SubtractionSolid("WC_BlacksheetLxW_donut",WC_BlacksheetLxW,WC_BlacksheetLxW_donuthole,0,G4ThreeVector(0.,0.,0.));	//this is now the blacksheet that will suround the PMT volumes  ***replica							
 	//***replica
 	
-	G4LogicalVolume* logic_WC_BlacksheetLxW = new G4LogicalVolume(WC_BlacksheetLxW_donut,G4Material::GetMaterial("Blacksheet"),"LagicBlacksheet_LxW",0,0,0);				 //***replica														
+	G4LogicalVolume* logic_WC_BlacksheetLxW = new G4LogicalVolume(WC_BlacksheetLxW_donut,WCSimMaterialsBuilder::Instance()->GetMaterial("Blacksheet"),"LagicBlacksheet_LxW",0,0,0);				 //***replica
 	
 	//*********************************replica*******************************
 
 
 
 	G4Box* WC_BlacksheetLxW_corner_L= new G4Box("WC_BlackSheetLxW_corner_L",WC_MB_Fid_Length/2+WC_ActiveLayer_Depth,WCBlackSheetThickness/2.,WC_ActiveLayer_Depth/2.);//Blacksheeet corner--to lite-tite the fiducial volume--This should already be oriented correctly
-	G4LogicalVolume* logic_WC_BlacksheetLxW_corner_L=new G4LogicalVolume(WC_BlacksheetLxW_corner_L,G4Material::GetMaterial("Blacksheet"),"LagicBlacksheet_LxW",0,0,0);
+	G4LogicalVolume* logic_WC_BlacksheetLxW_corner_L=new G4LogicalVolume(WC_BlacksheetLxW_corner_L,WCSimMaterialsBuilder::Instance()->GetMaterial("Blacksheet"),"LagicBlacksheet_LxW",0,0,0);
 	G4Box* WC_BlacksheetLxW_corner_W= new G4Box("WC_BlackSheetLxW_corner_W",WCBlackSheetThickness/2.,WC_MB_Fid_Width/2+WC_ActiveLayer_Depth,WC_ActiveLayer_Depth/2.);//Blacksheet corner--lite-tite the fiducial volume--This should already be oriented correctly
-	G4LogicalVolume* logic_WC_BlacksheetLxW_corner_W=new G4LogicalVolume(WC_BlacksheetLxW_corner_W,G4Material::GetMaterial("Blacksheet"),"LagicBlacksheet_LxW",0,0,0);
+	G4LogicalVolume* logic_WC_BlacksheetLxW_corner_W=new G4LogicalVolume(WC_BlacksheetLxW_corner_W,WCSimMaterialsBuilder::Instance()->GetMaterial("Blacksheet"),"LagicBlacksheet_LxW",0,0,0);
 	
 	
 	G4double xmin=WC_MB_Fid_Length, xmax=-WC_MB_Fid_Length, ymin=WC_MB_Fid_Width, ymax=-WC_MB_Fid_Width;
@@ -348,9 +352,9 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructMailboxWC()
 	// will build up pmt volume in two steps, one making a row of pmt volumes, then making a rectangle out of the rows.
 	
 	G4Box *LxW_PMT_Row =	new G4Box("LxW_PMT_Row",WC_MB_NumPMT_L*WC_MB_PMT_Spacing/2,WC_MB_PMT_Spacing/2,WC_ActiveLayer_Depth/2.);
-	G4LogicalVolume* logic_LxW_PMT_Row= new G4LogicalVolume(LxW_PMT_Row,G4Material::GetMaterial(water),"logic_LxW_PMT_Row",0,0,0);
+	G4LogicalVolume* logic_LxW_PMT_Row= new G4LogicalVolume(LxW_PMT_Row,WCSimMaterialsBuilder::Instance()->GetMaterial(water),"logic_LxW_PMT_Row",0,0,0);
 	G4Box * LxW_PMT_Volume=new G4Box("LxW_PMT_Volume",WC_MB_NumPMT_L*WC_MB_PMT_Spacing/2,WC_MB_NumPMT_W*WC_MB_PMT_Spacing/2,WC_ActiveLayer_Depth/2);	//this is entire PMT volume
-	G4LogicalVolume* logic_LxW_PMT_Volume= new G4LogicalVolume(LxW_PMT_Volume,G4Material::GetMaterial(water),"logic_LxW_PMT_Volume",0,0,0);
+	G4LogicalVolume* logic_LxW_PMT_Volume= new G4LogicalVolume(LxW_PMT_Volume,WCSimMaterialsBuilder::Instance()->GetMaterial(water),"logic_LxW_PMT_Volume",0,0,0);
 	
 	G4VPhysicalVolume* physiWC_LxW_PMT_Row = 
 	new G4PVReplica("WC_PMT_Row",
@@ -559,8 +563,8 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructMailboxWC()
 	
 	
 	G4Box* WC_Active_WxD=new G4Box("WxD",WC_MB_Fid_Depth/2,WC_MB_Fid_Width/2+WC_ActiveLayer_Depth,WC_ActiveLayer_Depth/2);						//active volume--increase width to cover ends to seal with blacksheet
-	G4LogicalVolume* logic_WC_Active_WxD_minus = new G4LogicalVolume(WC_Active_WxD,G4Material::GetMaterial(water),"WxDActive_minus",0,0,0);
-	G4LogicalVolume* logic_WC_Active_WxD_plus = new G4LogicalVolume(WC_Active_WxD,G4Material::GetMaterial(water),"WxDActive_plus",0,0,0);
+	G4LogicalVolume* logic_WC_Active_WxD_minus = new G4LogicalVolume(WC_Active_WxD,WCSimMaterialsBuilder::Instance()->GetMaterial(water),"WxDActive_minus",0,0,0);
+	G4LogicalVolume* logic_WC_Active_WxD_plus = new G4LogicalVolume(WC_Active_WxD,WCSimMaterialsBuilder::Instance()->GetMaterial(water),"WxDActive_plus",0,0,0);
 	G4Box* WC_BlacksheetWxD = new G4Box("WC_BlackSheetWxD",WC_MB_Fid_Depth/2,WC_MB_Fid_Width/2+WC_ActiveLayer_Depth-WCBlackSheetThickness/2.,WCBlackSheetThickness/2.);			//blacksheet material	
 
 	//*********************************************replica*******************************
@@ -571,16 +575,16 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructMailboxWC()
 	G4SubtractionSolid*  WC_BlacksheetWxD_donut= new G4SubtractionSolid("WC_BlacksheetWxD_donut",WC_BlacksheetWxD,WC_BlacksheetWxD_donuthole,0,G4ThreeVector(0.,0.,0.));	//this is now the blacksheet that will suround the PMT volumes  ***replica							
 	//***replica
 	
-	G4LogicalVolume* logic_WC_BlacksheetWxD = new G4LogicalVolume(WC_BlacksheetWxD_donut,G4Material::GetMaterial("Blacksheet"),"LagicBlacksheet_WxD",0,0,0);				 //***replica														
+	G4LogicalVolume* logic_WC_BlacksheetWxD = new G4LogicalVolume(WC_BlacksheetWxD_donut,WCSimMaterialsBuilder::Instance()->GetMaterial("Blacksheet"),"LagicBlacksheet_WxD",0,0,0);				 //***replica
 	
 	
 	
 	//*********************************************replica*******************************
 	
 
-//	G4LogicalVolume* logic_WC_BlacksheetWxD = new G4LogicalVolume(WC_BlacksheetWxD,G4Material::GetMaterial("Blacksheet"),"LagicBlacksheet_WxD",0,0,0);							  
+//	G4LogicalVolume* logic_WC_BlacksheetWxD = new G4LogicalVolume(WC_BlacksheetWxD,WCSimMaterialsBuilder::Instance()->GetMaterial("Blacksheet"),"LagicBlacksheet_WxD",0,0,0);
 	G4Box* WC_BlacksheetWxD_corner= new G4Box("WC_BlackSheetWxD_corner",WC_MB_Fid_Depth/2,WCBlackSheetThickness/2.,WC_ActiveLayer_Depth/2.);//Blacksheet corner---This should already be oriented correctly
-	G4LogicalVolume* logic_WC_BlacksheetWxD_corner=new G4LogicalVolume(WC_BlacksheetWxD_corner,G4Material::GetMaterial("Blacksheet"),"LagicBlacksheet_WxD_corner",0,0,0);
+	G4LogicalVolume* logic_WC_BlacksheetWxD_corner=new G4LogicalVolume(WC_BlacksheetWxD_corner,WCSimMaterialsBuilder::Instance()->GetMaterial("Blacksheet"),"LagicBlacksheet_WxD_corner",0,0,0);
 	
 	
 	
@@ -595,9 +599,9 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructMailboxWC()
 	
 	
 	G4Box * WxD_PMT_Row =	new G4Box("WxD_PMT_Row",WC_MB_NumPMT_D*WC_MB_PMT_Spacing/2,WC_MB_PMT_Spacing/2,WC_ActiveLayer_Depth/2.);
-	G4LogicalVolume* logic_WxD_PMT_Row= new G4LogicalVolume(WxD_PMT_Row,G4Material::GetMaterial(water),"logic_WxD_PMT_Row",0,0,0);
+	G4LogicalVolume* logic_WxD_PMT_Row= new G4LogicalVolume(WxD_PMT_Row,WCSimMaterialsBuilder::Instance()->GetMaterial(water),"logic_WxD_PMT_Row",0,0,0);
 	G4Box * WxD_PMT_Volume=new G4Box("WxD_PMT_Volume",WC_MB_NumPMT_D*WC_MB_PMT_Spacing/2,WC_MB_NumPMT_W*WC_MB_PMT_Spacing/2,WC_ActiveLayer_Depth/2);	//this is entire PMT volume
-	G4LogicalVolume* logic_WxD_PMT_Volume= new G4LogicalVolume(WxD_PMT_Volume,G4Material::GetMaterial(water),"logic_WxD_PMT_Volume",0,0,0);
+	G4LogicalVolume* logic_WxD_PMT_Volume= new G4LogicalVolume(WxD_PMT_Volume,WCSimMaterialsBuilder::Instance()->GetMaterial(water),"logic_WxD_PMT_Volume",0,0,0);
 	
 	G4VPhysicalVolume* physiWC_WxD_PMT_Row = 
 	new G4PVReplica("WC_PMT_Row",
@@ -787,8 +791,8 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructMailboxWC()
 	
 	
 	G4Box* WC_Active_LxD = new G4Box("LxD",WC_MB_Fid_Length/2,WC_MB_Fid_Depth/2,WC_ActiveLayer_Depth/2);//active volume
-	G4LogicalVolume* logic_WC_Active_LxD_minus = new G4LogicalVolume(WC_Active_LxD,G4Material::GetMaterial(water),"LxDActive_minus",0,0,0);
-	G4LogicalVolume* logic_WC_Active_LxD_plus = new G4LogicalVolume(WC_Active_LxD,G4Material::GetMaterial(water),"LxDActive_plus",0,0,0);
+	G4LogicalVolume* logic_WC_Active_LxD_minus = new G4LogicalVolume(WC_Active_LxD,WCSimMaterialsBuilder::Instance()->GetMaterial(water),"LxDActive_minus",0,0,0);
+	G4LogicalVolume* logic_WC_Active_LxD_plus = new G4LogicalVolume(WC_Active_LxD,WCSimMaterialsBuilder::Instance()->GetMaterial(water),"LxDActive_plus",0,0,0);
 	G4Box* WC_BlacksheetLxD = new G4Box("WC_BlackSheetLxD",WC_MB_Fid_Length/2,WC_MB_Fid_Depth/2,WCBlackSheetThickness/2.);//blacksheet material	
 
 	//*********************************************replica*******************************
@@ -799,7 +803,7 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructMailboxWC()
 	G4SubtractionSolid*  WC_BlacksheetLxD_donut= new G4SubtractionSolid("WC_BlacksheetLxD_donut",WC_BlacksheetLxD,WC_BlacksheetLxD_donuthole,0,G4ThreeVector(0.,0.,0.));	//this is now the blacksheet that will suround the PMT volumes  ***replica							
 	//***replica
 	
-	G4LogicalVolume* logic_WC_BlacksheetLxD = new G4LogicalVolume(WC_BlacksheetLxD_donut,G4Material::GetMaterial("Blacksheet"),"LagicBlacksheet_LxD",0,0,0);				 //***replica														
+	G4LogicalVolume* logic_WC_BlacksheetLxD = new G4LogicalVolume(WC_BlacksheetLxD_donut,WCSimMaterialsBuilder::Instance()->GetMaterial("Blacksheet"),"LagicBlacksheet_LxD",0,0,0);				 //***replica
 	
 	
 	
@@ -819,9 +823,9 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructMailboxWC()
 	
 	
 	G4Box * LxD_PMT_Row =	new G4Box("LxD_PMT_Row",WC_MB_NumPMT_L*WC_MB_PMT_Spacing/2,WC_MB_PMT_Spacing/2,WC_ActiveLayer_Depth/2.);
-	G4LogicalVolume* logic_LxD_PMT_Row= new G4LogicalVolume(LxD_PMT_Row,G4Material::GetMaterial(water),"logic_LxD_PMT_Row",0,0,0);
+	G4LogicalVolume* logic_LxD_PMT_Row= new G4LogicalVolume(LxD_PMT_Row,WCSimMaterialsBuilder::Instance()->GetMaterial(water),"logic_LxD_PMT_Row",0,0,0);
 	G4Box * LxD_PMT_Volume=new G4Box("LxD_PMT_Volume",WC_MB_NumPMT_L*WC_MB_PMT_Spacing/2,WC_MB_NumPMT_D*WC_MB_PMT_Spacing/2,WC_ActiveLayer_Depth/2);	//this is entire PMT volume
-	G4LogicalVolume* logic_LxD_PMT_Volume= new G4LogicalVolume(LxD_PMT_Volume,G4Material::GetMaterial(water),"logic_LxD_PMT_Volume",0,0,0);
+	G4LogicalVolume* logic_LxD_PMT_Volume= new G4LogicalVolume(LxD_PMT_Volume,WCSimMaterialsBuilder::Instance()->GetMaterial(water),"logic_LxD_PMT_Volume",0,0,0);
 	
 	G4VPhysicalVolume* physiWC_LxD_PMT_Row = 
 	new G4PVReplica("WC_PMT_Row",
@@ -986,7 +990,8 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructMailboxWC()
 
 G4LogicalVolume* WCSimDetectorConstruction::ConstructWC()
 {
-
+  assert(0);
+/*
   //-----------------------------------------------------
   // Positions
   //-----------------------------------------------------
@@ -1043,7 +1048,7 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructWC()
   
   G4LogicalVolume* logicWC = 
     new G4LogicalVolume(solidWC,
-			G4Material::GetMaterial("Air"),
+			WCSimMaterialsBuilder::Instance()->GetMaterial("Air"),
 			"WC",
 			0,0,0);
  
@@ -1065,7 +1070,7 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructWC()
   
   G4LogicalVolume* logicWCBarrel = 
     new G4LogicalVolume(solidWCBarrel,
-			G4Material::GetMaterial(water),
+			WCSimMaterialsBuilder::Instance()->GetMaterial(water),
 			"WCBarrel",
 			0,0,0);
 
@@ -1101,7 +1106,7 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructWC()
   
   G4LogicalVolume* logicWCBarrelAnnulus = 
     new G4LogicalVolume(solidWCBarrelAnnulus,
-			G4Material::GetMaterial(water),
+			WCSimMaterialsBuilder::Instance()->GetMaterial(water),
 			"WCBarrelAnnulus",
 			0,0,0);
   // G4cout << *solidWCBarrelAnnulus << G4endl; 
@@ -1132,7 +1137,7 @@ if(!debugMode)
 
   G4LogicalVolume* logicWCBarrelRing = 
     new G4LogicalVolume(solidWCBarrelRing,
-			G4Material::GetMaterial(water),
+			WCSimMaterialsBuilder::Instance()->GetMaterial(water),
 			"WCBarrelRing",
 			0,0,0);
 
@@ -1168,7 +1173,7 @@ else {
   //G4cout << *solidWCBarrelCell << G4endl; 
   G4LogicalVolume* logicWCBarrelCell = 
     new G4LogicalVolume(solidWCBarrelCell,
-			G4Material::GetMaterial(water),
+			WCSimMaterialsBuilder::Instance()->GetMaterial(water),
 			"WCBarrelCell",
 			0,0,0);
 
@@ -1213,7 +1218,7 @@ else {
 
   logicWCBarrelCellBlackSheet =
     new G4LogicalVolume(solidWCBarrelCellBlackSheet,
-                        G4Material::GetMaterial("Blacksheet"),
+                        WCSimMaterialsBuilder::Instance()->GetMaterial("Blacksheet"),
                         "WCBarrelCellBlackSheet",
                           0,0,0);
 
@@ -1278,7 +1283,7 @@ else {
 
     G4LogicalVolume* logicWCExtraTower = 
       new G4LogicalVolume(solidWCExtraTower,
-			  G4Material::GetMaterial(water),
+			  WCSimMaterialsBuilder::Instance()->GetMaterial(water),
 			  "WCExtraTower",
 			  0,0,0);
     G4VPhysicalVolume* physiWCExtraTower = 
@@ -1307,7 +1312,7 @@ else {
     //G4cout << * solidWCExtraTowerCell << G4endl;
     logicWCExtraTowerCell = 
       new G4LogicalVolume(solidWCExtraTowerCell,
-			  G4Material::GetMaterial(water),
+			  WCSimMaterialsBuilder::Instance()->GetMaterial(water),
 			  "WCExtraTowerCell",
 			  0,0,0);
     G4VPhysicalVolume* physiWCTowerCell = 
@@ -1340,7 +1345,7 @@ else {
     //G4cout << * solidWCTowerBlackSheet << G4endl;
     logicWCTowerBlackSheet =
       new G4LogicalVolume(solidWCTowerBlackSheet,
-			  G4Material::GetMaterial("Blacksheet"),
+			  WCSimMaterialsBuilder::Instance()->GetMaterial("Blacksheet"),
 			  "WCExtraTowerBlackSheet",
 			    0,0,0);
 
@@ -1389,7 +1394,7 @@ else {
 
 	  logicWCTopVeto = 
 			new G4LogicalVolume(solidWCTopVeto,
-								G4Material::GetMaterial(water),
+								WCSimMaterialsBuilder::Instance()->GetMaterial(water),
 								"WCTopVeto",
 								0,0,0);
 
@@ -1417,7 +1422,7 @@ else {
 
 	  G4LogicalVolume* logicWCTVTyvek =
 			new G4LogicalVolume(solidWCTVTyvek,
-								G4Material::GetMaterial("Tyvek"),
+								WCSimMaterialsBuilder::Instance()->GetMaterial("Tyvek"),
 								"WCTVTyvek",
 								0,0,0);
 
@@ -1466,7 +1471,7 @@ else {
 
 	  G4LogicalVolume* logicWCTVTyvekSide =
 			new G4LogicalVolume(solidWCTVTyvekSide,
-								G4Material::GetMaterial("Tyvek"),
+								WCSimMaterialsBuilder::Instance()->GetMaterial("Tyvek"),
 								"WCTVTyvekSide",
 								0,0,0);
 
@@ -1659,17 +1664,20 @@ else {
     SDman->AddNewDetector( aWCPMT );
   }
   logicGlassFaceWCPMT->SetSensitiveDetector( aWCPMT );
-
-
-
+  return logicWC;
+*/
+  G4LogicalVolume * logicWC = NULL;
   return logicWC;
 }
+
 
 
 G4LogicalVolume* WCSimDetectorConstruction::ConstructCaps(G4int zflip)
 {
 
   capAssemblyHeight = (WCIDHeight-mainAnnulusHeight)/2+1*mm+WCBlackSheetThickness;
+  std::cout << "capAssemblyHeight = " << capAssemblyHeight << "  WCIDHeight = " << WCIDHeight << " mainAnnulusHeight = " << mainAnnulusHeight << std::endl;
+  assert(0);
 
   G4Tubs* solidCapAssembly = new G4Tubs("CapAssembly",
 							0.0*m,
@@ -1680,7 +1688,7 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructCaps(G4int zflip)
 
   G4LogicalVolume* logicCapAssembly =
     new G4LogicalVolume(solidCapAssembly,
-                        G4Material::GetMaterial(water),
+                        WCSimMaterialsBuilder::Instance()->GetMaterial(water),
                         "CapAssembly",
                         0,0,0);
 
@@ -1696,16 +1704,16 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructCaps(G4int zflip)
   G4double borderAnnulusRmin[3] = { WCIDRadius, innerAnnulusRadius, innerAnnulusRadius};
   G4double borderAnnulusRmax[3] = {outerAnnulusRadius, outerAnnulusRadius,outerAnnulusRadius};
   G4Polyhedra* solidWCBarrelBorderRing = new G4Polyhedra("WCBarrelBorderRing",
-                                                   0.*deg, // phi start
-                                                   totalAngle,
-                                                   (G4int)WCBarrelRingNPhi, //NPhi-gon
-                                                   3,
-                                                   borderAnnulusZ,
-                                                   borderAnnulusRmin,
-                                                   borderAnnulusRmax);
+														   0.*deg, // phi start
+														   totalAngle,
+														   (G4int)WCBarrelRingNPhi, //NPhi-gon
+														   3,
+														   borderAnnulusZ,
+														   borderAnnulusRmin,
+														   borderAnnulusRmax);
   G4LogicalVolume* logicWCBarrelBorderRing =
     new G4LogicalVolume(solidWCBarrelBorderRing,
-                        G4Material::GetMaterial(water),
+                        WCSimMaterialsBuilder::Instance()->GetMaterial(water),
                         "WCBarrelRing",
                         0,0,0);
   //G4cout << *solidWCBarrelBorderRing << G4endl;
@@ -1736,7 +1744,7 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructCaps(G4int zflip)
 
   G4LogicalVolume* logicWCBarrelBorderCell =
     new G4LogicalVolume(solidWCBarrelBorderCell, 
-                        G4Material::GetMaterial(water),
+                        WCSimMaterialsBuilder::Instance()->GetMaterial(water),
                         "WCBarrelBorderCell", 
                         0,0,0);
   //G4cout << *solidWCBarrelBorderCell << G4endl;
@@ -1805,7 +1813,7 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructCaps(G4int zflip)
 
     logicWCExtraBorderCell =
       new G4LogicalVolume(solidWCExtraBorderCell, 
-			  G4Material::GetMaterial(water),
+			  WCSimMaterialsBuilder::Instance()->GetMaterial(water),
 			  "WCspecialBarrelBorderCell", 
 			  0,0,0);
     //G4cout << *solidWCExtraBorderCell << G4endl;
@@ -1841,9 +1849,9 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructCaps(G4int zflip)
  // -----------------------------------------------------------
  
   G4double capZ[4] = { (-WCBlackSheetThickness-1.*mm)*zflip,
-                      WCBarrelPMTOffset*zflip,
-		      WCBarrelPMTOffset*zflip,
-		      (WCBarrelPMTOffset+(WCIDRadius-innerAnnulusRadius))*zflip} ;
+                       WCBarrelPMTOffset*zflip,
+                       WCBarrelPMTOffset*zflip,
+                       (WCBarrelPMTOffset+(WCIDRadius-innerAnnulusRadius))*zflip} ;
   G4double capRmin[4] = {  0. , 0., 0., 0.} ;
   G4double capRmax[4] = {outerAnnulusRadius, outerAnnulusRadius,  WCIDRadius, innerAnnulusRadius};
   G4VSolid* solidWCCap;
@@ -1898,7 +1906,7 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructCaps(G4int zflip)
   // G4cout << *solidWCCap << G4endl;
   G4LogicalVolume* logicWCCap = 
     new G4LogicalVolume(solidWCCap,
-			G4Material::GetMaterial(water),
+			WCSimMaterialsBuilder::Instance()->GetMaterial(water),
 			"WCCapPolygon",
 			0,0,0);
 
@@ -1978,7 +1986,7 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructCaps(G4int zflip)
   }
   G4LogicalVolume* logicWCCapBlackSheet =
     new G4LogicalVolume(solidWCCapBlackSheet,
-			G4Material::GetMaterial("Blacksheet"),
+			WCSimMaterialsBuilder::Instance()->GetMaterial("Blacksheet"),
 			"WCCapBlackSheet",
 			0,0,0);
   G4VPhysicalVolume* physiWCCapBlackSheet =

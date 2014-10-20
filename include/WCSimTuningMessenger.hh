@@ -7,7 +7,6 @@
 #include "globals.hh"
 #include "G4UImessenger.hh"
 
-class WCSimTuningParameters;
 class G4UIdirectory;
 class G4UIcommand;
 class G4UIcmdWithADouble;
@@ -17,14 +16,12 @@ class G4UIcmdWithABool; //jl145
 class WCSimTuningMessenger: public G4UImessenger
 {
 public:
-  WCSimTuningMessenger(WCSimTuningParameters*);
+  WCSimTuningMessenger();
   ~WCSimTuningMessenger();
 
   void SetNewValue(G4UIcommand* command, G4String newValue);
 
 private:
-
-  WCSimTuningParameters* WCSimTuningParams;
 
   G4UIdirectory*      WCSimDir;
   G4UIcmdWithADouble* Rayff;

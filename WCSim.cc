@@ -3,7 +3,7 @@
 #include "G4UImanager.hh"
 #include "G4UIterminal.hh"
 #include "G4UItcsh.hh"
-#include "WCSimDetectorConstruction.hh"
+#include "WCSimCherenkovBuilder.hh"
 #include "WCSimPhysicsList.hh"
 #include "WCSimPhysicsMessenger.hh"
 #include "WCSimPhysicsListFactory.hh"
@@ -28,10 +28,6 @@ int main(int argc,char** argv)
   // get the pointer to the UI manager
   G4UImanager* UI = G4UImanager::GetUIpointer();
 
-  // Set up the tuning parameters that need to be read before the detector
-  //  construction is done
-  WCSimTuningParameters* tuningpars = new WCSimTuningParameters();
-
   // Get the tuning parameters
   UI->ApplyCommand("/control/execute tuning_parameters.mac");
 
@@ -42,8 +38,8 @@ int main(int argc,char** argv)
   enum DetConfiguration {wfm=1,fwm=2};
   G4int WCSimConfiguration = fwm;
 
-  WCSimDetectorConstruction* WCSimdetector = new 
-    WCSimDetectorConstruction(WCSimConfiguration,tuningpars);
+  WCSimCherenkovBuilder* WCSimdetector = new 
+    WCSimCherenkovBuilder(WCSimConfiguration);
 
   runManager->SetUserInitialization(WCSimdetector);
   UI->ApplyCommand("/control/execute geoSetup.mac");
@@ -92,9 +88,9 @@ int main(int argc,char** argv)
 
   runManager->SetUserAction(new WCSimSteppingAction);
 
-
   // Initialize G4 kernel
   runManager->Initialize();
+
 
   if (argc==1)   // Define UI terminal for interactive mode  
   { 

@@ -66,7 +66,7 @@ void WCSimGeoManager::FillGeoAttribute(WCSimGeoConfig &geo, rapidxml::xml_attrib
 	else if(name == "innerRadius"){
 		double tempVal;
 		ss >> tempVal;
-		geo.SetInnerRadius(tempVal*m);
+		geo.SetOuterRadius(tempVal*m);
 	}
 	else if(name == "innerHeight"){
 		double tempVal;
