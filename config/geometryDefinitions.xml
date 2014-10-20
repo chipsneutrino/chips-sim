@@ -42,12 +42,43 @@ pmtRatio
 	perCentCoverage="10">
   <cellPMTDef
    cellPMTName="10inch_HQE"
+   cellPMTX="0.5"
+   cellPMTY="0.5"
+  />
+</geoDef>
+
+<!-- CHIPS 10kt with 10% coverage of 10" HQE PMTs - and a more complex PMT layout -->
+<geoDef
+	name="CHIPS_10kton_2pmt"
+	innerRadius="12.5"
+	innerHeight="20"
+	nSides="20"
+	perCentCoverage="10">
+  <cellPMTDef
+   cellPMTName="10inch_HQE"
    cellPMTX="0.2928932188"
    cellPMTY="0.2928932188"
   />
   <cellPMTDef
-    cellPMTName="10inch"
-    cellPMTX="0.7071067812"
-    cellPMTY="0.7071067812"
+   cellPMTName="10inch_HQE"
+   cellPMTX="0.7071067812"
+   cellPMTY="0.7071067812"
   />
 </geoDef>
+
+
+<!-- CHIPS 10kt with 10% coverage of 10" HQE PMTs -->
+<geoDef
+	name="CHIPS_10kton_10inch_HQE_10perCent"
+	innerRadius="12.5"
+	innerHeight="20"
+	nSides="20"
+	perCentCoverage="10">
+  <cellPMTDef
+   cellPMTName="10inch_HQE"
+   cellPMTX="0.5"
+   cellPMTY="0.5"
+  />
+</geoDef>
+
+
