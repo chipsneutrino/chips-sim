@@ -143,10 +143,8 @@ void WCSimCherenkovBuilder::SetCustomGeometry()
 G4LogicalVolume * WCSimCherenkovBuilder::ConstructDetector() {
   std::cout << "*** WCSimCherenkovBuilder::ConstructDetector *** " << std::endl;
   std::cout << "Constructing " << fDetectorName << std::endl;
-  WCSimGeoManager * manager = new WCSimGeoManager();
-  fGeoConfig = new WCSimGeoConfig(manager->GetGeometryByName(fDetectorName));
-  delete manager;
-	ConstructDetectorWrapper();
+
+  ConstructDetectorWrapper();
 	assert(fLakeLogic != NULL);
 	return fLakeLogic;
 }
@@ -1222,7 +1220,11 @@ WCSimUnitCell* WCSimCherenkovBuilder::GetBarrelUnitCell() {
 G4LogicalVolume * WCSimCherenkovBuilder::ConstructWC()
 {
 	std::cout << " *** In WCSimCherenkovBuilder::ConstructWC() *** " << std::endl;
-	return ConstructDetector();
+  WCSimGeoManager * manager = new WCSimGeoManager();
+  fGeoConfig = new WCSimGeoConfig(manager->GetGeometryByName(fDetectorName));
+  assert(manager->GeometryExists(fDetectorName));
+  delete manager;
+  return ConstructDetector();
 }
 
 void WCSimCherenkovBuilder::SetPositions()

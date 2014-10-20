@@ -140,3 +140,14 @@ WCSimGeoConfig WCSimGeoManager::GetGeometryByName(std::string name) const{
 	return curGeo;		
 }
 
+bool WCSimGeoManager::GeometryExists( std::string name ) const {
+  bool foundIt = false;
+	for(unsigned int g = 0; g < fGeoVector.size(); ++g){
+    std::cout << name << " == " << fGeoVector[g].GetGeoName() << " ? is " << name == fGeoVector[g].GetGeoName() << std::endl;
+		if(name == fGeoVector[g].GetGeoName()){
+			foundIt = true;
+			break;
+		}
+	}
+  return foundIt;
+}

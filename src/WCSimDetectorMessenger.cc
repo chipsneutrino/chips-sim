@@ -16,27 +16,27 @@ WCSimDetectorMessenger::WCSimDetectorMessenger(WCSimDetectorConstruction* WCSimD
 
   PMTConfig = new G4UIcmdWithAString("/WCSim/WCgeom",this);
   PMTConfig->SetGuidance("Set the geometry configuration for the WC.");
-  PMTConfig->SetGuidance("Available options are:\n"
-                         "SuperK\n"
-                         "DUSEL_100kton_10inch_40perCent\n"
-                         "DUSEL_100kton_10inch_HQE_12perCent\n"
-                         "DUSEL_100kton_10inch_HQE_30perCent\n"
-                         "DUSEL_100kton_10inch_HQE_30perCent_Gd\n"
-                         "DUSEL_150kton_10inch_HQE_30perCent\n"
-                         "DUSEL_200kton_10inch_HQE_12perCent\n"
-                         "DUSEL_200kton_12inch_HQE_10perCent\n"
-                         "DUSEL_200kton_12inch_HQE_14perCent\n"
-                         "150kTMailbox_10inch_HQE_30perCent\n"
-                         "150kTMailbox_10inch_40perCent \n"
-                         "100kTMailbox_10perCent \n"
-                         "100kTMailbox_20perCent \n"
-                         "100kTMailbox_30perCent \n"
-                         "100kTMailbox_40perCent \n"
-                         "100kTMailbox_50perCent \n"
-                         "Mailbox_100x20x30 \n"
-                         "CHIPS_25kton_10inch_HQE_10perCent \n"
-                         "CHIPS_10kton_10inch_HQE_10perCent \n"
-                         "GiantPhotonTest");
+  // PMTConfig->SetGuidance("Available options are:\n"
+  //                        "SuperK\n"
+  //                        "DUSEL_100kton_10inch_40perCent\n"
+  //                        "DUSEL_100kton_10inch_HQE_12perCent\n"
+  //                        "DUSEL_100kton_10inch_HQE_30perCent\n"
+  //                        "DUSEL_100kton_10inch_HQE_30perCent_Gd\n"
+  //                        "DUSEL_150kton_10inch_HQE_30perCent\n"
+  //                        "DUSEL_200kton_10inch_HQE_12perCent\n"
+  //                        "DUSEL_200kton_12inch_HQE_10perCent\n"
+  //                        "DUSEL_200kton_12inch_HQE_14perCent\n"
+  //                        "150kTMailbox_10inch_HQE_30perCent\n"
+  //                        "150kTMailbox_10inch_40perCent \n"
+  //                        "100kTMailbox_10perCent \n"
+  //                        "100kTMailbox_20perCent \n"
+  //                        "100kTMailbox_30perCent \n"
+  //                        "100kTMailbox_40perCent \n"
+  //                        "100kTMailbox_50perCent \n"
+  //                        "Mailbox_100x20x30 \n"
+  //                        "CHIPS_25kton_10inch_HQE_10perCent \n"
+  //                        "CHIPS_10kton_10inch_HQE_10perCent \n"
+  //                        "GiantPhotonTest");
   PMTConfig->SetParameterName("PMTConfig", false);
   /*PMTConfig->SetCandidates("SuperK "
                            "DUSEL_100kton_10inch_40perCent "
@@ -187,10 +187,9 @@ void WCSimDetectorMessenger::SetNewValue(G4UIcommand* command,G4String newValue)
 		  WCSimDetector->DUSEL_200kton_12inch_HQE_10perCent();	
 		} else if(newValue == "DUSEL_200kton_12inch_HQE_14perCent") {
 		  WCSimDetector->DUSEL_200kton_12inch_HQE_14perCent();	
-		} else {
-      std::cout << "WCSimDetectorMessenger: setting detector name to " << newValue << std::endl;
-      WCSimDetector->SetDetectorName( newValue );
     }
+    std::cout << "WCSimDetectorMessenger: setting detector name to " << newValue << std::endl;
+    WCSimDetector->SetDetectorName( newValue );
 	}
   
 	if (command == SavePi0){

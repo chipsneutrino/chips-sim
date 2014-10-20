@@ -18,6 +18,7 @@ class WCSimGeoManager {
 		~WCSimGeoManager();
 
 		WCSimGeoConfig GetGeometryByName(std::string name) const;
+    bool GeometryExists( std::string name ) const;
 	private:
 
 		// Read the list of geometry types from the config file
@@ -26,8 +27,8 @@ class WCSimGeoManager {
 		// Fill geometry object attribute from xml file
 		void FillGeoAttribute(WCSimGeoConfig &geo, rapidxml::xml_attribute<> *attr);
 
-        // Fill unit cell object attribute from xml file
-        void FillCellAttribute(WCSimGeoConfig &geo, rapidxml::xml_attribute<> *attr);
+    // Fill unit cell object attribute from xml file
+    void FillCellAttribute(WCSimGeoConfig &geo, rapidxml::xml_attribute<> *attr);
 
 		// Vector to store the requested geometry types
 		std::vector<WCSimGeoConfig> fGeoVector;
