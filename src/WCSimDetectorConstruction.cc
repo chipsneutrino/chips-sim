@@ -106,7 +106,15 @@ WCSimDetectorConstruction::WCSimDetectorConstruction(G4int DetConfig) : fPMTBuil
 void WCSimDetectorConstruction::SetDetectorName( const G4String &detName )
 {
   fDetectorName = detName;
+  this->SetCustomGeometry();
   return;
+}
+
+void WCSimDetectorConstruction::SetCustomGeometry()
+{
+  std::cerr << "Error: you are using the old interface to construct detectors, which only supports the hardcoded ones" << std::endl;
+  std::cerr << "Cannot construct the custom detector " << fDetectorName << " - use config/geoConfig.xml and a name that isn't hardcoded" << std::endl;
+  assert(false);
 }
 
 #include "G4GeometryManager.hh"

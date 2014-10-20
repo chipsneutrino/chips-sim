@@ -38,7 +38,7 @@ WCSimDetectorMessenger::WCSimDetectorMessenger(WCSimDetectorConstruction* WCSimD
                          "CHIPS_10kton_10inch_HQE_10perCent \n"
                          "GiantPhotonTest");
   PMTConfig->SetParameterName("PMTConfig", false);
-  PMTConfig->SetCandidates("SuperK "
+  /*PMTConfig->SetCandidates("SuperK "
                            "DUSEL_100kton_10inch_40perCent "
                            "DUSEL_100kton_10inch_HQE_12perCent "
                            "DUSEL_100kton_10inch_HQE_30perCent "
@@ -58,6 +58,7 @@ WCSimDetectorMessenger::WCSimDetectorMessenger(WCSimDetectorConstruction* WCSimD
                            "CHIPS_25kton_10inch_HQE_10perCent "
                            "CHIPS_10kton_10inch_HQE_10perCent "
                            "GiantPhotonTest ");
+  */
   PMTConfig->AvailableForStates(G4State_PreInit, G4State_Idle);
   PMTConfig->SetDefaultValue("CHIPS_10kton_10inch_HQE_10perCent ");
 
@@ -125,7 +126,6 @@ void WCSimDetectorMessenger::SetNewValue(G4UIcommand* command,G4String newValue)
 	if( command == PMTConfig ) { 
 		WCSimDetector->SetIsMailbox(false);
 		WCSimDetector->SetIsUpright(false);
-    WCSimDetector->SetDetectorName( newValue );
 		if ( newValue == "150kTMailbox_10inch_HQE_30perCent") {
 			WCSimDetector->SetIsMailbox(true);
 			WCSimDetector->SetMailBox150kTGeometry_10inch_HQE_30perCent();//aah
@@ -169,7 +169,7 @@ void WCSimDetectorMessenger::SetNewValue(G4UIcommand* command,G4String newValue)
 		else if( newValue == "GiantPhotonTest"){
 			WCSimDetector->GiantPhotonTest();
 		}
- else if(newValue == "SuperK") {
+    else if(newValue == "SuperK") {
 			WCSimDetector->SetSuperKGeometry();
 		} else if(newValue == "DUSEL_100kton_10inch_40perCent") {
 			WCSimDetector->DUSEL_100kton_10inch_40perCent();
@@ -187,8 +187,10 @@ void WCSimDetectorMessenger::SetNewValue(G4UIcommand* command,G4String newValue)
 		  WCSimDetector->DUSEL_200kton_12inch_HQE_10perCent();	
 		} else if(newValue == "DUSEL_200kton_12inch_HQE_14perCent") {
 		  WCSimDetector->DUSEL_200kton_12inch_HQE_14perCent();	
-		} else
-		  G4cout << "That geometry choice not defined!" << G4endl;
+		} else {
+      std::cout << "WCSimDetectorMessenger: setting detector name to " << newValue << std::endl;
+      WCSimDetector->SetDetectorName( newValue );
+    }
 	}
   
 	if (command == SavePi0){

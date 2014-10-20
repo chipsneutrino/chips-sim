@@ -105,7 +105,12 @@ WCSimPMTConfig WCSimPMTManager::GetPMTByName(std::string name){
 	}
 	else{
 		std::cerr << "WCSIMPMTManager::GetPMTByName: PMT " << name << " does not exist. Returned default WCSimPMTConfig object." << std::endl;
-	}
+    std::cout << "Available PMTs are: " << std::endl;
+    for ( int i = 0 ; i < fPMTVector.size(); ++i ) 
+    {
+      std::cout << "    " << fPMTVector.at(i).GetPMTName() << std::endl;
+	  }
+  }
 
 	return curPMT;		
 }

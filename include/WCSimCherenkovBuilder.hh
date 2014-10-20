@@ -27,6 +27,9 @@ protected:
   void Update(); //< Reset a bunch of things if we change the geometry to avoid pointer awkwardness
 
 private:
+  void SetCustomDetectorName(); //< Overload virtual function from DetectorConstruction 
+  void SetCustomGeometry(); //< Read the GeoManager and set up the chosen geometry using fDetectorName
+
   //G4VPhysicalVolume* Construct(); //< Overload this for now TODO: reorganise
   G4LogicalVolume* ConstructWC(); //< Overload from WCSimConstructWC TODO: reorganise
   void SetPositions(); /*< Sets a bunch of physical constants in the parent WCSimDetectorContruction
@@ -58,7 +61,7 @@ private:
 
 	void CreateSensitiveDetector(); //< Make the photocathodes responsive
 
-    void GetMeasurements();
+  void GetMeasurements();
 	double GetBarrelLengthForCells(); //< Work out much of the barrel wall can hold PMTs without overlapping the top
 	double GetMaxTopExposeHeight(); //< Work out how far PMTs extend down from the top cap
 	double GetMaxBarrelExposeHeight(); //< Work out how far PMTs extend inwars from the blacksheet of the walls

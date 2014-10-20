@@ -122,7 +122,23 @@ WCSimCherenkovBuilder::~WCSimCherenkovBuilder() {
 
 }
 
+void WCSimCherenkovBuilder::SetCustomGeometry()
+{
+  WCSimGeoManager * manager = new WCSimGeoManager();
+  fGeoConfig = new WCSimGeoConfig(manager->GetGeometryByName(fDetectorName));
+  delete manager;
 
+  ResetPMTConfigs();
+  std::vector< std::string> pmtNames = fGeoConfig->GetCellPMTName();
+  for(std::vector<std::string>::const_iterator pmtItr = pmtNames.begin(); pmtItr != pmtNames.end(); ++pmtItr)
+  {
+    fPMTConfigs.push_back(fPMTManager->GetPMTByName(*pmtItr));
+  }
+
+  std::cout << "=== PMT LOG ===" << std::endl;
+  std::cout << "PMT Vector Size = " << fPMTConfigs.size() << std::endl;
+  fPMTConfigs[0].Print();
+}
 
 G4LogicalVolume * WCSimCherenkovBuilder::ConstructDetector() {
   std::cout << "*** WCSimCherenkovBuilder::ConstructDetector *** " << std::endl;

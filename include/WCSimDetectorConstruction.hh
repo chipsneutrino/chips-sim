@@ -171,6 +171,12 @@ protected: // Changed this from private to let WCSimCherenkovBuilder
 
   WCSimDetectorMessenger* messenger;
 
+  // The old building routine (i.e. this class) should fail here as the geometries
+  // are hardcoded, but this is left inside a virtual function so the new code
+  // (WCSimCherenkovBuilder) can check the GeoManager for a matching name and build that
+  virtual void SetCustomGeometry();
+
+
   // The Construction routines
   G4LogicalVolume*   ConstructMailboxWC();
   virtual G4LogicalVolume*   ConstructWC();
@@ -211,6 +217,7 @@ protected: // Changed this from private to let WCSimCherenkovBuilder
 				  const G4Transform3D&);
   void GetWCGeom(G4VPhysicalVolume*, int, int, 
 			      const G4Transform3D&);
+
 
   G4String fDetectorName;
 
