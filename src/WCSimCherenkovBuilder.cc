@@ -1105,7 +1105,14 @@ void WCSimCherenkovBuilder::ConstructEndCapSurfaces(G4int zflip){
 void WCSimCherenkovBuilder::PlaceEndCapPMTs(G4int zflip){
 
 	  G4LogicalVolume * capLogic = NULL;
-	  if( zflip == -1 ) { capLogic = fCapLogicTop; }
+	  G4RotationMatrix* WCCapPMTRotation = new G4RotationMatrix;
+
+    // Top PMTs point downwards
+	  if( zflip == -1 )
+    { 
+	    WCCapPMTRotation->rotateY(180.*deg);
+      capLogic = fCapLogicTop; 
+    }
 	  else { capLogic = fCapLogicBottom; }
     G4cout << "G4cout capLogic again" << capLogic << std::endl;
     G4cout << "capLogic top = " << fCapLogicTop << "  and bottom ... " << fCapLogicBottom << std::endl;
@@ -1114,11 +1121,6 @@ void WCSimCherenkovBuilder::PlaceEndCapPMTs(G4int zflip){
 	  // Add top and bottom PMTs
 	  // -----------------------------------------------------
     std::cout << " *** PlaceEndCapPMTs ***    zflip = " << zflip << std::endl;
-
-	  G4RotationMatrix* WCCapPMTRotation = new G4RotationMatrix;
-	  if(zflip==1){
-	    WCCapPMTRotation->rotateY(180.*deg);
-	  }
 
 	  // loop over the cap
 	  // Build a square that contains the cap:
