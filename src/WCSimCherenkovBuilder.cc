@@ -659,13 +659,14 @@ double WCSimCherenkovBuilder::GetOptimalTopCellSize() {
 				G4TwoVector bottomRight = G4TwoVector((iHoriz+1) * cellSide, -(iVert+1) * cellSide) + centreToTopLeft;
 
 				bool cellInPolygon = true;
+        double capPolygonInnerRadius = WCSimPolygonTools::GetOuterRadiusFromInner(fGeoConfig->GetNSides(), fCapPolygonCentreRadius);
         // std::cout << "iHoriz = " << iHoriz << "  " << "iVert = " << iVert << std::endl
         //           << "(" << topLeft.x() << ", " << topLeft.y() << ") (" << topRight.x() << ", " << topRight.y()
         //           << ") (" << bottomLeft.x() << ", " << bottomLeft.y() << ") (" << bottomRight.x() << bottomRight.y() << ")" << std::endl;
-				if(    !(WCSimPolygonTools::PolygonContains(nSides, fCapPolygonCentreRadius, topLeft))
-					|| !(WCSimPolygonTools::PolygonContains(nSides,   fCapPolygonCentreRadius, topRight))
-					|| !(WCSimPolygonTools::PolygonContains(nSides,   fCapPolygonCentreRadius, bottomLeft))
-					|| !(WCSimPolygonTools::PolygonContains(nSides,   fCapPolygonCentreRadius, bottomRight)) ){
+				if(    !(WCSimPolygonTools::PolygonContains(nSides, capPolygonInnerRadius, topLeft))
+					|| !(WCSimPolygonTools::PolygonContains(nSides,   capPolygonInnerRadius, topRight))
+					|| !(WCSimPolygonTools::PolygonContains(nSides,   capPolygonInnerRadius, bottomLeft))
+					|| !(WCSimPolygonTools::PolygonContains(nSides,   capPolygonInnerRadius, bottomRight)) ){
 					cellInPolygon = false;
 				}
 				cellsInPolygon += cellInPolygon;
@@ -1124,7 +1125,7 @@ void WCSimCherenkovBuilder::PlaceEndCapPMTs(G4int zflip){
 
 	  // loop over the cap
 	  // Build a square that contains the cap:
-	  G4double squareEdge = 2.0*(fCapPolygonCentreRadius);
+	  G4double squareEdge = 2.0*(WCSimPolygonTools::GetOuterRadiusFromInner(fGeoConfig->GetNSides(), fCapPolygonCentreRadius));
     squareEdge = squareEdge + fmod(squareEdge, 2*fTopCellSize);
 
 	  G4double xpos = -0.5 * squareEdge;
@@ -1139,7 +1140,8 @@ void WCSimCherenkovBuilder::PlaceEndCapPMTs(G4int zflip){
 
 
 			  WCSimUnitCell * unitCell = GetTopUnitCell();
-			  if( WCSimPolygonTools::PolygonContainsSquare(fGeoConfig->GetNSides(), fCapPolygonCentreRadius, G4TwoVector(cellpos.x(), cellpos.y()), fTopCellSize)){
+        double capRadius = WCSimPolygonTools::GetOuterRadiusFromInner(fGeoConfig->GetNSides(), fCapPolygonCentreRadius);
+			  if( WCSimPolygonTools::PolygonContainsSquare(fGeoConfig->GetNSides(), capRadius, G4TwoVector(cellpos.x(), cellpos.y()), fTopCellSize)){
 
 				  for(unsigned int nPMT = 0; nPMT < unitCell->GetNumPMTs(); ++nPMT){
 					  G4TwoVector pmtCellPosition = unitCell->GetPMTPos(nPMT, fTopCellSize); // PMT position in cell, relative to top left of cell
