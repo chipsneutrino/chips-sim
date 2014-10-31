@@ -158,7 +158,7 @@ void WCSimEvDisplay::FillPlotsFromWCSimEvent(){
 		double pmtX = pmt.GetPosition(0);
 		double pmtY = pmt.GetPosition(1);
 		double pmtZ = pmt.GetPosition(2);
-		double pmtPhi = TMath::ATan2(pmtY,pmtX);
+		double pmtPhi = -1*TMath::ATan2(pmtY,pmtX);
 		double pmtQ = wcSimDigiHit->GetQ();
 		double pmtT = wcSimDigiHit->GetT();
 		// Set the z-axis to be charge or time.
@@ -234,7 +234,7 @@ void WCSimEvDisplay::FillPlotsFromPhotonEvent(){
 		if(slanted && endDirZ < -(1.0 / sqrt(2))) continue; 
 
 //		Float_t radius = sqrt(endX*endX + endY*endY);
-		Float_t phi = TMath::ATan2(endY,endX);
+		Float_t phi = -1*TMath::ATan2(endY,endX);
 
 //		std::cout << endX << ", " << endY << " || " << radius << ", " << theta << std::endl;
 		if(endZ > 1740){
@@ -707,7 +707,7 @@ void WCSimEvDisplay::ResizePlotsFromGeometry(){
 			if(std::find(zPos.begin(),zPos.end(),tempZ) == zPos.end()){
 				zPos.push_back(tempZ);
 			}
-			double tempPhi = TMath::ATan2(pmt.GetPosition(1),pmt.GetPosition(0));
+			double tempPhi = -1*TMath::ATan2(pmt.GetPosition(1),pmt.GetPosition(0));
 			if(std::find(phiPos.begin(),phiPos.end(),tempPhi) == phiPos.end()){
 				phiPos.push_back(tempPhi);
 				//std::cout << "UNIQUE PHIPOS: " << tempPhi << std::endl;
