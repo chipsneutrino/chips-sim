@@ -29,6 +29,7 @@ int main(int argc,char** argv)
   G4UImanager* UI = G4UImanager::GetUIpointer();
 
   // Get the tuning parameters
+  WCSimTuningParameters::Instance();
   UI->ApplyCommand("/control/execute tuning_parameters.mac");
 
   // define random number generator parameters
