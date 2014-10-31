@@ -4,6 +4,8 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 export WCSIMHOME=${DIR}
 
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$DIR/
+
 source /unix/lartpc/software/root/setup.sh
 echo "Root setup complete"
 source /unix/lartpc/software/geant4/setup.sh
