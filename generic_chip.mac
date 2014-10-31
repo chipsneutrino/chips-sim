@@ -35,8 +35,8 @@
 
 
 # Or you can use the G4 General Particle Source
-# (choose 'laser' to use the particle source instead of gun)
-/mygen/generator laser
+# (choose 'gps' to use the particle source instead of gun)
+/mygen/generator gps
 
 #/gps/particle e-
 /gps/particle mu-

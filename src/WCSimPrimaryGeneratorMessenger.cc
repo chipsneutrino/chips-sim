@@ -13,11 +13,11 @@ WCSimPrimaryGeneratorMessenger::WCSimPrimaryGeneratorMessenger(WCSimPrimaryGener
   genCmd = new G4UIcmdWithAString("/mygen/generator",this);
   genCmd->SetGuidance("Select primary generator.");
   //T. Akiri: Addition of laser
-  genCmd->SetGuidance(" Available generators : muline, normal, laser");
+  genCmd->SetGuidance(" Available generators : muline, normal, laser, gps");
   genCmd->SetParameterName("generator",true);
   genCmd->SetDefaultValue("muline");
   //T. Akiri: Addition of laser
-  genCmd->SetCandidates("muline normal laser");
+  genCmd->SetCandidates("muline normal laser gps");
 
   fileNameCmd = new G4UIcmdWithAString("/mygen/vecfile",this);
   fileNameCmd->SetGuidance("Select the file of vectors.");
@@ -41,18 +41,28 @@ void WCSimPrimaryGeneratorMessenger::SetNewValue(G4UIcommand * command,G4String 
       myAction->SetMulineEvtGenerator(true);
       myAction->SetNormalEvtGenerator(false);
       myAction->SetLaserEvtGenerator(false);
+      myAction->SetGpsEvtGenerator(false);
     }
     else if ( newValue == "normal")
     {
       myAction->SetMulineEvtGenerator(false);
       myAction->SetNormalEvtGenerator(true);
       myAction->SetLaserEvtGenerator(false);
+      myAction->SetGpsEvtGenerator(false);
     }
     else if ( newValue == "laser")   //T. Akiri: Addition of laser
     {
       myAction->SetMulineEvtGenerator(false);
       myAction->SetNormalEvtGenerator(false);
       myAction->SetLaserEvtGenerator(true);
+      myAction->SetGpsEvtGenerator(false);
+    }
+    else if ( newValue == "gps")   //T. Akiri: Addition of laser
+    {
+      myAction->SetMulineEvtGenerator(false);
+      myAction->SetNormalEvtGenerator(false);
+      myAction->SetLaserEvtGenerator(false);
+      myAction->SetGpsEvtGenerator(true);
     }
   }
 
