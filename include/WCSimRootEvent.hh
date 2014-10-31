@@ -24,21 +24,24 @@ class WCSimRootTrack : public TObject {
 
 private:
 
-  // See jhfNtuple.h for the meaning of these data members:
-  Int_t   fIpnu;        
-  Int_t   fFlag;        
-  Float_t fM;
-  Float_t fP;
-  Float_t fE;
-  Int_t   fStartvol;
-  Int_t   fStopvol;
-  Float_t fDir[3];
-  Float_t fPdir[3];
-  Float_t fStop[3];
-  Float_t fStart[3];
-  Int_t fParenttype;
-  Float_t fTime;
-  Int_t fId;
+  // Data member explanations copied from old jhfNtuple.h
+  Int_t   fIpnu;        // id of final state particle
+  Int_t   fFlag;        // flag: -1 = incoming neutrino
+                        //       -2 = target
+                        //        1 = outgoing lepton
+                        //        2 = most energetic outgoing nucleon
+  Float_t fM;           // mass
+  Float_t fP;           // momentum
+  Float_t fE;           // energy
+  Int_t   fStartvol;    // starting volume
+  Int_t   fStopvol;     // stopping volume
+  Float_t fDir[3];      // direction
+  Float_t fPdir[3];     // momentum-vector
+  Float_t fStop[3];     // stopping point
+  Float_t fStart[3];    // starting point
+  Int_t fParenttype;    // ID of parent (0 if primary)
+  Float_t fTime;        // creation time
+  Int_t fId;            // ???
 
 public:
   WCSimRootTrack() {}
