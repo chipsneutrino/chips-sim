@@ -28,6 +28,13 @@ WCSimEvDisplay::WCSimEvDisplay() : TGMainFrame(){
 
 WCSimEvDisplay::WCSimEvDisplay(const TGWindow *p,UInt_t w,UInt_t h) : TGMainFrame(p,w,h) {
 
+  // Initialise some histogram pointers
+  fBarrelHist = 0x0;
+  fTopHist = 0x0;
+  fBottomHist = 0x0;
+  fChargeHist = 0x0;
+  fTimeHist = 0x0;
+
 	// Set up some plot style
 	this->SetStyle();
 
@@ -710,7 +717,7 @@ void WCSimEvDisplay::ResizePlotsFromGeometry(){
 			double tempPhi = -1*TMath::ATan2(pmt.GetPosition(1),pmt.GetPosition(0));
 			if(std::find(phiPos.begin(),phiPos.end(),tempPhi) == phiPos.end()){
 				phiPos.push_back(tempPhi);
-				//std::cout << "UNIQUE PHIPOS: " << tempPhi << std::endl;
+//				std::cout << "UNIQUE PHIPOS: " << tempPhi << std::endl;
 			}
 		}
 		else{
@@ -730,6 +737,8 @@ void WCSimEvDisplay::ResizePlotsFromGeometry(){
 	int nBinsY = (int)yPos.size();
 	int nBinsZ = (int)zPos.size(); 
 	int nBinsPhi = (int)phiPos.size();
+
+  // Now with phi, sort the vector then make a variably binned array from it
 
 	double phiMin = TMath::Pi()* -1 + (TMath::Pi()/(double)phiPos.size());
 	double phiMax = TMath::Pi() + (TMath::Pi()/(double)phiPos.size());
