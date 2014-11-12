@@ -35,6 +35,10 @@ WCSimEvDisplay::WCSimEvDisplay(const TGWindow *p,UInt_t w,UInt_t h) : TGMainFram
   fChargeHist = 0x0;
   fTimeHist = 0x0;
 
+	// Initialise the TChain pointers
+	fChain = 0x0; 
+  fGeomTree = 0x0;
+
 	// Set up some plot style
 	this->SetStyle();
 
@@ -82,9 +86,6 @@ WCSimEvDisplay::WCSimEvDisplay(const TGWindow *p,UInt_t w,UInt_t h) : TGMainFram
 
 	// Display the plots
 	this->UpdateCanvases();
-
-	// Set the pointer of the TChain to zero
-	fChain = 0x0; 
 
 	// Set the current event to the default value of 0.
 	fCurrentEvent = 0;
