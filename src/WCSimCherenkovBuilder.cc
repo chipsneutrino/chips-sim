@@ -372,7 +372,7 @@ void WCSimCherenkovBuilder::CreateRingSegments() {
 	WaterBSBarrelCellSurface = new G4LogicalBorderSurface("WaterBSBarrelCellSurface",
 														  segmentPhysic,
 														  segmentBlacksheetPhysic,
-														  OpWaterBSSurface);
+														  WCSimMaterialsBuilder::Instance()->GetOpticalSurface("WaterBSCellSurface"));
 
 	G4VisAttributes* WCBarrelBlacksheetCellVisAtt = new G4VisAttributes(
 			G4Colour(0.2, 0.9, 0.2));
@@ -924,7 +924,7 @@ void WCSimCherenkovBuilder::ConstructEndCapRingSegments( G4int zflip )
 	WaterBSCapCellSurface = new G4LogicalBorderSurface("WaterBSCapCellSurface",
 														capSegmentPhysic,
 														capSegmentBlacksheetPhysic,
-														OpWaterBSSurface);
+														WCSimMaterialsBuilder::Instance()->GetOpticalSurface("WaterBSCellSurface"));
 
 	G4VisAttributes* WCCellBlacksheetCellVisAtt = new G4VisAttributes(G4Colour(0.2, 0.9, 0.2));
 	if (fDebugMode ){
@@ -1082,12 +1082,12 @@ void WCSimCherenkovBuilder::ConstructEndCapSurfaces(G4int zflip){
 	  G4LogicalBorderSurface * WaterBSBottomCapEdgeSurface = NULL;
 	  WaterBSBottomCapEdgeSurface = new G4LogicalBorderSurface("WaterBSCapPolySurface",
 	                                   	   	   	   	   	    physiCapPolygon,physiWCCapEdgeBlacksheet,
-	                                   	   	   	   	   	    OpWaterBSSurface);
+	                                   	   	   	   	   	    WCSimMaterialsBuilder::Instance()->GetOpticalSurface("WaterBSCellSurface"));
 
 	  G4LogicalBorderSurface * WaterBSBottomCapEndSurface = NULL;
 	  WaterBSBottomCapEndSurface = new G4LogicalBorderSurface("WaterBSCapPolySurface",
 	                                   	   	   	   	   	    physiCapPolygon,physiWCCapEdgeBlacksheet,
-	                                   	   	   	   	   	    OpWaterBSSurface);
+	                                   	   	   	   	   	    WCSimMaterialsBuilder::Instance()->GetOpticalSurface("WaterBSCellSurface"));
 
 	  G4VisAttributes* WCCapBlacksheetVisAtt = new G4VisAttributes(G4Colour(0.9,0.2,0.2));
 	    if(fDebugMode || 1)

@@ -1,4 +1,5 @@
 #include "WCSimDetectorConstruction.hh"
+#include "WCSimMaterialsBuilder.hh"
 #include "WCSimPMTConfig.hh"
 
 #include "G4Box.hh"
@@ -129,6 +130,6 @@ void WCSimDetectorConstruction::ConstructPMT()
   	new G4LogicalBorderSurface(	"GlassCathodeSurface",
   						physiGlassFaceWCPMT,
   						physiInteriorWCPMT,
-  						OpGlassCathodeSurface);
+  						WCSimMaterialsBuilder::Instance()->GetOpticalSurface("GlassCathodeSurface"));
 
 }

@@ -287,11 +287,11 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructMailboxWC()
 	//glass reflections				//***replica
 	new G4LogicalBorderSurface("GlassCathodeSurface",	//***replica
 							   phys_WC_GlassFacePMT_Cell,phys_WC_PMT_Cell,	//***replica
-							   OpGlassCathodeSurface); //***replica
+							   WCSimMaterialsBuilder::Instance()->GetOpticalSurface("GlassCathodeSurface")); //***replica
 	// Blacksheet reflections	//***replica
 	new G4LogicalBorderSurface("WaterBS_LW_PolySurface",	//***replica
 							   phys_WC_PMT_Cell,phys_WC_Blacksheet_Cell,	//***replica
-							   OpWaterBSSurface);	//***replica
+							   WCSimMaterialsBuilder::Instance()->GetOpticalSurface("WaterBSCellSurface"));	//***replica
 	
 	if (!debugMode)	{
 		logic_WC_PMT_Cell->SetVisAttributes(G4VisAttributes::Invisible);//*replica
@@ -509,10 +509,10 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructMailboxWC()
 	
 	new G4LogicalBorderSurface("WaterBS_LW_PolySurface",
 							   phys_WC_Active_LxW_minus,phys_WC_Active_LxW_blacksheet_minus,
-							   OpWaterBSSurface);
+							   WCSimMaterialsBuilder::Instance()->GetOpticalSurface("WaterBSCellSurface"));
 	new G4LogicalBorderSurface("WaterBS_LW_PolySurface",
 							   phys_WC_Active_LxW_plus,phys_WC_Active_LxW_blacksheet_plus,
-							   OpWaterBSSurface);																						
+							   WCSimMaterialsBuilder::Instance()->GetOpticalSurface("WaterBSCellSurface"));																						
 	
 	
 	//visualization if debugMode=true																						
@@ -738,10 +738,10 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructMailboxWC()
 	
 	new G4LogicalBorderSurface("WaterBS_LW_PolySurface",
 							   phys_WC_Active_WxD_minus,phys_WC_Active_WxD_blacksheet_minus,
-							   OpWaterBSSurface);
+							   WCSimMaterialsBuilder::Instance()->GetOpticalSurface("WaterBSCellSurface"));
 	new G4LogicalBorderSurface("WaterBS_LW_PolySurface",
 							   phys_WC_Active_WxD_plus,phys_WC_Active_WxD_blacksheet_plus,
-							   OpWaterBSSurface);																						
+							   WCSimMaterialsBuilder::Instance()->GetOpticalSurface("WaterBSCellSurface"));																						
 	
 	
 	G4VisAttributes* WC_BlacksheetWxDVisAtt = new G4VisAttributes(G4Colour(0.0,0.,1.));
@@ -913,10 +913,10 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructMailboxWC()
 	//Activate the water/blacksheet surfaces in both faces
 	new G4LogicalBorderSurface("WaterBS_LW_PolySurface",
 							   phys_WC_Active_LxD_minus,phys_WC_Active_LxD_blacksheet_minus,
-							   OpWaterBSSurface);
+							   WCSimMaterialsBuilder::Instance()->GetOpticalSurface("WaterBSCellSurface"));
 	new G4LogicalBorderSurface("WaterBS_LW_PolySurface",
 							   phys_WC_Active_LxD_plus,phys_WC_Active_LxD_blacksheet_plus,
-							   OpWaterBSSurface);																						
+							   WCSimMaterialsBuilder::Instance()->GetOpticalSurface("WaterBSCellSurface"));																						
 	
 	
 	G4VisAttributes* WC_BlacksheetLxDVisAtt = new G4VisAttributes(G4Colour(0.0,0.,1.));
@@ -1235,7 +1235,7 @@ else {
     = new G4LogicalBorderSurface("WaterBSBarrelCellSurface",
                                  physiWCBarrelCell,
                                  physiWCBarrelCellBlackSheet, 
-                                 OpWaterBSSurface);
+                                 WCSimMaterialsBuilder::Instance()->GetOpticalSurface("WaterBSCellSurface"));
 
  
    G4VisAttributes* WCBarrelBlackSheetCellVisAtt 
@@ -1362,7 +1362,7 @@ else {
       = new G4LogicalBorderSurface("WaterBSBarrelCellSurface",
 				   physiWCTowerCell,
 				   physiWCTowerBlackSheet, 
-				   OpWaterBSSurface);
+				   WCSimMaterialsBuilder::Instance()->GetOpticalSurface("WaterBSCellSurface"));
 
    
 	if(debugMode)
@@ -1440,7 +1440,7 @@ else {
 			new G4LogicalBorderSurface(	"WaterTyTVSurfaceBot",
 										physiWCTopVeto,
 										physiWCTVTyvekBot,
-										OpWaterTySurface);
+										WCSimMaterialsBuilder::Instance()->GetOpticalSurface("WaterTySurface"));
 
 	  //Top
 	  G4VPhysicalVolume* physiWCTVTyvekTop =
@@ -1456,7 +1456,7 @@ else {
 			new G4LogicalBorderSurface(	"WaterTyTVSurfaceTop",
 										physiWCTopVeto,
 										physiWCTVTyvekTop,
-										OpWaterTySurface);
+										WCSimMaterialsBuilder::Instance()->GetOpticalSurface("WaterTySurface"));
 
 	  //Side
 	  G4VSolid* solidWCTVTyvekSide;
@@ -1487,7 +1487,7 @@ else {
 			new G4LogicalBorderSurface(	"WaterTyTVSurfaceSide",
 										physiWCTopVeto,
 										physiWCTVTyvekSide,
-										OpWaterTySurface);
+										WCSimMaterialsBuilder::Instance()->GetOpticalSurface("WaterTySurface"));
 
   }
 
@@ -1783,7 +1783,7 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructCaps(G4int zflip)
     = new G4LogicalBorderSurface("WaterBSBarrelCellSurface",
                                  physiWCBarrelBorderCell,
                                  physiWCBarrelBorderCellBlackSheet,
-                                 OpWaterBSSurface);
+                                 WCSimMaterialsBuilder::Instance()->GetOpticalSurface("WaterBSCellSurface"));
 
   // we have to declare the logical Volumes 
   // outside of the if block to access it later on 
@@ -1841,7 +1841,7 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructCaps(G4int zflip)
       = new G4LogicalBorderSurface("WaterBSBarrelCellSurface",
 				   physiWCExtraBorderCell,
 				   physiWCExtraBorderBlackSheet, 
-				   OpWaterBSSurface);
+				   WCSimMaterialsBuilder::Instance()->GetOpticalSurface("WaterBSCellSurface"));
 
   }
  //------------------------------------------------------------
@@ -2000,7 +2000,7 @@ G4LogicalVolume* WCSimDetectorConstruction::ConstructCaps(G4int zflip)
    G4LogicalBorderSurface * WaterBSBottomCapSurface 
       = new G4LogicalBorderSurface("WaterBSCapPolySurface",
                                    physiWCCap,physiWCCapBlackSheet,
-                                   OpWaterBSSurface);
+                                   WCSimMaterialsBuilder::Instance()->GetOpticalSurface("WaterBSCellSurface"));
 
    G4VisAttributes* WCCapBlackSheetVisAtt 
       = new G4VisAttributes(G4Colour(0.9,0.2,0.2));

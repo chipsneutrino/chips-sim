@@ -28,6 +28,15 @@ WCSimDetectorConstruction::tubeLocationMap;
 WCSimDetectorConstruction::WCSimDetectorConstruction(G4int DetConfig) : fPMTBuilder(){
 	// Initialize daughter classes
 
+  // Initialize geometry pointers
+  OpWaterBSSurface            = NULL;
+  OpGlassCathodeSurface       = NULL;
+  OpWaterTySurface            = NULL;
+  logicWCBarrelCellBlackSheet = NULL;
+  logicWCTowerBlackSheet      = NULL;
+  logicWCPMT                  = NULL;
+  logicGlassFaceWCPMT         = NULL;
+
 	
   // Decide if (only for the case of !1kT detector) should be upright or horizontal
   isUpright = false;
