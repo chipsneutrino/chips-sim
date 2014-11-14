@@ -154,19 +154,18 @@ void WCSimPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 				G4double xMax = myDetector->GetWCCylInfo(0);
 				G4double yMax = myDetector->GetWCCylInfo(1);
 				G4double zMax = myDetector->GetWCCylInfo(2);
-				std::cout << "xMax = " << xMax << "    yMax = " << yMax << "    zMax = " << zMax << std::endl;
-				double vtxX = (rand()/static_cast<double>(RAND_MAX) - 0.5) * xMax;
-				double vtxY = (rand()/static_cast<double>(RAND_MAX) - 0.5) * yMax;
-				double vtxZ = (rand()/static_cast<double>(RAND_MAX) - 0.5) * zMax;
+				double vtxX = (G4UniformRand() - 0.5) * xMax;
+				double vtxY = (G4UniformRand() - 0.5) * yMax;
+				double vtxZ = (G4UniformRand() - 0.5) * zMax;
 				vtx = G4ThreeVector(vtxX, vtxY, vtxZ);
 			}
 			else
 			{
 				double rRand,thetaRand,zRand;
-				rRand = (rand()/static_cast<double>(RAND_MAX)) * 0.5 * myDetector->GetWCCylInfo(0);
-				zRand = (rand()/static_cast<double>(RAND_MAX) - 0.5) * myDetector->GetWCCylInfo(2);
-				thetaRand = (rand()/static_cast<double>(RAND_MAX)) * 2.0 * M_PI;
- 				vtx = G4ThreeVector(rRand*cos(thetaRand)*cm,rRand*sin(thetaRand)*cm,zRand*cm); 
+				rRand = sqrt(G4UniformRand()) * 0.5 * myDetector->GetWCCylInfo(0);
+				zRand = (G4UniformRand() - 0.5) * myDetector->GetWCCylInfo(2);
+				thetaRand = (G4UniformRand()) * 2.0 * M_PI;
+ 				vtx = G4ThreeVector(rRand*cos(thetaRand),rRand*sin(thetaRand),zRand); 
 			}
   	}  
   

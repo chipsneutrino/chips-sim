@@ -27,14 +27,11 @@ namespace WCSimPolygonTools {
     
     // Construct our n-gon:
   	std::vector<double> vertX, vertY;
-    std::cout << std::endl;
   	for( unsigned int iVert = 0; iVert < nSides; ++iVert ){
   		double theta = (2. * iVert) * M_PI / nSides;
   		vertX.push_back(outerRadius * cos(theta));
   		vertY.push_back(outerRadius * sin(theta));
-      std::cout << "pl->SetNextPoint(" << vertX.at(vertX.size() - 1)/10. << ", " << vertY.at(vertY.size() - 1)/10. << ")" << std::endl;
   	}
-    std::cout << std::endl;
 
     // std::cout << "Point = (" << point.x() << "," << point.y() << std::endl;
     double angleToPoint = point.phi();
