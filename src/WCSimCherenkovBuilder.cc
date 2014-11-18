@@ -492,32 +492,38 @@ WCSimGeoConfig * WCSimCherenkovBuilder::GetGeoConfig() const {
 void WCSimCherenkovBuilder::GetMeasurements()
 {
     if( fGotMeasurements) { return; }
+    double epsilon = 0.00001 * mm; // Add a tiny bit of gap between supposedly overlapping volumes 
+                                   // to prevent Geant4 getting stuck at the tracking action
+    int nEpsilons = 5;
 
     // Barrel measurements
     fBarrelRadius = fGeoConfig->GetOuterRadius() + 1*m; // Make it 1m bigger in radius
     fBarrelHeight = fGeoConfig->GetInnerHeight() + 2* fBlacksheetThickness + 2 * GetMaxTopExposeHeight() + 2*m;  // and half-height
     fBarrelLengthForCells = fGeoConfig->GetInnerHeight() - 2.0 * GetMaxTopExposeHeight();
 
-    fPrismRadiusInside = fGeoConfig->GetInnerRadius();
-    fPrismRadiusOutside = fGeoConfig->GetInnerRadius() + fBlacksheetThickness + GetMaxBarrelExposeHeight();
+    fPrismRadiusInside = fGeoConfig->GetInnerRadius() - epsilon;
+    fPrismRadiusOutside = fGeoConfig->GetInnerRadius() + fBlacksheetThickness + GetMaxBarrelExposeHeight() + nEpsilons * epsilon;
     fPrismHeight = fBarrelLengthForCells;
 
-    fPrismRingRadiusInside = fPrismRadiusInside;
-    fPrismRingRadiusOutside = fPrismRadiusOutside;
+    assert(--nEpsilons > 0);
+    fPrismRingRadiusInside = fPrismRadiusInside + epsilon;
+    fPrismRingRadiusOutside = fPrismRadiusOutside - epsilon;
 
-    fPrismRingSegmentRadiusInside = fPrismRadiusInside;
-    fPrismRingSegmentRadiusOutside = fPrismRadiusOutside;
+    assert(--nEpsilons > 0);
+    fPrismRingSegmentRadiusInside = fPrismRadiusInside-1*mm + epsilon;
+    fPrismRingSegmentRadiusOutside = fPrismRadiusOutside+1*mm - epsilon;
     fPrismRingSegmentDPhi = 360*deg / fGeoConfig->GetNSides();
 
-    fPrismRingSegmentBSRadiusInside = fPrismRadiusOutside - fBlacksheetThickness;
-    fPrismRingSegmentBSRadiusOutside = fPrismRadiusOutside;
+    assert(--nEpsilons > 0);
+    fPrismRingSegmentBSRadiusInside = fPrismRingSegmentRadiusOutside - fBlacksheetThickness + epsilon;
+    fPrismRingSegmentBSRadiusOutside = fPrismRingSegmentRadiusOutside+1*mm - epsilon;
     
     // Now optimize the cell sizes to work out the prism ring heights:
     CalculateCellSizes();
     
     fPrismRingHeight = fPrismHeight / fWallCellsZ;
-    fPrismRingSegmentHeight = fPrismRingHeight;
-    fPrismRingSegmentBSHeight = fPrismRingHeight;
+    fPrismRingSegmentHeight = fPrismRingHeight - epsilon;
+    fPrismRingSegmentBSHeight = fPrismRingSegmentHeight - epsilon;
 
     // Cap measurements
 	  fCapAssemblyHeight = fBlacksheetThickness + GetMaxTopExposeHeight() + 0.5 * (fGeoConfig->GetInnerHeight() - fBarrelLengthForCells);
