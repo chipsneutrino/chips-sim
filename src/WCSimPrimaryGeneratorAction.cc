@@ -132,7 +132,6 @@ void WCSimPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 					G4cout << "Loading next vector file" << G4endl;
 					token = readInLine(inputFile, lineSize, inBuf);
 				}
-      else if (token[0] != "begin")
 			}
 
 			if( token.size() != 0)
@@ -359,7 +358,7 @@ void WCSimPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 // Returns a vector with the tokens
 vector<string> tokenize(string separators, string input)
 {
-  unsigned int startToken = 0, endToken; // Pointers to the token pos
+  std::size_t startToken = 0, endToken; // Pointers to the token pos
 	vector<string> tokens;  // Vector to keep the tokens
 
 	if (separators.size() > 0 && input.size() > 0)
@@ -372,7 +371,6 @@ vector<string> tokenize(string separators, string input)
 
       // If found...
       if( startToken != input.npos ) 
-			if (startToken != nposType)
       {
         // Find end of token
         endToken = input.find_first_of( separators, startToken );
