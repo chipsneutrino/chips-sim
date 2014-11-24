@@ -135,6 +135,11 @@ WCSimGeoConfig WCSimGeoManager::GetGeometryByName(std::string name) const{
 	}
 	else{
 		std::cerr << "WCSIMGeoManager::GetGeometryByName: Geometry " << name << " does not exist. Returned default WCSimGeoConfig object." << std::endl;
+    std::cerr << "Available geometries are:" << std::endl;
+    for( unsigned int iVec = 0; iVec < fGeoVector.size(); ++iVec)
+    {
+      std::cerr << fGeoVector.at(iVec).GetGeoName() << std::endl;
+    }
 	}
 
 	return curGeo;		

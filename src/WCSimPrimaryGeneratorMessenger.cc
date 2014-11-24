@@ -68,8 +68,8 @@ void WCSimPrimaryGeneratorMessenger::SetNewValue(G4UIcommand * command,G4String 
 
   if( command == fileNameCmd )
   {
-    myAction->OpenVectorFile(newValue);
-    G4cout << "Input vector file set to " << newValue << G4endl;
+    myAction->AddVectorFile(newValue);
+    G4cout << "Added new input vector file from " << newValue << G4endl;
   }
 
 }

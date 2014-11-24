@@ -81,4 +81,16 @@ pmtRatio
   />
 </geoDef>
 
-
+<!-- CHIPS pancake shape for staging,  with 10% coverage of 10" HQE PMTs -->
+<geoDef
+	name="CHIPS_pancake_10inch_HQE_10perCent"
+	innerRadius="15.0"
+	innerHeight="5.0"
+	nSides="20"
+	perCentCoverage="10">
+  <cellPMTDef
+   cellPMTName="10inch_HQE"
+   cellPMTX="0.5"
+   cellPMTY="0.5"
+  />
+</geoDef>
