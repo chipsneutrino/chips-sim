@@ -222,108 +222,29 @@ void WCSimEvDisplay::FillPlotsFromWCSimEvent(){
 
 	this->UpdateCanvases();
 }
-/*
-void WCSimEvDisplay::FillPlotsFromPhotonEvent(){
-
-	// First thing we need to do is clear the plots
-	this->ClearPlots();
-
-	int eventID;
-	float vtxX, vtxY, vtxZ;
-	float endX, endY, endZ;
-	float endDirX, endDirY, endDirZ;
-	float endTime;
-
-	bool slanted = false;
-
-	// Firstly we need to attach some variables to the TChain.
-	fChain->SetBranchAddress("eventID",&eventID);
-	fChain->SetBranchAddress("vtxX",&vtxX);
-	fChain->SetBranchAddress("vtxY",&vtxY);
-	fChain->SetBranchAddress("vtxZ",&vtxZ);
-	fChain->SetBranchAddress("endX",&endX);
-	fChain->SetBranchAddress("endY",&endY);
-	fChain->SetBranchAddress("endZ",&endZ);
-	fChain->SetBranchAddress("endTime",&endTime);
-	fChain->SetBranchAddress("enddirX",&endDirX);
-	fChain->SetBranchAddress("enddirY",&endDirY);
-	fChain->SetBranchAddress("enddirZ",&endDirZ);
-
-	for(int i = 0; i < fChain->GetEntries(); ++i){
-
-		fChain->GetEntry(i);
-
-		// Should be ordered by event. If less than the event we want, continue.
-		if(eventID < fCurrentEvent) continue;
-		// If bigger, may as well break out of the loop to save wasting time.
-		if(eventID > fCurrentEvent) break; 
-
-		// Did the photon start in the detector?
-		if(!this->PhotonStartedInDet(vtxX,vtxY,vtxZ)) continue;
-
-		// Make sure the photon was detected within a reasonable time
-		if(endTime > 1000) continue;
-
-		// If it is too steep, we can't see it with slanted PMTs.
-		if(slanted && endDirZ < -(1.0 / sqrt(2))) continue; 
-
-//		Float_t radius = sqrt(endX*endX + endY*endY);
-		Float_t phi = -1*TMath::ATan2(endY,endX);
-
-//		std::cout << endX << ", " << endY << " || " << radius << ", " << theta << std::endl;
-		if(endZ > 1740){
-			// Only want photons coming upwards
-			if(endDirZ < 0) continue; // Just incase we missed any dodgy photons
-			fTopHist->Fill(endX,endY);
-		}
-		else if(endZ < -1740){
-		// Only want photons going downwards
-			if(slanted) continue; // The bottom is pointless if we are being realistic
-			if(endDirZ > 0) continue; // Just incase we missed any dodgy photons
-			fBottomHist->Fill(endX,endY);
-		}
-		else{
-			fBarrelHist->Fill(phi,endZ);
-		}
-	}
-
-	this->UpdateCanvases();
-
-}
-*/
 
 // Switch the z-axis scale to show charge.
 void WCSimEvDisplay::SetViewCharge(){
-//	if(fFileType == 0){
-		if(fViewType != 0){
-			fViewType = 0;
-			std::cout << "Setting colour axis to charge" << std::endl;
-			this->FillPlotsFromWCSimEvent();
-		}
-		else{
-			std::cout << "Already viewing charge." << std::endl;
-		}
-//	}
-//	else{
-//		std::cout << "This toggle only applies for WCSim files." << std::endl;
-//	}
+	if(fViewType != 0){
+		fViewType = 0;
+		std::cout << "Setting colour axis to charge" << std::endl;
+		this->FillPlotsFromWCSimEvent();
+	}
+	else{
+		std::cout << "Already viewing charge." << std::endl;
+	}
 }
 
 // Switch the z-axis scale to show time.
 void WCSimEvDisplay::SetViewTime(){
-//	if(fFileType == 0){
-		if(fViewType != 1){
-			fViewType = 1;
-			std::cout << "Setting colour axis to time" << std::endl;
-			this->FillPlotsFromWCSimEvent();
-		}
-		else{
-			std::cout << "Already viewing time." << std::endl;
-		}
-//	}
-//	else{
-//		std::cout << "This toggle only applies for WCSim files." << std::endl;
-//	}
+  if(fViewType != 1){
+		fViewType = 1;
+		std::cout << "Setting colour axis to time" << std::endl;
+		this->FillPlotsFromWCSimEvent();
+	}
+	else{
+		std::cout << "Already viewing time." << std::endl;
+	}
 }
 
 // Update the charge cut
