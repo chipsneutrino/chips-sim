@@ -14,6 +14,8 @@
 #include <TChain.h>
 #include <TGFileDialog.h>
 #include <TGMenu.h>
+#include <TGNumberEntry.h>
+#include <TGLabel.h>
 //#include <TRootEmbeddedCanvas.h>
 //#include <RQ_OBJECT.h>
 #include "WCSimEvDisplay.hh"
@@ -38,6 +40,10 @@ WCSimEvDisplay::WCSimEvDisplay(const TGWindow *p,UInt_t w,UInt_t h) : TGMainFram
 	// Initialise the TChain pointers
 	fChain = 0x0; 
   fGeomTree = 0x0;
+
+  // Initialise the TGNumberEntry
+  fPEInput = 0x0;
+  fChargeCut = 0;
 
 	// Set up some plot style
 	this->SetStyle();
@@ -129,6 +135,19 @@ void WCSimEvDisplay::CreateSubButtonBar(){
 	TGTextButton *togHists = new TGTextButton(hWCSimButtons,"Toggle 1D Plots");
 	togHists->Connect("Clicked()","WCSimEvDisplay",this,"Toggle1DHists()");
 	hWCSimButtons->AddFrame(togHists, new TGLayoutHints(kLHintsCenterX,5,5,3,4));
+
+  // Numeric entry field for the PE threshold
+  fPEInput = new TGNumberEntry(hWCSimButtons,0,9,999,TGNumberFormat::kNESRealOne,
+                               TGNumberFormat::kNEANonNegative);
+  // TGNumberEntry has two ways to set numbers, so two connects
+  fPEInput->Connect("ValueSet(Long_t)","WCSimEvDisplay",this,"SetChargeCut()");
+  (fPEInput->GetNumberEntry())->Connect("ReturnPressed()","WCSimEvDisplay",this,"SetChargeCut()");
+  // Make a label to go along side it
+  TGLabel *peLabel = new TGLabel(hWCSimButtons,"Charge Cut:");
+	hWCSimButtons->AddFrame(peLabel, new TGLayoutHints(kLHintsCenterX&&kLHintsCenterY,5,5,3,4));
+	hWCSimButtons->AddFrame(fPEInput, new TGLayoutHints(kLHintsCenterX,5,5,3,4));
+
+  // Add the TGHorizontalFrame to the main layout
 	this->AddFrame(hWCSimButtons,new TGLayoutHints(kLHintsCenterX,2,2,2,2));
 }
 
@@ -173,21 +192,27 @@ void WCSimEvDisplay::FillPlotsFromWCSimEvent(){
 		double colourAxis = pmtQ;
 		if(fViewType == 1) colourAxis = pmtT;
 
-		// Top cap
-		if(pmt.GetCylLoc() == 0){
-			fTopHist->Fill(pmtX,pmtY,colourAxis);
-		}
-		// Bottom cap
-		else if(pmt.GetCylLoc() == 2){
-			fBottomHist->Fill(pmtX,pmtY,colourAxis);
-		}
-		// Barrel
-		else{
-			fBarrelHist->Fill(pmtPhi,pmtZ,colourAxis);
-		}
-		// Now fill the 1D histograms
-		fChargeHist->Fill(pmtQ);	 
-		fTimeHist->Fill(pmtT);	 
+    // Make sure we pass the charge cut
+    if(pmtQ > fChargeCut){
+
+	  	// Top cap
+  		if(pmt.GetCylLoc() == 0){
+  			fTopHist->Fill(pmtY,pmtX,colourAxis);
+  		}
+  		// Bottom cap
+  		else if(pmt.GetCylLoc() == 2){
+  			fBottomHist->Fill(pmtY,pmtX,colourAxis);
+  		}
+  		// Barrel
+  		else{
+  			fBarrelHist->Fill(pmtPhi,pmtZ,colourAxis);
+  		}
+
+		  // Now fill the 1D histograms
+		  fChargeHist->Fill(pmtQ);	 
+		  fTimeHist->Fill(pmtT);	 
+    }
+
 
 	} // End of loop over Cherenkov digihits
 
@@ -297,6 +322,16 @@ void WCSimEvDisplay::SetViewTime(){
 	else{
 		std::cout << "This toggle only applies for WCSim files." << std::endl;
 	}
+}
+
+// Update the charge cut
+void WCSimEvDisplay::SetChargeCut(){
+
+  // Update the charge cut
+  fChargeCut = fPEInput->GetNumberEntry()->GetNumber();
+  // Redraw the event
+  this->FillPlotsFromWCSimEvent();
+
 }
 
 // Show or hide the 1D plots.
@@ -759,12 +794,12 @@ void WCSimEvDisplay::ResizePlotsFromGeometry(){
 	if(fTopHist){
 		delete fTopHist;
 	}
-	fTopHist = new TH2D("topHist","Top Cap;x/cm;y/cm",nBinsX,xMin,xMax,nBinsY,yMin,yMax);
+	fTopHist = new TH2D("topHist","Top Cap;y/cm;x/cm",nBinsX,xMin,xMax,nBinsY,yMin,yMax);
 	fTopHist->SetDirectory(0);
 	if(fBottomHist){
 		delete fBottomHist;
 	}
-	fBottomHist = new TH2D("BottomHist","Bottom Cap;x/cm;y/cm",nBinsX,xMin,xMax,nBinsY,yMin,yMax);
+	fBottomHist = new TH2D("BottomHist","Bottom Cap;y/cm;x/cm",nBinsX,xMin,xMax,nBinsY,yMin,yMax);
 	fBottomHist->SetDirectory(0);
 	if(fChargeHist){
 		delete fChargeHist;
@@ -797,11 +832,11 @@ void WCSimEvDisplay::ResizePlotsFromNtuple(){
 	if(fTopHist){
 		delete fTopHist;
 	}
-	fTopHist = new TH2D("topHist","Top Cap;x/mm;y/mm",100,xMin,xMax,100,yMin,yMax);
+	fTopHist = new TH2D("topHist","Top Cap;y/mm;x/mm",100,xMin,xMax,100,yMin,yMax);
 	if(fBottomHist){
 		delete fBottomHist;
 	}
-	fBottomHist = new TH2D("BottomHist","Bottom Cap;x/mm;y/mm",100,xMin,xMax,100,yMin,yMax);
+	fBottomHist = new TH2D("BottomHist","Bottom Cap;y/mm;x/mm",100,xMin,xMax,100,yMin,yMax);
 	fBarrelHist->SetDirectory(0);	
 	fTopHist->SetDirectory(0);	
 	fBottomHist->SetDirectory(0);

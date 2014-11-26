@@ -10,6 +10,7 @@ class TGWindow;
 class TRootEmbeddedCanvas;
 class TPad;
 class TGHorizontalFrame;
+class TGNumberEntry;
 
 class WCSimEvDisplay : public TGMainFrame {
 private:
@@ -21,6 +22,8 @@ private:
 	TPad *fBottomPad;
 	TPad *fTimePad;
 	TPad *fChargePad;
+  // Add a truth information pad
+  TPad *fTruthPad;
 
 	// The three 2D histograms that show the hits
 	TH2D *fBarrelHist;
@@ -63,6 +66,10 @@ private:
 	// The current file to look at
 	TChain *fChain;
 	TChain *fGeomTree;
+
+  // Charge cut and corresponding entry box
+  TGNumberEntry *fPEInput;
+  double fChargeCut;
 
 	// Flag to decide whether we show the 1D plots
 	bool fShow1DHists;
@@ -135,6 +142,9 @@ public:
 	// Toggles for buttons to view charge or time for the WCSim files
 	void SetViewCharge();
 	void SetViewTime();
+
+  // Slot for updating the PE cut
+  void SetChargeCut();
 
 	// Button to hide the 1D plots since we don't always want them visible
 	void Toggle1DHists();
