@@ -52,10 +52,9 @@ private:
 	// Maximum value for event counter, from file.
 	int fMaxEvent;
 
-	// Do we have a photon ntuple or WCSim file?
+	// Do we have a WCSim file loaded?
 	// -1 = not set
 	// 0 = WCSim file
-	// 1 = Photon Ntuple
 	int fFileType;
 
 	// Do we want to look at charge or time?
@@ -74,19 +73,15 @@ private:
 	// Flag to decide whether we show the 1D plots
 	bool fShow1DHists;
 	// Function to update the pads as a result.
-	void ResizePads(bool forceHide = false);
+	void ResizePads();
+
+  // Default construct some plots
+  void MakeDefaultPlots();
 
 	// Function to draw plots from the standard WCSim files
 	void FillPlotsFromWCSimEvent();
 	// Use the geometry to resize the plots.
 	void ResizePlotsFromGeometry();
-	// Resize the plots for the photon ntuple...
-	void ResizePlotsFromNtuple();
-
-	// Function to fill the plots using photon ntuples
-	void FillPlotsFromPhotonEvent();
-	// Check if the photon started in the detector.
-	bool PhotonStartedInDet(Float_t vx, Float_t vy, Float_t vz);
 
 	// Function to clear the plots 
 	void ClearPlots();

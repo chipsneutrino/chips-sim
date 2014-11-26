@@ -79,7 +79,7 @@ WCSimEvDisplay::WCSimEvDisplay(const TGWindow *p,UInt_t w,UInt_t h) : TGMainFram
 	this->CreateMainButtonBar();
 
 	// Initialise the histograms and display them.
-	this->ResizePlotsFromNtuple();
+//	this->ResizePlotsFromNtuple();
 
   // Set a name to the main frame
   this->SetWindowName("CHIPS Event Display");
@@ -90,7 +90,8 @@ WCSimEvDisplay::WCSimEvDisplay(const TGWindow *p,UInt_t w,UInt_t h) : TGMainFram
   // Map main frame
   this->MapWindow();
 
-	// Display the plots
+	// Create temporary dummy plots then update them later
+  this->MakeDefaultPlots();
 	this->UpdateCanvases();
 
 	// Set the current event to the default value of 0.
@@ -221,7 +222,7 @@ void WCSimEvDisplay::FillPlotsFromWCSimEvent(){
 
 	this->UpdateCanvases();
 }
-
+/*
 void WCSimEvDisplay::FillPlotsFromPhotonEvent(){
 
 	// First thing we need to do is clear the plots
@@ -289,10 +290,11 @@ void WCSimEvDisplay::FillPlotsFromPhotonEvent(){
 	this->UpdateCanvases();
 
 }
+*/
 
 // Switch the z-axis scale to show charge.
 void WCSimEvDisplay::SetViewCharge(){
-	if(fFileType == 0){
+//	if(fFileType == 0){
 		if(fViewType != 0){
 			fViewType = 0;
 			std::cout << "Setting colour axis to charge" << std::endl;
@@ -301,15 +303,15 @@ void WCSimEvDisplay::SetViewCharge(){
 		else{
 			std::cout << "Already viewing charge." << std::endl;
 		}
-	}
-	else{
-		std::cout << "This toggle only applies for WCSim files." << std::endl;
-	}
+//	}
+//	else{
+//		std::cout << "This toggle only applies for WCSim files." << std::endl;
+//	}
 }
 
 // Switch the z-axis scale to show time.
 void WCSimEvDisplay::SetViewTime(){
-	if(fFileType == 0){
+//	if(fFileType == 0){
 		if(fViewType != 1){
 			fViewType = 1;
 			std::cout << "Setting colour axis to time" << std::endl;
@@ -318,10 +320,10 @@ void WCSimEvDisplay::SetViewTime(){
 		else{
 			std::cout << "Already viewing time." << std::endl;
 		}
-	}
-	else{
-		std::cout << "This toggle only applies for WCSim files." << std::endl;
-	}
+//	}
+//	else{
+//		std::cout << "This toggle only applies for WCSim files." << std::endl;
+//	}
 }
 
 // Update the charge cut
@@ -349,7 +351,6 @@ void WCSimEvDisplay::Toggle1DHists(){
 	}
 	this->ResizePads();
 }
-
 void WCSimEvDisplay::ClearPlots(){
 
 	fBarrelHist->Reset();
@@ -421,15 +422,12 @@ void WCSimEvDisplay::MatchPlotZAxes(){
 }
 
 // Resize the pads when hiding / showing the 1D plots
-// The "forceHide" option is to switch the plots off
-// for the ntuple file whilst making sure fShow1DHists
-// is intact for switching back to WCSim files.
-void WCSimEvDisplay::ResizePads(bool forceHide){
+void WCSimEvDisplay::ResizePads(){
 
 	TCanvas *can = fHitMapCanvas->GetCanvas();
 	can->cd();
 	// Are the 1D plots visible?
-	if(!forceHide && fShow1DHists){
+	if(fShow1DHists){
 		fBarrelPad->SetPad(0.0,0.6,1.0,1.0);
 		fTopPad->SetPad(0.0,0.2,0.5,0.6);
 		fBottomPad->SetPad(0.5,0.2,1.0,0.6);
@@ -495,12 +493,7 @@ void WCSimEvDisplay::NextEvent() {
 		if(fCurrentEvent < fMaxEvent){
 			++fCurrentEvent;
 			std::cout << "Moving to event " << fCurrentEvent << std::endl;
-			if(fFileType == 1){
-				this->FillPlotsFromPhotonEvent();	
-			}
-			else{
-				this->FillPlotsFromWCSimEvent();
-			}
+			this->FillPlotsFromWCSimEvent();
 		}
 		else{
 			std::cout << "Already at the final event" << std::endl;
@@ -517,12 +510,7 @@ void WCSimEvDisplay::PrevEvent(){
 		if(fCurrentEvent > fMinEvent){
 			--fCurrentEvent;
 			std::cout << "Moving to event " << fCurrentEvent << std::endl;
-			if(fFileType == 1){
-				this->FillPlotsFromPhotonEvent();	
-			}
-			else{
-				this->FillPlotsFromWCSimEvent();
-			}
+			this->FillPlotsFromWCSimEvent();
 		}
 		else{
 			std::cout << "Already at the first event" << std::endl;
@@ -560,39 +548,14 @@ void WCSimEvDisplay::OpenFile(std::string name){
 	if(name != ""){
 		// Quick test to see if the file contains what we need
 		TFile tempFile(name.c_str(),"READ");
-		if(tempFile.Get("ntuple")){
-			this->OpenNtupleFile(name);
-		}
-		else if(tempFile.Get("wcsimT")){
+    if(tempFile.Get("wcsimT")){
 			this->OpenWCSimFile(name);
 		}
 		else{
-			std::cout << "Selected file is not a WCSim or PhotonNtp file." << std::endl;
+			std::cout << "Selected file is not a WCSim file." << std::endl;
 		}
 		tempFile.Close();
 	}
-}
-
-void WCSimEvDisplay::OpenNtupleFile(std::string name){
-	fFileType = 1; // We have a photon ntuple
-	// Don't show the 1D plots
-	this->ResizePads(1);
-	// Hide the WCSim buttons if they are visible.
-	if(this->IsVisible(hWCSimButtons)){
-		this->HideFrame(hWCSimButtons);
-	}
-	if(fChain != 0x0){
-	  delete fChain;
-	}
-	fChain = new TChain("ntuple");
-	fChain->Reset();
-	fChain->Add(name.c_str());
-	this->ResizePlotsFromNtuple();
-	// Find out what the minimum and maximum event numbers are.
-	this->GetMinMaxPhotonEvents();
-	// Display the first event
-	fCurrentEvent = fMinEvent;
-	this->FillPlotsFromPhotonEvent();
 }
 
 void WCSimEvDisplay::OpenWCSimFile(std::string name){
@@ -644,21 +607,6 @@ void WCSimEvDisplay::SaveEvent(){
 	else{
 		std::cout << "Need to open a file to save a plot." << std::endl;
 	}
-}
-
-void WCSimEvDisplay::GetMinMaxPhotonEvents(){
-	
-	int eventID;
-
-	fChain->SetBranchAddress("eventID",&eventID);
-
-	fChain->GetEntry(0);
-	fMinEvent = eventID;
-
-	fChain->GetEvent(fChain->GetEntries()-1);
-	fMaxEvent = eventID;
-
-	std::cout << "Event range = " << fMinEvent << " to " << fMaxEvent << std::endl;
 }
 
 void WCSimEvDisplay::CloseWindow(){
@@ -816,85 +764,12 @@ void WCSimEvDisplay::ResizePlotsFromGeometry(){
 	geo = 0x0;
 }
 
-void WCSimEvDisplay::ResizePlotsFromNtuple(){
-	double phiMin = TMath::Pi()* -1;
-	double phiMax = TMath::Pi();
-	double xMin = -1700;
-	double xMax = 1700;
-	double yMin = -1700;
-	double yMax = 1700;
-	double zMin = -1800;
-	double zMax = 1800;
-	if(fBarrelHist){
-		delete fBarrelHist;
-	}
-	fBarrelHist = new TH2D("barrelHist","Barrel;#phi = atan(y/x);z/mm",250,phiMin,phiMax,100,zMin,zMax);
-	if(fTopHist){
-		delete fTopHist;
-	}
-	fTopHist = new TH2D("topHist","Top Cap;y/mm;x/mm",100,xMin,xMax,100,yMin,yMax);
-	if(fBottomHist){
-		delete fBottomHist;
-	}
-	fBottomHist = new TH2D("BottomHist","Bottom Cap;y/mm;x/mm",100,xMin,xMax,100,yMin,yMax);
-	fBarrelHist->SetDirectory(0);	
-	fTopHist->SetDirectory(0);	
-	fBottomHist->SetDirectory(0);
-	if(fChargeHist){
-		delete fChargeHist;
-	}
-	fChargeHist = new TH1D("chargeHist","Charge;Charge / PE",100,0,25);	
-	fChargeHist->SetDirectory(0);
-	if(fTimeHist){
-		delete fTimeHist;
-	}
-	fTimeHist = new TH1D("timeHist","Time;Time / ns",100,0,1000);	
-	fTimeHist->SetDirectory(0);
+void WCSimEvDisplay::MakeDefaultPlots(){
+	fBarrelHist = new TH2D("barrelHist","Barrel;#phi = atan(y/x);z/cm",1,0,1,1,0,1);
+	fTopHist = new TH2D("topHist","Top Cap;y/cm;x/cm",1,0,1,1,0,1);
+	fBottomHist = new TH2D("BottomHist","Bottom Cap;y/cm;x/cm",1,0,1,1,0,1);
+	fChargeHist = new TH1D("chargeHist","Charge;Charge / PE",1,0,1);	
+	fTimeHist = new TH1D("timeHist","Time;Time / ns",1,0,1);	
 }
 
-bool WCSimEvDisplay::PhotonStartedInDet(Float_t vx, Float_t vy, Float_t vz){
 
-	double zCut = 1770;
-	if(vz > zCut) return false; // Top
-	if(vz < -zCut) return false; // Bottom
-
-	// Barrel
-	double vr = sqrt(vx*vx + vy*vy);
-	if(vr > 1700) return false;
-	// Try to be a bit cleverer...
-	bool keep = false;
-	double h = 1625;
-	// For an octagon define inside a square of halfwidth h.
-	// The straight edge parts extend from -2h/5 to 
-	// 2h/5
-	// Central x part
-	if(vx > -h/2.5 && vx < h/2.5){
- 		keep = true;
-	}
-	// Central y part
-	else if(vy > -h/2.5 && vy < h/2.5){
-		keep = true;
-	}
-	// x > 640 && y > 640
-	else if(vx > h/2.5 && vy > h/2.5){
-		// Equation of fidicual line: y = -x + 7h/5
-		if(vy <= (-vx) + 7*h/5.0) keep = true;
-	}
-	// x > 640 && y < 640
-	else if(vx > h/2.5 && vy < -h/2.5){
-		// Equation of fidicual line: y = x - 7h/5
-		if(vy >= vx + 7*h/5.0) keep = true;
-	}
-	// x < 640 && y < 640
-	else if(vx < -h/2.5 && vy < -h/2.5){
-		// Equation of fidicual line: y = -x -7h/5
-		if(vy >= (-vx) + 7*h/5.0) keep = true;
-	}
-	// x < 640 && y > 640
-	else if(vx < -h/2.5 && vy > h/2.5){
-		// Equation of fidicual line: y = x + 7h/5
-		if(vy <= vx + 7*h/5.0) keep = true;
-	}
-
-	return keep;
-}
