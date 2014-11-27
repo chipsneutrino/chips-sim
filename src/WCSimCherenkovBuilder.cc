@@ -129,7 +129,7 @@ void WCSimCherenkovBuilder::SetCustomGeometry()
   delete manager;
 
   ResetPMTConfigs();
-  std::vector< std::string> pmtNames = fGeoConfig->GetCellPMTName();
+  std::vector< std::string> pmtNames = fGeoConfig->GetPMTNamesUsed();
   for(std::vector<std::string>::const_iterator pmtItr = pmtNames.begin(); pmtItr != pmtNames.end(); ++pmtItr)
   {
     fPMTConfigs.push_back(fPMTManager->GetPMTByName(*pmtItr));
@@ -368,7 +368,6 @@ void WCSimCherenkovBuilder::CreateRingSegments() {
 																	false, 0, true);
 
 	G4LogicalBorderSurface * WaterBSBarrelCellSurface = NULL;
-	// TODO: rip this out of WCSimConstructMaterials
 	WaterBSBarrelCellSurface = new G4LogicalBorderSurface("WaterBSBarrelCellSurface",
 														  segmentPhysic,
 														  segmentBlacksheetPhysic,
@@ -467,7 +466,7 @@ void WCSimCherenkovBuilder::PlaceBarrelPMTs()
       std::cout << " PMT logical volume name = " << fPMTBuilder.GetPMTLogicalVolume(config)->GetName() << std::endl;
 			G4VPhysicalVolume* physiWCBarrelPMT = new G4PVPlacement(WCPMTRotation,     // its rotation
 																	PMTPosition,
-																	fPMTBuilder.GetPMTLogicalVolume(config),        // its logical volume // TODO: GET THIS SOMEHOW/
+																	fPMTBuilder.GetPMTLogicalVolume(config),        // its logical volume //
 																	"WCPMT",           // its name
 																	fSegmentLogic,      // its mother volume
 																	false,             // no boolean operations
@@ -575,9 +574,9 @@ double WCSimCherenkovBuilder::GetMaxBarrelExposeHeight() {
 
 void WCSimCherenkovBuilder::ConstructUnitCells() {
   fGeoConfig->Print();
-  std::vector<double> pmtX     = fGeoConfig->GetCellPMTX();
-  std::vector<double> pmtY     = fGeoConfig->GetCellPMTY();
-  std::vector<std::string> pmtNames = fGeoConfig->GetCellPMTName();
+  std::vector<double> pmtX     = fGeoConfig->GetCellPMTX(WCSimGeometryEnums::DetectorRegion_t::kWall, 0);
+  std::vector<double> pmtY     = fGeoConfig->GetCellPMTY(WCSimGeometryEnums::DetectorRegion_t::kWall, 0);
+  std::vector<std::string> pmtNames = fGeoConfig->GetCellPMTName(WCSimGeometryEnums::DetectorRegion_t::kWall, 0);
   assert( pmtX.size() == pmtY.size() && pmtX.size() == pmtNames.size() );
 
   WCSimUnitCell * cell = new WCSimUnitCell();
@@ -786,7 +785,7 @@ void WCSimCherenkovBuilder::ConstructEndCap(G4int zflip) {
 }
 
 void WCSimCherenkovBuilder::ConstructEndCapFrame(G4int zflip){
-	// TODO: Set these variables once in a single function, then get them from there
+
 	G4LogicalVolume * capLogic = NULL;
 	assert( capLogic == NULL);
 
@@ -926,7 +925,7 @@ void WCSimCherenkovBuilder::ConstructEndCapRingSegments( G4int zflip )
 
   std::cout << "But not here?" << std::endl;
 	G4LogicalBorderSurface * WaterBSCapCellSurface = NULL;
-	// TODO: rip this out of WCSimConstructMaterials
+
 	WaterBSCapCellSurface = new G4LogicalBorderSurface("WaterBSCapCellSurface",
 														capSegmentPhysic,
 														capSegmentBlacksheetPhysic,
@@ -1269,7 +1268,7 @@ void WCSimCherenkovBuilder::SetPositions()
 	 // (tangent distance). Thus distances between the corner and the center are bigger.
 	 WCLength = WCIDHeight + 2 * 2.3 * m;//jl145 - reflects top veto blueprint, cf. Farshid Feyzi
 	 WCRadius = (WCIDDiameter / 2. + fBlacksheetThickness + 1.5 * m)
-	 / cos(dPhi / 2.); // TODO: OD
+	 / cos(dPhi / 2.);
 
 	 // now we know the extend of the detector and are able to tune the tolerance
 	 G4GeometryManager::GetInstance()->SetWorldMaximumExtent( WCLength > WCRadius ? WCLength : WCRadius);
