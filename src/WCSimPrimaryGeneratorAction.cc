@@ -1,6 +1,7 @@
 #include "WCSimPrimaryGeneratorAction.hh"
 #include "WCSimDetectorConstruction.hh"
 #include "WCSimPrimaryGeneratorMessenger.hh"
+#include "WCSimTruthSummary.hh"
 
 #include "G4Event.hh"
 #include "G4ParticleGun.hh"
@@ -86,6 +87,9 @@ WCSimPrimaryGeneratorAction::~WCSimPrimaryGeneratorAction()
 void WCSimPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 {
 
+  // Reset the truth information
+  fTruthSummary.ResetValues();
+
   // We will need a particle table
   G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
 
@@ -128,18 +132,23 @@ void WCSimPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 
 	    token = readInLine(inputFile, lineSize, inBuf);
 	    mode = atoi(token[1]);
+      // The nuance line contains the interaction mode. Bag it and tag it.
+      fTruthSummary.SetInteractionMode(atoi(token[1]));
 
 	    // Read the Vertex line
 	    token = readInLine(inputFile, lineSize, inBuf);
 	    vtx = G4ThreeVector(atof(token[1])*cm,
 				atof(token[2])*cm,
 				atof(token[3])*cm);
+      // Set the vertex
+      fTruthSummary.SetVertex(atof(token[1])*cm,atof(token[2])*cm,atof(token[3])*cm);
 
         if(useXAxisForBeam)
         {
             vtx = G4ThreeVector(atof(token[3])*cm,
                     atof(token[2])*cm,
                     atof(token[1])*cm);
+          fTruthSummary.SetVertex(atof(token[3])*cm,atof(token[2])*cm,atof(token[1])*cm);
         }
 			
 		std::cerr << " About to do the random vertex " << std::endl;
@@ -158,6 +167,7 @@ void WCSimPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 				double vtxY = (G4UniformRand() - 0.5) * yMax;
 				double vtxZ = (G4UniformRand() - 0.5) * zMax;
 				vtx = G4ThreeVector(vtxX, vtxY, vtxZ);
+        fTruthSummary.SetVertex(vtxX,vtxY,vtxZ);
 			}
 			else
 			{
@@ -166,6 +176,7 @@ void WCSimPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 				zRand = (G4UniformRand() - 0.5) * myDetector->GetWCCylInfo(2);
 				thetaRand = (G4UniformRand()) * 2.0 * M_PI;
  				vtx = G4ThreeVector(rRand*cos(thetaRand),rRand*sin(thetaRand),zRand); 
+ 				fTruthSummary.SetVertex(rRand*cos(thetaRand),rRand*sin(thetaRand),zRand); 
 			}
   	}  
   
@@ -175,35 +186,44 @@ void WCSimPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 	    // Next we read the incoming neutrino and target
 	    
 	    // First, the neutrino line
-
 	    token=readInLine(inputFile, lineSize, inBuf);
 	    beampdg = atoi(token[1]);
+      fTruthSummary.SetBeamPDG(atoi(token[1]));
 	    beamenergy = atof(token[2])*MeV;
+      fTruthSummary.SetBeamEnergy(atof(token[2])*MeV);
 	    beamdir = G4ThreeVector(atof(token[3]),
 				    atof(token[4]),
 				    atof(token[5]));
+      fTruthSummary.SetBeamDir(atof(token[3]),atof(token[4]),atof(token[5]));
         if(useXAxisForBeam)
         {
     	    beamdir = G4ThreeVector(atof(token[5]),
 				        atof(token[4]),
 				        atof(token[3]));
+          fTruthSummary.SetBeamDir(atof(token[5]),atof(token[4]),atof(token[3]));
         }
 
 	    // Now read the target line
 
 	    token=readInLine(inputFile, lineSize, inBuf);
 	    targetpdg = atoi(token[1]);
+      fTruthSummary.SetTargetPDG(atoi(token[1]));
 	    targetenergy = atof(token[2])*MeV;
+      fTruthSummary.SetTargetEnergy(atof(token[2])*MeV);
 	    targetdir = G4ThreeVector(atof(token[3]),
 				      atof(token[4]),
 				      atof(token[5]));
+      fTruthSummary.SetTargetDir(atof(token[3]),atof(token[4]),atof(token[5]));
         if(useXAxisForBeam)
         {
     	    targetdir = G4ThreeVector(atof(token[5]),
 				        atof(token[4]),
 				        atof(token[3]));
+          fTruthSummary.SetTargetDir(atof(token[5]),atof(token[4]),atof(token[3]));
         }
 
+/* This next line doesn't exist, so no idea why it is here. There is no counter in the
+   nuance-style files to count which event this is.
 	    // Read the info line, basically a dummy
 	    token=readInLine(inputFile, lineSize, inBuf);
 	    G4cout << "Vector File Record Number " << token[2] << G4endl;
@@ -211,7 +231,7 @@ void WCSimPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 	    
 	    // Now read the outgoing particles
 	    // These we will simulate.
-
+*/
 
 	    while ( token=readInLine(inputFile, lineSize, inBuf),
 		    token[0] == "track" )
@@ -293,6 +313,10 @@ void WCSimPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
     SetBeamEnergy(E);
     SetBeamDir(dir);
     SetBeamPDG(pdg);
+    fTruthSummary.SetVertex(vtx.x(),vtx.y(),vtx.z());
+    fTruthSummary.SetBeamEnergy(E);
+    fTruthSummary.SetBeamPDG(pdg);
+    fTruthSummary.SetBeamDir(dir.x(),dir.y(),dir.z());
   }
   else if (useLaserEvt)
     {
@@ -311,6 +335,10 @@ void WCSimPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       SetBeamEnergy(E);
       SetBeamDir(dir);
       SetBeamPDG(pdg);
+      fTruthSummary.SetVertex(vtx.x(),vtx.y(),vtx.z());
+      fTruthSummary.SetBeamEnergy(E);
+      fTruthSummary.SetBeamPDG(pdg);
+      fTruthSummary.SetBeamDir(dir.x(),dir.y(),dir.z());
     }
   else if (useGpsEvt)
     {
@@ -329,7 +357,12 @@ void WCSimPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       SetBeamEnergy(E);
       SetBeamDir(dir);
       SetBeamPDG(pdg);
+      fTruthSummary.SetVertex(vtx.x(),vtx.y(),vtx.z());
+      fTruthSummary.SetBeamEnergy(E);
+      fTruthSummary.SetBeamPDG(pdg);
+      fTruthSummary.SetBeamDir(dir.x(),dir.y(),dir.z());
     }
+
 }
 
 // Returns a vector with the tokens

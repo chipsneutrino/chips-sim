@@ -265,6 +265,9 @@ void WCSimEventAction::FillRootEvent(G4int event_id,
 
   WCSimRootEvent* wcsimrootsuperevent = GetRunAction()->GetRootEvent();
 
+  // Add the truth information from the WCSimPrimaryActionGenerator
+  wcsimrootsuperevent->SetTruthSummary(generatorAction->GetTruthSummary());
+
   // start with the first "sub-event"
   // if the WC digitization requires it, we will add another subevent
   // for the WC.

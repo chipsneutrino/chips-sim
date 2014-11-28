@@ -16,6 +16,7 @@
 //#include "G4Transform3D.hh"
 
 // #include "WCSimDetectorConstruction.hh"
+#include "WCSimTruthSummary.hh"
 
 class TDirectory;
 
@@ -363,8 +364,15 @@ public:
     tmp->Clear();
   }
 
+  // Get and set the truth summary object
+  WCSimTruthSummary GetTruthSummary() const {return fTruthSummary;};
+  void SetTruthSummary(WCSimTruthSummary ts) {fTruthSummary = ts;};
+
 private:
   //std::vector<WCSimRootTrigger*> fEventList;
+
+  WCSimTruthSummary fTruthSummary;
+
   TObjArray* fEventList;
   Int_t Current;                      //!               means transient, not writable to file
   ClassDef(WCSimRootEvent,1)

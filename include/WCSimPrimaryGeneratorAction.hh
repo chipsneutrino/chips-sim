@@ -5,6 +5,8 @@
 #include "G4ThreeVector.hh"
 #include "globals.hh"
 
+#include "WCSimTruthSummary.hh"
+
 #include <fstream>
 
 class WCSimDetectorConstruction;
@@ -51,11 +53,18 @@ public:
   G4double GetYDir() {return yDir;};
   G4double GetZDir() {return zDir;};
 
+  // Return the truth summary object
+  WCSimTruthSummary GetTruthSummary() const {return fTruthSummary;};
+  void SetTruthSummary(WCSimTruthSummary ts) {fTruthSummary = ts;};
+
 private:
   WCSimDetectorConstruction*      myDetector;
   G4ParticleGun*                  particleGun;
   G4GeneralParticleSource*        MyGPS;  //T. Akiri: GPS to run Laser
   WCSimPrimaryGeneratorMessenger* messenger;
+
+  // Truth Summary object
+  WCSimTruthSummary fTruthSummary;
 
   // Variables set by the messenger
   G4bool   useMulineEvt;
