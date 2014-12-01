@@ -266,7 +266,8 @@ void WCSimEventAction::FillRootEvent(G4int event_id,
   WCSimRootEvent* wcsimrootsuperevent = GetRunAction()->GetRootEvent();
 
   // Add the truth information from the WCSimPrimaryActionGenerator
-  wcsimrootsuperevent->SetTruthSummary(generatorAction->GetTruthSummary());
+  WCSimTruthSummary truthSum = generatorAction->GetTruthSummary();
+  wcsimrootsuperevent->SetTruthSummary(truthSum);
 
   // start with the first "sub-event"
   // if the WC digitization requires it, we will add another subevent
@@ -286,7 +287,7 @@ void WCSimEventAction::FillRootEvent(G4int event_id,
       wcsimrootevent = wcsimrootsuperevent->GetTrigger(index);
       wcsimrootevent->SetHeader(event_id,0,
           0,index+1); // date & # of subevent 
-      wcsimrootevent->SetMode(generatorAction->GetMode()); //jhfNtuple.mode);
+      wcsimrootevent->SetMode(truthSum.GetInteractionMode()); 
     }
   }
 
@@ -297,10 +298,10 @@ void WCSimEventAction::FillRootEvent(G4int event_id,
   wcsimrootevent->SetHeader(event_id,0,0); // will be set later.
 
   // Fill other info for this event
-
-  wcsimrootevent->SetMode(generatorAction->GetMode()); //jhfNtupe.mode);
-  G4ThreeVector vtx = generatorAction->GetVtx();
-  wcsimrootevent->SetVtxvol(WCSimEventFindStartingVolume(vtx)); //jhfNtuple.vtxvol);
+  wcsimrootevent->SetMode(truthSum.GetInteractionMode());
+  TVector3 tmpVec = truthSum.GetVertex();
+  G4ThreeVector vtx = G4ThreeVector(tmpVec.X(),tmpVec.Y(),tmpVec.Z());
+  wcsimrootevent->SetVtxvol(WCSimEventFindStartingVolume(vtx));
   for (int j=0;j<3;j++)
   {
     wcsimrootevent->SetVtx(j,vtx[j]);
@@ -308,7 +309,7 @@ void WCSimEventAction::FillRootEvent(G4int event_id,
   // wcsimrootevent->SetJmu(jhfNtuple.jmu); // Never appears to be set...
   // wcsimrootevent->SetJp(jhfNtuple.jp); // Never appears to be set...
   // wcsimrootevent->SetNpar(jhfNtuple.npar); // Never appears to be set...
-  wcsimrootevent->SetVecRecNumber(generatorAction->GetVecRecNumber()); //jhfNtuple.vecRecNumber);
+  wcsimrootevent->SetVecRecNumber(event_id);//generatorAction->GetVecRecNumber()); //jhfNtuple.vecRecNumber);
 
   float dir[3];
   float pdir[3];
@@ -316,8 +317,9 @@ void WCSimEventAction::FillRootEvent(G4int event_id,
   float start[3];
 
   // First track is special and contains beam information
-  G4double beamEnergy = generatorAction->GetBeamEnergy();
-  G4ThreeVector beamDir = generatorAction->GetBeamDir();
+  G4double beamEnergy = truthSum.GetBeamEnergy();
+  tmpVec = truthSum.GetBeamDir();
+  G4ThreeVector beamDir = G4ThreeVector(tmpVec.X(),tmpVec.Y(),tmpVec.Z());
   G4ThreeVector beamMom = beamDir*beamEnergy;
 
   // Fill the float arrays (Why can't we use three vectors for this?)
@@ -328,7 +330,7 @@ void WCSimEventAction::FillRootEvent(G4int event_id,
     start[i] = 0.0; // I never saw this set anywhere.
   }
 
-  wcsimrootevent->AddTrack(generatorAction->GetBeamPDG(),
+  wcsimrootevent->AddTrack(truthSum.GetBeamPDG(),
       -1, // This is the dummy flag for the neutrino
       0.0, // Assume zero mass for neutrino
       beamEnergy, // Momentum = Energy for zero mass
@@ -344,14 +346,15 @@ void WCSimEventAction::FillRootEvent(G4int event_id,
       0);                         
 
   // Second track is special and contains target information
-  G4double targetEnergy = generatorAction->GetTargetEnergy();
-  G4ThreeVector targetDir = generatorAction->GetTargetDir();
-  G4int targetPDG = generatorAction->GetTargetPDG();
+  G4double targetEnergy = truthSum.GetTargetEnergy();
+  tmpVec = truthSum.GetTargetDir();
+  G4ThreeVector targetDir = G4ThreeVector(tmpVec.X(),tmpVec.Y(),tmpVec.Z());
+  G4int targetPDG = truthSum.GetTargetPDG();
   // Find out the target mass
   G4double targetMass = 0.0;
   G4double targetPMag = 0.0;
   G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
-  if (targetPDG!=0) {            // protects against seg-fault
+  if (targetPDG!=0 && targetPDG!=-999) {            // protects against seg-fault
     if (targetPDG > 999){         // 16O nucleus not in pdg table
       targetMass = targetEnergy; // 16O is at rest, so E = m
     }
@@ -378,7 +381,9 @@ void WCSimEventAction::FillRootEvent(G4int event_id,
     start[i] = 0.0; // I never saw this set anywhere.
   }
 
-  wcsimrootevent->AddTrack(targetPDG,
+  // If the target PDG code is -999, then this was a particle gun with no target, so don't store it.
+  if(targetPDG!=-999){
+    wcsimrootevent->AddTrack(targetPDG,
       -2, // This is the dummy flag for the target
       targetMass, // Mass
       targetPMag, // Momentum 
@@ -392,6 +397,7 @@ void WCSimEventAction::FillRootEvent(G4int event_id,
       0, // Target has no parent
       0.0, // Time doesn't appear to be set
       0);
+  }
 
   // the rest of the tracks come from WCSimTrajectory
 

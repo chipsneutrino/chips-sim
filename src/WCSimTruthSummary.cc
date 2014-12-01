@@ -1,4 +1,5 @@
 #include <iostream>
+#include <vector>
 
 #include <TVector3.h>
 #include <TLorentzVector.h>
@@ -26,6 +27,9 @@ WCSimTruthSummary::WCSimTruthSummary(const WCSimTruthSummary &ts) : TObject(ts) 
   fTargetEnergy = ts.GetTargetEnergy();
   fTargetDir = ts.GetTargetDir();
 
+  fPrimaryPDGs = ts.GetPrimaryPDGs();
+  fPrimaryEnergies = ts.GetPrimaryEnergies();
+  fPrimaryDirs = ts.GetPrimaryDirs();
 }
 
 // Destructor
@@ -44,6 +48,10 @@ void WCSimTruthSummary::ResetValues(){
   fTargetPDG = -999;
   fTargetEnergy = -999.;
   fTargetDir = TVector3(-999.,-999.,-999.);
+
+  fPrimaryPDGs.clear();
+  fPrimaryEnergies.clear();
+  fPrimaryDirs.clear();
 }
 
 // Get and set the vertex information
@@ -212,6 +220,68 @@ void WCSimTruthSummary::SetTargetDir(TVector3 dir){
 
 void WCSimTruthSummary::SetTargetDir(double dx, double dy, double dz){
   fTargetDir = TVector3(dx,dy,dz);
+}
+
+// Primary particle functions
+void WCSimTruthSummary::AddPrimary(int pdg, double en, TVector3 dir){
+  fPrimaryPDGs.push_back(pdg);
+  fPrimaryEnergies.push_back(en);
+  fPrimaryDirs.push_back(dir);
+}
+
+void WCSimTruthSummary::AddPrimary(int pdg, double en, double dx, double dy, double dz){
+  fPrimaryPDGs.push_back(pdg);
+  fPrimaryEnergies.push_back(en);
+  TVector3 tmpDir(dx,dy,dz);
+  fPrimaryDirs.push_back(tmpDir);
+}
+
+int WCSimTruthSummary::GetPrimaryPDG(unsigned int p) const{
+  if(p < this->GetNPrimaries()){
+    return fPrimaryPDGs[p]; 
+  }
+  else{
+    std::cerr << "== Request for primary particle " << p << " of [0..." << this->GetNPrimaries()-1 << "]" << std::endl;
+    return -999;
+  }
+}
+
+double WCSimTruthSummary::GetPrimaryEnergy(unsigned int p) const{
+  if(p < this->GetNPrimaries()){
+    return fPrimaryEnergies[p]; 
+  }
+  else{
+    std::cerr << "== Request for primary particle " << p << " of [0..." << this->GetNPrimaries()-1 <<  "]" << std::endl;
+    return -999.;
+  }
+
+}
+
+TVector3 WCSimTruthSummary::GetPrimaryDir(unsigned int p) const{
+  if(p < this->GetNPrimaries()){
+    return fPrimaryDirs[p]; 
+  }
+  else{
+    std::cerr << "== Request for primary particle " << p << " of [0..." << this->GetNPrimaries()-1 <<  "]" << std::endl;
+    return TVector3(-999.,-999.,-999.);
+  }
+
+}
+
+std::vector<int> WCSimTruthSummary::GetPrimaryPDGs() const{
+  return fPrimaryPDGs;
+}
+
+std::vector<double> WCSimTruthSummary::GetPrimaryEnergies() const{
+  return fPrimaryEnergies;
+}
+
+std::vector<TVector3> WCSimTruthSummary::GetPrimaryDirs() const{
+  return fPrimaryDirs;
+}
+
+unsigned int WCSimTruthSummary::GetNPrimaries() const{
+  return fPrimaryPDGs.size();
 }
 
 // What sort of event do we have?
