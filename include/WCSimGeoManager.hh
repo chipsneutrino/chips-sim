@@ -29,7 +29,6 @@ class WCSimGeoManager {
 
 		// Fill geometry object attribute for a subregion of the detector from the xml file
 		void FillRegion(WCSimGeoConfig &geo, rapidxml::xml_node<> *node);
-		void FillRegionAttribute(WCSimGeoConfig &geo, rapidxml::xml_attribute<> *attr);
 
     // Fill unit cell object attribute from xml file
 		void FillCell(WCSimGeoConfig &geo, rapidxml::xml_node<> *node);
