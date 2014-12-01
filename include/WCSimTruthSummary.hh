@@ -81,6 +81,13 @@ public:
   // Beam PDG code
   int GetBeamPDG() const;
   void SetBeamPDG(int pdg);
+  // Some further convenience methods
+  bool IsNuEEvent() const;
+  bool IsNuMuEvent() const;
+  bool IsNuTauEvent() const;
+  bool IsNuEBarEvent() const;
+  bool IsNuMuBarEvent() const;
+  bool IsNuTauBarEvent() const;
 
   // Beam energy
   double GetBeamEnergy() const;

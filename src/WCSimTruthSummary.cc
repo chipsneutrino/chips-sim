@@ -173,6 +173,36 @@ void WCSimTruthSummary::SetBeamPDG(int pdg){
   fBeamPDG = pdg;
 }
 
+bool WCSimTruthSummary::IsNuEEvent() const{
+  if(fBeamPDG == 12) return true;
+  else return false;
+}
+
+bool WCSimTruthSummary::IsNuMuEvent() const{
+  if(fBeamPDG == 14) return true;
+  else return false;
+}
+
+bool WCSimTruthSummary::IsNuTauEvent() const{
+  if(fBeamPDG == 16) return true;
+  else return false;
+}
+
+bool WCSimTruthSummary::IsNuEBarEvent() const{
+  if(fBeamPDG == -12) return true;
+  else return false;
+}
+
+bool WCSimTruthSummary::IsNuMuBarEvent() const{
+  if(fBeamPDG == -14) return true;
+  else return false;
+}
+
+bool WCSimTruthSummary::IsNuTauBarEvent() const{
+  if(fBeamPDG == -16) return true;
+  else return false;
+}
+
 double WCSimTruthSummary::GetBeamEnergy() const{
   return fBeamEnergy;
 }
