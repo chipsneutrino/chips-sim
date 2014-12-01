@@ -25,14 +25,40 @@ namespace WCSimPolygonTools {
    * \param outerRadius Distance from the centre of the polygon to the corners
    * \param squareCorner The bottom left corner of the square
    * \param squareSide The side length of the square
-   * \return True of the polygon contains every point on the square
+   * \return True if the polygon contains every point on the square
    */
 	bool PolygonContainsSquare(unsigned int nSides, double outerRadius, G4TwoVector squareCorner, double squareSide);
+
+	/**
+	 * \brief Take a regular n-sided polygon centred on (0,0), cut it into slices along the lines
+	 * joining every corner to the centre, and check if the jth slice contains every corner of a square
+	 * \param nSides Number of sides for the polygon
+	 * \param slice Which slice to check (counting anticlockwise from theta = 0)
+	 * \param outerRadius Distance from the centre of the polygon to the corners
+	 * \param squareCorner The bottom left corner of the square
+	 * \param squareSide The side length of the square
+	 * \return True if the polygon contains every point on the square
+	 */
+	bool PolygonSliceContainsSquare(unsigned int nSides, unsigned int slice, double outerRadius, G4TwoVector squareCorner, double squareSide);
+
+	/**
+	 * \brief Take a regular n-sided polygon centred on (0,0), cut it into slices along the lines
+	 * joining every corner to the centre, and check if the jth slice contains every corner of a square
+	 * \param nSides Number of sides for the polygon
+	 * \param slice Which slice to check (counting anticlockwise from theta = 0)
+	 * \param outerRadius Distance from the centre of the polygon to the corners
+	 * \param point Cartesian coordinates of point to test
+	 * \return True if the polygon contains every point on the square
+	 */
+	bool PolygonSliceContains(unsigned int nSides, unsigned int slice, double outerRadius, G4TwoVector point);
+
 
 	double GetSideFromRadius( unsigned int nSides, double outerRadius );
 	double GetRadiusFromSide( unsigned int nSides, double side);
 	double GetAreaFromRadius( unsigned int nSides, double outerRadius);
 	double GetAreaFromSide( unsigned int nSides, double side);
+	double GetSliceAreaFromRadius( unsigned int nSides, double outerRadius);
+	double GetSliceAreaFromSide( unsigned int nSides, double side);
   double GetInnerRadiusFromOuter( unsigned int nSides, double outerRadius);
   double GetOuterRadiusFromInner( unsigned int nSides, double innerRadius);
 	G4TwoVector ShiftVector( G4TwoVector vec, double x, double y );

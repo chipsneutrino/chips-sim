@@ -48,6 +48,11 @@ void WCSimGeoManager::ReadGeometryList(){
 			std::cout << "Filling region number " << ++i << std::endl;
 			this->FillRegion(geo, childNode);
 		}
+
+		for(rapidxml::xml_node<> *childNode = curNode->first_node("PMTLimit"); childNode; childNode = childNode->next_sibling("PMTLimit"))
+		{
+			this->FillPMTLimit(geo, childNode);
+		}
 		assert(geo.IsGood());
 		fGeoVector.push_back(geo);
 	}
@@ -80,12 +85,17 @@ void WCSimGeoManager::FillGeoAttribute(WCSimGeoConfig &geo, rapidxml::xml_attrib
 		ss >> tempVal;
 		geo.SetNSides(tempVal);
 	}
-  else if(name == "perCentCoverage"){
+  else if(name == "overallCoverage"){
     double tempVal;
     ss >> tempVal;
-    geo.SetCoverage(tempVal);
+    geo.SetOverallCoverage(tempVal);
   }
-
+  else if(name == "limitPMTNumbers"){
+  	std::string tempVal;
+  	ss>> tempVal;
+  	if(MeansYes(tempval)) { geo.SetLimitPMTNumbers(true); }
+  	else if(MeansNo(tempVal)) { geo.SetLimitPMTNumbers(false); }
+  }
 	else{
 		std::cerr << "WCSimGeoManager::FillGeoAttribute: Unexpected parameter " << attr->name() << ", " << attr->value() << std::endl;
 	}
@@ -116,6 +126,20 @@ void WCSimGeoManager::FillRegion(WCSimGeoConfig& geo,
 
 	for(rapidxml::xml_node<> *childNode = node->first_node("cellPMTDef"); childNode; childNode = childNode->next_sibling("cellPMTDef") ){
 		FillCell(geo, childNode);
+	}
+
+	for(rapidxml::xml_node<> *childNode = node->first_node("pmtLimit"); childNode; childNode = childNode->next_sibling("pmtLimit"))
+	{
+		FillPMTLimit(geo, childNode);
+	}
+
+	for(rapidxml::xml_node<> *childNode = node->first_node("coverage") ; childNode; childNode = childNode->next_sibling("coverage"))
+	{
+		std::stringstream ss;
+		ss << childNode->value();
+		double coverage;
+		ss >> coverage;
+		geo.SetZoneCoverage(coverage);
 	}
 
 }
@@ -225,4 +249,33 @@ bool WCSimGeoManager::GeometryExists( std::string name ) const {
 		}
 	}
   return foundIt;
+}
+
+bool WCSimGeoManager::MeansYes(std::string str)
+{
+	return ((str == "YES") || (str == "Y") || (str == "yes") || (str == "y") || (str == "TRUE") || (str == "true"));
+}
+
+bool WCSimGeoManager::MeansNo(std::string str)
+{
+	return ((str == "NO") || (str == "N") || (str == "no") || (str == "n") || (str == "FALSE") || (str == "false"));
+}
+
+void WCSimGeoManager::FillPMTLimit(WCSimGeoConfig& geo,
+		rapidxml::xml_node<>* node)
+{
+	rapidxml::xml_node<> *nameNode = node->first_node("name");
+	rapidxml::xml_node<> *limitNode = node->first_node("zoneLimit");
+	assert(nameNode != NULL && limitNode != NULL);
+
+	if(nameNode && limitNode)
+	{
+		std::string pmtName = nameNode->value();
+		std::stringstream ss;
+		ss << limitNode->value();
+		int limit = 0;
+		ss >> limit;
+		assert(limit > 0);
+		geo.SetPMTLimit(pmtName, limit);
+	}
 }

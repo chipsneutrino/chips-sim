@@ -97,12 +97,6 @@ double WCSimGeoConfig::GetCoverageFraction() const{
 	return fPercentCoverage / 100.;
 }
 
-void WCSimGeoConfig::SetCoverage(double coverage){
-	fPercentCoverage = coverage;
-}
-
-
-
 bool WCSimGeoConfig::IsGood() const{
     bool isGood = true;
 
@@ -148,7 +142,14 @@ void WCSimGeoConfig::Print() const{
 	std::cout << "\tOuter Radius = " << this->GetOuterRadius()/m << "m" << std::endl;
 	std::cout << "\tInner Height = " << this->GetInnerHeight()/m << "m" << std::endl;
 	std::cout << "\t# of Sides   = " << this->GetNSides() << std::endl;
-	std::cout << "\tCoverage = " << this->GetCoverage() << std::endl;
+	std::cout << "\tCoverage = " << this->GetCoverage() << std::endl << std::endl;
+	std::cout << "\t Limits on PMT numbers:" << std::endl;
+
+	for( std::map<std::string, int>::const_iterator limItr = fPMTLimitMap.begin(); limItr != fPMTLimitMap.end(); ++limItr)
+	{
+		std::cout << "\t\t" << (*limItr).first << " limited to " << (*limItr).second << " PMTs" << std::endl;
+	}
+
 	assert(IsGood());
 
 	std::map<std::pair<WCSimGeometryEnums::DetectorRegion_t, int>, WCSimDetectorZone>::const_iterator zoneItr = fZoneMap.begin();
@@ -559,11 +560,57 @@ bool WCSimGeoConfig::CanBuildWithoutAngles(std::string faceName)
 	return type.CanBuildWithoutAngles();
 }
 
+void WCSimGeoConfig::SetZonalCoverage(
+		WCSimGeometryEnums::DetectorRegion_t region, int zone,
+		double coverage)
+{
+	CreateMissingZone(region, zone);
+	fZoneMap[std::make_pair(region, zone)].SetCoverage(coverage);
+}
+
+void WCSimGeoConfig::SetZonalCoverage(double coverage)
+{
+	std::vector<WCSimGeometryEnums::DetectorRegion_t>::iterator regionItr = fCurrentRegions.begin();
+	std::vector<int>::iterator zoneItr = fCurrentZones.begin();
+
+	for( ; regionItr != fCurrentRegions.end(); ++regionItr)
+	{
+		for( zoneItr = fCurrentZones.begin(); zoneItr != fCurrentZones.end(); ++zoneItr )
+		{
+			SetZonalCoverage(*regionItr, *zoneItr, coverage);
+		}
+	}
+}
+
+void WCSimGeoConfig::SetPMTLimit(WCSimGeometryEnums::DetectorRegion_t region,
+		int zone, std::string name, int limit)
+{
+	CreateMissingZone(region, zone);
+	fZoneMap[std::make_pair(region, zone)].SetPMTLimit(name, limit);
+}
+int WCSimGeoConfig::GetMaxZoneCells(WCSimGeometryEnums::DetectorRegion_t region,
+		int zone) const
+{
+	int nCells = -1;
+	std::pair<WCSimGeometryEnums::DetectorRegion_t, int> myPair = std::make_pair(region, zone);
+	std::map<std::pair<WCSimGeometryEnums::DetectorRegion_t, int>, WCSimDetectorZone>::const_iterator zoneItr = fZoneMap.find(myPair);
+	if(zoneItr != fZoneMap.end())
+	{
+		nCells = (*zoneItr).second.GetMaxNumCells();
+	}
+	else
+	{
+		std::cerr << "Error: Could not find region " << region.AsString() << ", zone " << zone << std::endl;
+		assert(0);
+	}
+	return nCells;
+}
+
 void WCSimGeoConfig::CreateMissingZone(
 		WCSimGeometryEnums::DetectorRegion_t region, int zone)
 {
 	std::pair<WCSimGeometryEnums::DetectorRegion_t, int> myPair = std::make_pair(region, zone);
-	if(fZoneMap.find(myPair) != fZoneMap.end())
+	if(fZoneMap.find(myPair) == fZoneMap.end())
 	{
 		WCSimDetectorZone zone;
 		fZoneMap.insert(std::make_pair(myPair, zone));
@@ -576,4 +623,117 @@ void WCSimGeoConfig::AddCellPMTFaceType(std::string typeName)
 	WCSimGeometryEnums::PMTDirection_t faceType = WCSimGeometryEnums::PMTDirection_t::FromString(typeName);
 	AddCellPMTFaceType(faceType);
 	return;
+}
+
+void WCSimGeoConfig::SetLimitPMTNumbers(bool doIt)
+{
+	if(   fPMTLimit != WCSimGeometryEnums::PhotodetectorLimit_t::kUnknown
+		 && fPMTLimit != WCSimGeometryEnums::PhotodetectorLimit_t::kTotalNumber
+		 && doIt)
+	{
+		std::cerr << "Error: can't set photodetector limit to fixed PMT number - is already set to " << fPMTLimit.AsString();
+	}
+	if(doIt){ fPMTLimit = WCSimGeometryEnums::PhotodetectorLimit_t::kTotalNumber; }
+}
+
+bool WCSimGeoConfig::GetLimitPMTNumber() const
+{
+	return (fPMTLimit == WCSimGeometryEnums::PhotodetectorLimit_t::kTotalNumber);
+}
+
+void WCSimGeoConfig::SetPMTLimit(std::string name, int limit)
+{
+	if(fPMTLimit != WCSimGeometryEnums::PhotodetectorLimit_t::kTotalNumber){
+		std::cerr << "Error: Cannot fix PMT numbers, because the limit type is currently " << fPMTLimit.AsString() << std::endl;
+		std::cerr << "       Use limitPMTNumbers=\"yes\" as a geoDef attribute in the geometry file" << std::endl;
+	}
+
+	std::vector<WCSimGeometryEnums::DetectorRegion_t>::iterator regionItr = fCurrentRegions.begin();
+	std::vector<int>::iterator zoneItr = fCurrentZones.begin();
+
+	for( ; regionItr != fCurrentRegions.end(); ++regionItr)
+	{
+		for( zoneItr = fCurrentZones.begin(); zoneItr != fCurrentZones.end(); ++zoneItr )
+		{
+			SetPMTLimit(*regionItr, *zoneItr, name, limit);
+		}
+	}
+}
+
+int WCSimGeoConfig::GetPMTLimit(WCSimGeometryEnums::DetectorRegion_t region, int zone, std::string name)
+{
+	int pmtLimit;
+	std::pair<WCSimGeometryEnums::DetectorRegion_t, int> myPair = std::make_pair(region, zone);
+	std::map<std::pair<WCSimGeometryEnums::DetectorRegion_t, int>, WCSimDetectorZone>::const_iterator zoneItr = fZoneMap.find(myPair);
+	if(zoneItr != fZoneMap.end())
+	{
+		pmtLimit = ((*zoneItr).second).GetPMTLimit(name);
+	}
+	else
+	{
+		std::cerr << "Error: Could not find region " << region.AsString() << ", zone " << zone << std::endl;
+		assert(0);
+	}
+	return pmtLimit;
+}
+
+void WCSimGeoConfig::SetOverallCoverage(double coverage)
+{
+	fPMTLimit = WCSimGeometryEnums::PhotodetectorLimit_t::kPercentCoverage;
+	fPercentCoverage = coverage;
+}
+
+void WCSimGeoConfig::SetUseOverallCoverage(bool doIt)
+{
+	if(   fPMTLimit != WCSimGeometryEnums::PhotodetectorLimit_t::kUnknown
+		 && fPMTLimit != WCSimGeometryEnums::PhotodetectorLimit_t::kPercentCoverage
+		 && doIt)
+	{
+		std::cerr << "Error: can't set photodetector limit to a fixed global coverage - is already set to " << fPMTLimit.AsString();
+	}
+	if(doIt){ fPMTLimit = WCSimGeometryEnums::PhotodetectorLimit_t::kPercentCoverage; }
+}
+
+bool WCSimGeoConfig::GetUseOverallCoverage()
+{
+	return (fPMTLimit == WCSimGeometryEnums::PhotodetectorLimit_t::kPercentCoverage);
+}
+
+double WCSimGeoConfig::GetOverallCoverageFraction() const
+{
+	return fPercentCoverage;
+}
+
+void WCSimGeoConfig::SetUseZonalCoverage(bool doIt)
+{
+	if(   fPMTLimit != WCSimGeometryEnums::PhotodetectorLimit_t::kUnknown
+		 && fPMTLimit != WCSimGeometryEnums::PhotodetectorLimit_t::kZonalCoverage
+		 && doIt)
+	{
+		std::cerr << "Error: can't set photodetector limit to a fixed global coverage - is already set to " << fPMTLimit.AsString();
+	}
+	if(doIt){ fPMTLimit = WCSimGeometryEnums::PhotodetectorLimit_t::kZonalCoverage; }
+}
+
+bool WCSimGeoConfig::GetUseZonalCoverage()
+{
+	return (fPMTLimit == WCSimGeometryEnums::PhotodetectorLimit_t::kZonalCoverage);
+}
+
+double WCSimGeoConfig::GetZonalCoverageFraction(
+		WCSimGeometryEnums::DetectorRegion_t region, int zone) const
+{
+	double fraction = 0.0;
+	std::pair<WCSimGeometryEnums::DetectorRegion_t, int> myPair = std::make_pair(region, zone);
+	std::map<std::pair<WCSimGeometryEnums::DetectorRegion_t, int>, WCSimDetectorZone>::const_iterator zoneItr = fZoneMap.find(myPair);
+	if(zoneItr != fZoneMap.end())
+	{
+		fraction = (*zoneItr).second.GetCoverage();
+	}
+	else
+	{
+		std::cerr << "Error: Could not find region " << region.AsString() << ", zone " << zone << std::endl;
+		assert(0);
+	}
+	return fraction;
 }

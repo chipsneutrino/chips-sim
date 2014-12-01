@@ -113,11 +113,7 @@ void WCSimUnitCell::AddPMT(const WCSimPMTConfig &pmt, double x, double y) {
 
 double WCSimUnitCell::GetPhotocathodeCoverage(double side) const {
 	double cellarea = side * side;
-	double cathodearea = 0.0;
-	for (std::vector<WCSimPMTPlacement>::const_iterator itr = fPMTs.begin();
-			itr != fPMTs.end(); ++itr) {
-		cathodearea += (*itr).GetPMTConfig().GetArea();
-	}
+	double cathodearea = this->GetPhotocathodeArea();
 	return cathodearea / cellarea;
 }
 
@@ -214,4 +210,13 @@ double WCSimUnitCell::GetCellExposeHeight() const {
 		if( expose > maxExpose) { maxExpose = expose; }
 	}
 	return maxExpose;
+}
+
+double WCSimUnitCell::GetPhotocathodeArea() const
+{
+	double area = 0.0;
+	for(std::vector<WCSimPMTPlacement>::const_iterator pmtItr = fPMTs.begin(); pmtItr != fPMTs.end(); ++pmtItr){
+		area += pmtItr->GetPMTConfig().GetArea();
+	}
+	return area;
 }

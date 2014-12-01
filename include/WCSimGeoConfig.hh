@@ -2,14 +2,16 @@
 #define WCSimGeoConfig_H
 
 #include <map>
-#include <vector>
+#include <math.h>
 #include <string>
+#include <vector>
 
 #include "WCSimGeometryEnums.hh"
 #include "WCSimDetectorZone.hh"
 
 // GEANT definitions
 #include "globals.hh"
+
 
 // This class is designed to store the information about a type of geometry.
 
@@ -40,7 +42,18 @@ public:
 
 	double GetCoverage() const;
 	double GetCoverageFraction() const;
-	void SetCoverage(double coverage);
+
+	void SetUseOverallCoverage(bool doIt);
+	bool GetUseOverallCoverage();
+	double GetOverallCoverageFraction() const;
+	void SetOverallCoverage(double coverage);
+
+	void SetUseZonalCoverage(bool doIt);
+	bool GetUseZonalCoverage();
+	double GetZonalCoverageFraction(WCSimGeometryEnums::DetectorRegion_t region, int zone) const;
+	void SetZonalCoverage( WCSimGeometryEnums::DetectorRegion_t region, int zone, double coverage );
+	void SetZonalCoverage(double coverage);
+
 
 	void AddCellPMTName(std::string name);
 	void AddCellPMTName(WCSimGeometryEnums::DetectorRegion_t region, int zone, std::string name);
@@ -85,22 +98,25 @@ public:
 		return fPMTLimit;
 	}
 
-	void SetPmtLimit(WCSimGeometryEnums::PhotodetectorLimit_t fPmtLimit)
-	{
-		fPMTLimit = fPmtLimit;
-	}
-
 	bool CanBuildWithoutAngles(std::string faceName);
 	bool IsGood() const;
 	bool IsGoodZone(std::pair<WCSimGeometryEnums::DetectorRegion_t, int> zone) const;
 	void Print() const;
 
+	void SetLimitPMTNumbers(bool doIt = true);
+	bool GetLimitPMTNumber() const;
+	void SetPMTLimit(WCSimGeometryEnums::DetectorRegion_t region, int zone, std::string name, int limit);
+	void SetPMTLimit(std::string name, int limit);
+	int GetPMTLimit(WCSimGeometryEnums::DetectorRegion_t region, int zone, std::string name);
+	int GetMaxZoneCells(WCSimGeometryEnums::DetectorRegion_t region, int zone) const;
 
 private:
 
 	void CreateMissingZone(WCSimGeometryEnums::DetectorRegion_t region, int zone);
 
 	WCSimGeometryEnums::PhotodetectorLimit_t fPMTLimit;
+	std::map<std::string, int> fPMTLimitMap;
+
 	std::string fGeoName;
 	double fOuterRadius;
 	double fInnerHeight;
@@ -113,6 +129,7 @@ private:
 	std::vector<std::string> fPMTNamesUsed;
 	std::vector<WCSimGeometryEnums::DetectorRegion_t> fCurrentRegions;
 	std::vector<int> fCurrentZones;
+
 };
 
 #endif

@@ -11,9 +11,11 @@
 
 #include "WCSimDetectorConstruction.hh"
 #include "WCSimGeoConfig.hh"
+
 class WCSimPMTManager;
 class WCSimUnitCell;
 class G4LogicalVolume;
+class G4PhysicalVolume;
 
 class WCSimCherenkovBuilder : public WCSimDetectorConstruction{
 public:
@@ -63,32 +65,43 @@ private:
 
   void GetMeasurements();
 	double GetBarrelLengthForCells(); //< Work out much of the barrel wall can hold PMTs without overlapping the top
-	double GetMaxTopExposeHeight(); //< Work out how far PMTs extend down from the top cap
+	double GetMaxCapExposeHeight(); //< Work out how far PMTs extend down from the top cap
 	double GetMaxBarrelExposeHeight(); //< Work out how far PMTs extend inwars from the blacksheet of the walls
 
 	// n.b. Close packing algorithms are tricky.  These methods are quick and simple but certainly not optimal
 	void CalculateCellSizes(); //< Optimise the sizes of the unit cells on the cap and walls to get close to the desired coverage
-	double GetOptimalTopCellSize(); //< Optimise the cell placement on the endcaps
-	double GetOptimalWallCellSize(); //< Optimise the cell placement on the detector walls
+	double GetOptimalTopCellSize(int zoneNum); //< Optimise the cell placement on the endcaps
+	double GetOptimalBottomCellSize(int zoneNum); //< Optimise the cell placement on the endcaps
+	double GetOptimalEndcapCellSize(WCSimGeometryEnums::DetectorRegion_t region, int zoneNum); //< Optimise the cell placement on the endcaps
+	double GetOptimalWallCellSize(int zoneNum); //< Optimise the cell placement on the detector walls
 
+	void CalculateZoneCoverages(); //< Work out what fraction of each zone should be covered
 	void ConstructUnitCells(); //< Construct the unit cell objects specified in the geometry config
-	WCSimUnitCell * GetTopUnitCell(); //< For now we only have one type all over the detector
-	WCSimUnitCell * GetBarrelUnitCell(); //< For now we only have one type all over the detector
+	WCSimUnitCell * GetUnitCell(WCSimGeometryEnums::DetectorRegion_t region, int zone);
+	WCSimUnitCell * GetTopUnitCell(int zone); //< For now we only have one type all over the detector
+	WCSimUnitCell * GetBottomUnitCell(int zone); //< For now we only have one type all over the detector
+	WCSimUnitCell * GetWallUnitCell(int zone); //< For now we only have one type all over the detector
 
 	void ConstructPMTs();
 
 	bool fConstructed;
-	double fWallCellSize;
-	double fTopCellSize;
+	std::vector<double> fWallCellSize;
+	std::vector<double> fTopCellSize;
+	std::vector<double> fBottomCellSize;
 	int fNumPMTs;
 
 	WCSimGeoConfig * fGeoConfig;
 	WCSimPMTManager * fPMTManager;
-	std::vector<WCSimUnitCell*> fUnitCells;
+	std::vector<WCSimUnitCell*> fWallUnitCells;
+	std::vector<WCSimUnitCell*> fTopUnitCells;
+	std::vector<WCSimUnitCell*> fBottomUnitCells;
+	std::vector<double> fWallZoneCoverage;
+	std::vector<double> fTopZoneCoverage;
+	std::vector<double> fBottomZoneCoverage;
 
-	double fWallCellLength;  //< Size length of a unit cell on the detector wall
-	int fWallCellsX; //< Number of unit cells fitting across the wall
-	int fWallCellsZ; //< Number of unit cells fitting vertically along the wall
+	std::vector<double> fWallCellLength;  //< Size length of a unit cell on the detector wall
+	std::vector<int> fWallCellsX;         //< Number of unit cells fitting across the wall
+	std::vector<int> fWallCellsZ;         //< Number of unit cells fitting vertically along the wall
 
 	// TODO:  Constants that should be moved into xml files and GeoConfig
 	double fBlacksheetThickness;
@@ -99,7 +112,8 @@ private:
 	G4LogicalVolume* fBarrelLogic;
 	G4LogicalVolume* fPrismLogic;
 	G4LogicalVolume* fPrismRingLogic;
-	G4LogicalVolume* fSegmentLogic;
+	std::vector<G4LogicalVolume*> fSegmentLogics;
+	std::vector<G4VPhysicalVolume*> fSegmentPhysics;
 	G4LogicalVolume* fCapLogicTop;
 	G4LogicalVolume* fCapLogicTopRing;
 	G4LogicalVolume* fCapLogicBottom;
@@ -121,18 +135,18 @@ private:
 	// We chop the prism into a whole number of rings
 	G4double fPrismRingRadiusInside; // Radius is to centre of wall not the vertex
 	G4double fPrismRingRadiusOutside;
-	G4double fPrismRingHeight;
+	std::vector<G4double> fPrismRingHeight;
 
 	// And chop each n-gon ring into n flat sides
 	G4double fPrismRingSegmentRadiusInside; // To centre of segment not edge
 	G4double fPrismRingSegmentRadiusOutside;
-	G4double fPrismRingSegmentHeight;
+	std::vector<G4double> fPrismRingSegmentHeight;
 	G4double fPrismRingSegmentDPhi;
 
 	// Then we have a layer of blacksheet on each side
 	G4double fPrismRingSegmentBSRadiusInside; // To centre not edge
 	G4double fPrismRingSegmentBSRadiusOutside;
-	G4double fPrismRingSegmentBSHeight;
+	std::vector<G4double> fPrismRingSegmentBSHeight;
 
 	// Now the caps
 	///////////////
@@ -175,17 +189,6 @@ private:
 	// And a layer on top
 	G4double fCapPolygonEndBSRadius;
 	G4double fCapPolygonEndBSHeight;
-
-	// And we're done!
-
-	/* CapSurface looks like this:
-	 *
-	 *					 outside----->
-	 * 		__________________________
-	 * 	   |_						 _|
-	 *		 |			 inside---->|
-	 *		 |______________________|
-	 */
 };
 
 #endif /* WCSIMCHERENKOVBUILDER_HH_ */

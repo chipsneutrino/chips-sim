@@ -133,5 +133,55 @@ namespace WCSimPolygonTools {
   {
     return innerRadius / (cos(M_PI/nSides)) ; 
   }
+
+  bool PolygonSliceContainsSquare(unsigned int nSides, unsigned int slice,
+		double outerRadius, G4TwoVector squareCorner, double squareSide)
+  {
+     assert(CheckPolygon( nSides, outerRadius));
+     // std::cout << "Checking square" << std::endl;
+     std::vector<G4TwoVector> squareCorners;
+     squareCorners.push_back( squareCorner );
+     squareCorners.push_back( squareCorner + G4TwoVector( 0.0, squareSide ) );
+     squareCorners.push_back( squareCorner + G4TwoVector( squareSide, squareSide ) );
+     squareCorners.push_back( squareCorner + G4TwoVector( squareSide, 0.0 ) );
+     bool contained = true;
+
+     for( std::vector<G4TwoVector>::const_iterator itr = squareCorners.begin() ;
+          itr != squareCorners.end(); ++itr ){
+       // std::cout << "itr = ( " << (*itr).x() << ", " << (*itr).y() << std::endl;
+       contained = ( contained && PolygonSliceContains(nSides, slice, outerRadius, (*itr)) );
+       if( !contained ){ break; }
+     }
+
+     //for( std::vector<G4TwoVector>::const_iterator itr = squareCorners.begin() ;
+     //     itr != squareCorners.end(); ++itr ){
+     //std::cout << (*itr).x() << " " << (*itr).y() << " " << contained << std::endl;
+     //}
+     return contained;
+  }
+
+  bool PolygonSliceContains(unsigned int nSides, unsigned int slice,
+		double outerRadius, G4TwoVector point)
+  {
+
+  	// We have a regular polygon which means we don't need to do raytracing or winding numbers
+  	assert(CheckPolygon( nSides, outerRadius ));
+  	bool contained =    (PolygonContains(nSides, outerRadius, point))
+  								   && (point.phi() >= 2 * M_PI * (  slice    % nSides) / (double)nSides)
+  							     && (point.phi() <  2 * M_PI * ( (slice+1) % nSides ) / (double)nSides);
+
+  	return contained;
+  }
+
+
+	double GetSliceAreaFromRadius(unsigned int nSides, double outerRadius)
+	{
+		return GetAreaFromRadius(nSides, outerRadius) / nSides;
+	}
+
+	double GetSliceAreaFromSide(unsigned int nSides, double side)
+	{
+		return GetAreaFromSide(nSides, nSides) / nSides;
+	}
 }
 /* namespace WCSimPolygonTools */

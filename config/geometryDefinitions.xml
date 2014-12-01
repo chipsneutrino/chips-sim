@@ -1,14 +1,16 @@
-<!-- CHIPS pancake shape for staging,  with 10% coverage of 10" HQE PMTs -->
+<!-- CHIPS pancake shape for staging,  with 10" HQE PMTs, fixed PMT numbers -->
 <geoDef
-	name="CHIPS_pancake_10inch_HQE_10perCent"
+	name="CHIPS_pancake_10inch_HQE_fixed"
 	innerRadius="15.0"
 	innerHeight="5.0"
 	nSides="20"
-	perCentCoverage="10">
+  limitPMTNumbers="yes"
+	>
+
   <region>
-		<location>kTop</location>
-		<location>kBottom</location>
-		<location>kWall</location>
+		<location>Top</location>
+		<location>Bottom</location>
+		<location>Wall</location>
 		<zone>1</zone>
 		<zone>2</zone>
 		<zone>3</zone>
@@ -33,21 +35,26 @@
    		<posX>0.5</posX>
    		<posY>0.5</posY>
    		<face>
-				<type>kInwards</type>
+				<type>inside</type>
 			</face>
 		</cellPMTDef>
+		<pmtLimit>
+			<name>10inch_HQE</name>
+			<zoneLimit>100</zoneLimit>
+		</pmtLimit>
 	</region>
+
   <region>
-		<location>kTop</location>
-		<location>kBottom</location>
-		<location>kWall</location>
+		<location>Top</location>
+		<location>Bottom</location>
+		<location>Wall</location>
 		<zone>0</zone>
 		<cellPMTDef>
    		<name>10inch_HQE</name>
    		<posX>0.5</posX>
    		<posY>0.3</posY>
    		<face>
-				<type>kInwards</type>
+				<type>inside</type>
 			</face>
 		</cellPMTDef>
 		<cellPMTDef>
@@ -55,8 +62,156 @@
    		<posX>0.5</posX>
    		<posY>0.7</posY>
    		<face>
-				<type>kInwards</type>
+				<type>inside</type>
+			</face>
+		</cellPMTDef>
+		<pmtLimit>
+			<name>10inch_HQE</name>
+			<zoneLimit>100</zoneLimit>
+		</pmtLimit>
+	</region>
+
+</geoDef>
+
+
+
+<!-- CHIPS pancake shape for staging,  with 10" HQE PMTs, fixed coverage per zone -->
+<geoDef
+	name="CHIPS_pancake_10inch_HQE_fixed"
+	innerRadius="15.0"
+	innerHeight="5.0"
+	nSides="20"
+  limitPMTNumbers="yes"
+	>
+
+  <region>
+		<location>Top</location>
+		<location>Bottom</location>
+		<location>Wall</location>
+		<zone>1</zone>
+		<zone>2</zone>
+		<zone>3</zone>
+		<zone>4</zone>
+		<zone>5</zone>
+		<zone>6</zone>
+		<zone>7</zone>
+		<zone>8</zone>
+		<zone>9</zone>
+		<zone>10</zone>
+		<zone>11</zone>
+		<zone>12</zone>
+		<zone>13</zone>
+		<zone>14</zone>
+		<zone>15</zone>
+		<zone>16</zone>
+		<zone>17</zone>
+		<zone>18</zone>
+		<zone>19</zone>
+		<coverage>10</coverage>
+		<cellPMTDef>
+   		<name>10inch_HQE</name>
+   		<posX>0.5</posX>
+   		<posY>0.5</posY>
+   		<face>
+				<type>inside</type>
+			</face>
+	</region>
+
+  <region>
+		<location>Top</location>
+		<location>Bottom</location>
+		<location>Wall</location>
+		<zone>0</zone>
+	  <coverage>20</coverage>
+		<cellPMTDef>
+   		<name>10inch_HQE</name>
+   		<posX>0.5</posX>
+   		<posY>0.3</posY>
+   		<face>
+				<type>inside</type>
+			</face>
+		</cellPMTDef>
+		<cellPMTDef>
+   		<name>10inch_HQE</name>
+   		<posX>0.5</posX>
+   		<posY>0.7</posY>
+   		<face>
+				<type>inside</type>
+			</face>
+	</region>
+
+</geoDef>
+
+
+
+
+<!-- CHIPS pancake shape for staging,  with 10" HQE PMTs, 10% global coverage -->
+<geoDef
+	name="CHIPS_pancake_10inch_HQE_fixed"
+	innerRadius="15.0"
+	innerHeight="5.0"
+	nSides="20"
+  limitPMTNumbers="no"
+	overallCoverage="10"
+	>
+
+  <region>
+		<location>Top</location>
+		<location>Bottom</location>
+		<location>Wall</location>
+		<zone>1</zone>
+		<zone>2</zone>
+		<zone>3</zone>
+		<zone>4</zone>
+		<zone>5</zone>
+		<zone>6</zone>
+		<zone>7</zone>
+		<zone>8</zone>
+		<zone>9</zone>
+		<zone>10</zone>
+		<zone>11</zone>
+		<zone>12</zone>
+		<zone>13</zone>
+		<zone>14</zone>
+		<zone>15</zone>
+		<zone>16</zone>
+		<zone>17</zone>
+		<zone>18</zone>
+		<zone>19</zone>
+		<coverage>10</coverage>
+		<cellPMTDef>
+   		<name>10inch_HQE</name>
+   		<posX>0.5</posX>
+   		<posY>0.5</posY>
+   		<face>
+				<type>inside</type>
 			</face>
 		</cellPMTDef>
 	</region>
+
+  <region>
+		<location>Top</location>
+		<location>Bottom</location>
+		<location>Wall</location>
+		<zone>0</zone>
+		<cellPMTDef>
+   		<name>10inch_HQE</name>
+   		<posX>0.5</posX>
+   		<posY>0.3</posY>
+   		<face>
+				<type>inside</type>
+			</face>
+		</cellPMTDef>
+		<cellPMTDef>
+   		<name>10inch_HQE</name>
+   		<posX>0.5</posX>
+   		<posY>0.7</posY>
+   		<face>
+				<type>inside</type>
+			</face>
+		</cellPMTDef>
+	</region>
+
 </geoDef>
+
+
