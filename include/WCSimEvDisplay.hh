@@ -1,3 +1,5 @@
+#include <string>
+
 #include <TGClient.h>
 #include <TRootEmbeddedCanvas.h>
 #include <TGFrame.h>
@@ -11,6 +13,8 @@ class TRootEmbeddedCanvas;
 class TPad;
 class TGHorizontalFrame;
 class TGNumberEntry;
+class TPaveText;
+class WCSimTruthSummary;
 
 class WCSimEvDisplay : public TGMainFrame {
 private:
@@ -24,6 +28,8 @@ private:
 	TPad *fChargePad;
   // Add a truth information pad
   TPad *fTruthPad;
+  // Boolean to flag whether we are showing truth or not
+  bool fShowTruth;
 
 	// The three 2D histograms that show the hits
 	TH2D *fBarrelHist;
@@ -32,6 +38,10 @@ private:
 	// Single 1D histogram to show either charge or time
 	TH1D *fChargeHist;
 	TH1D *fTimeHist;
+
+  // The truth display is all contained within TPaveText objects
+  TPaveText *fTruthTextMain;
+  TPaveText *fTruthTextPrimaries;
 
 	// When using WCSim files, store the geometry information
 	double fWCRadius;
@@ -65,6 +75,9 @@ private:
 	// The current file to look at
 	TChain *fChain;
 	TChain *fGeomTree;
+
+  // A pointer to the truth summary object of the current event
+  WCSimTruthSummary *fTruthSummary;
 
   // Charge cut and corresponding entry box
   TGNumberEntry *fPEInput;
@@ -109,6 +122,9 @@ private:
 	void CreateMainButtonBar();
 	void CreateSubButtonBar();
 
+  // Convert the true event type into a string
+  std::string ConvertTrueEventType() const;
+
 public:
   WCSimEvDisplay(const TGWindow *p,UInt_t w,UInt_t h);
   WCSimEvDisplay();
@@ -143,6 +159,13 @@ public:
 
 	// Button to hide the 1D plots since we don't always want them visible
 	void Toggle1DHists();
+
+  // Button to show truth or reco
+  void ShowTruth();
+  void ShowReco();
+
+  // Update the truth TPaveText panel
+  void UpdateTruthPave();
 
 	ClassDef(WCSimEvDisplay,0)
 };

@@ -1,3 +1,5 @@
+#include <string>
+#include <sstream>
 //#include <TGClient.h>
 #include <TROOT.h>
 #include <TStyle.h>
@@ -16,11 +18,14 @@
 #include <TGMenu.h>
 #include <TGNumberEntry.h>
 #include <TGLabel.h>
+#include <TVector3.h>
+#include <TPaveText.h>
 //#include <TRootEmbeddedCanvas.h>
 //#include <RQ_OBJECT.h>
 #include "WCSimEvDisplay.hh"
 #include "WCSimRootGeom.hh"
 #include "WCSimRootEvent.hh"
+#include "WCSimTruthSummary.hh"
 
 ClassImp(WCSimEvDisplay)
 
@@ -40,6 +45,12 @@ WCSimEvDisplay::WCSimEvDisplay(const TGWindow *p,UInt_t w,UInt_t h) : TGMainFram
 	// Initialise the TChain pointers
 	fChain = 0x0; 
   fGeomTree = 0x0;
+
+  // Initialise the truth object
+  fTruthSummary = 0x0;
+  fShowTruth = false; 
+  fTruthTextMain = new TPaveText(0.05,0.45,0.95,0.90,"NDC");
+  fTruthTextPrimaries = new TPaveText(0.05,0.1,0.95,0.40,"NDC");
 
   // Initialise the TGNumberEntry
   fPEInput = 0x0;
@@ -69,8 +80,8 @@ WCSimEvDisplay::WCSimEvDisplay(const TGWindow *p,UInt_t w,UInt_t h) : TGMainFram
 	fBottomPad->Draw();
 	fChargePad->Draw();
 	fTimePad->Draw();
-//	can->Divide(1,2);
-//	can->cd(2)->Divide(2,1);
+  // Create the truth information pad, but don't draw it
+  fTruthPad = new TPad("fTruthPad","",0.0,0.0,1.0,1.0);
 
 	this->AddFrame(fHitMapCanvas, new TGLayoutHints(kLHintsExpandX| kLHintsExpandY,10,10,10,1));
 
@@ -136,6 +147,12 @@ void WCSimEvDisplay::CreateSubButtonBar(){
 	TGTextButton *togHists = new TGTextButton(hWCSimButtons,"Toggle 1D Plots");
 	togHists->Connect("Clicked()","WCSimEvDisplay",this,"Toggle1DHists()");
 	hWCSimButtons->AddFrame(togHists, new TGLayoutHints(kLHintsCenterX,5,5,3,4));
+  TGTextButton *showReco = new TGTextButton(hWCSimButtons,"&Reco");
+  showReco->Connect("Clicked()","WCSimEvDisplay",this,"ShowReco()");
+  hWCSimButtons->AddFrame(showReco, new TGLayoutHints(kLHintsCenterX,5,5,3,4));
+  TGTextButton *showTruth = new TGTextButton(hWCSimButtons,"&Truth");
+  showTruth->Connect("Clicked()","WCSimEvDisplay",this,"ShowTruth()");
+  hWCSimButtons->AddFrame(showTruth, new TGLayoutHints(kLHintsCenterX,5,5,3,4));
 
   // Numeric entry field for the PE threshold
   fPEInput = new TGNumberEntry(hWCSimButtons,0,9,999,TGNumberFormat::kNESRealOne,
@@ -171,6 +188,14 @@ void WCSimEvDisplay::FillPlotsFromWCSimEvent(){
 	fChain->GetEntry(fCurrentEvent);
 	if(wcSimEvt==0x0) std::cout << "Null pointer :( " << std::endl;
 	WCSimRootTrigger* wcSimTrigger = wcSimEvt->GetTrigger(0);
+
+  // Get the truth information
+  if(fTruthSummary != 0x0){
+    delete fTruthSummary;
+    fTruthSummary = 0x0;
+  }
+  fTruthSummary = new WCSimTruthSummary(wcSimEvt->GetTruthSummary());
+  this->UpdateTruthPave();
 
   int nDigiHits = wcSimTrigger->GetNcherenkovdigihits();
 	std::cout << "Number of PMTs hit: " << nDigiHits << std::endl;
@@ -347,66 +372,98 @@ void WCSimEvDisplay::ResizePads(){
 
 	TCanvas *can = fHitMapCanvas->GetCanvas();
 	can->cd();
-	// Are the 1D plots visible?
-	if(fShow1DHists){
-		fBarrelPad->SetPad(0.0,0.6,1.0,1.0);
-		fTopPad->SetPad(0.0,0.2,0.5,0.6);
-		fBottomPad->SetPad(0.5,0.2,1.0,0.6);
-		fChargePad->SetPad(0.0,0.0,0.5,0.2);
-		fTimePad->SetPad(0.5,0.0,1.0,0.2);
-		// Only need to draw the 1D plots since they are
-		// the only ones that are hidden.
-		fChargePad->Draw();
-		fTimePad->Draw();
-	}
-	else{
-		// Firstly, remove the 1D pads from the TList
-		TList *list = can->GetListOfPrimitives();
-		list->Remove(fChargePad);
-		list->Remove(fTimePad); 
-		// Now resize the othe pads
-    fBarrelPad->SetPad(0.0,0.5,1.0,1.0);
-    fTopPad->SetPad(0.0,0.0,0.5,0.5);
-    fBottomPad->SetPad(0.5,0.0,1.0,0.5);
-	}	
+  TList *list = can->GetListOfPrimitives();
+
+  // If we want to show truth
+  if(fShowTruth){
+    list->Remove(fBarrelPad);
+    list->Remove(fTopPad);
+    list->Remove(fBottomPad);
+  	if(fShow1DHists){
+  		list->Remove(fChargePad);
+  		list->Remove(fTimePad); 
+  	}
+    fTruthPad->SetPad(0.0,0.0,1.0,1.0);
+    fTruthPad->Draw();
+  }
+  // Or else show the reco
+  else{
+    // Remove the truth information pad
+ 		list->Remove(fTruthPad);   
+  	// Are the 1D plots visible?
+  	if(fShow1DHists){
+  		fBarrelPad->SetPad(0.0,0.6,1.0,1.0);
+  		fTopPad->SetPad(0.0,0.2,0.5,0.6);
+  		fBottomPad->SetPad(0.5,0.2,1.0,0.6);
+  		fChargePad->SetPad(0.0,0.0,0.5,0.2);
+  		fTimePad->SetPad(0.5,0.0,1.0,0.2);
+  		// Only need to draw the 1D plots since they are
+  		// the only ones that are hidden.
+  		fChargePad->Draw();
+  		fTimePad->Draw();
+  	}
+  	else{
+  		// Firstly, remove the 1D pads from the TList
+  		list->Remove(fChargePad);
+  		list->Remove(fTimePad); 
+  		// Now resize the othe pads
+      fBarrelPad->SetPad(0.0,0.5,1.0,1.0);
+      fTopPad->SetPad(0.0,0.0,0.5,0.5);
+      fBottomPad->SetPad(0.5,0.0,1.0,0.5);
+  	}	
+    fBarrelPad->Draw();
+    fTopPad->Draw();
+    fBottomPad->Draw();
+  }
 	this->UpdateCanvases();
 }
 
 void WCSimEvDisplay::UpdateCanvases(){
 
-	this->MatchPlotZAxes();
+  if(!fShowTruth){
+	  this->MatchPlotZAxes();
 
-	this->MakePlotsPretty(fBarrelHist);
-	this->MakePlotsPretty(fTopHist);
-	this->MakePlotsPretty(fBottomHist);
+  	this->MakePlotsPretty(fBarrelHist);
+  	this->MakePlotsPretty(fTopHist);
+  	this->MakePlotsPretty(fBottomHist);
 
-	// Take the plots one by one and draw them.
-	TCanvas *canvas = fHitMapCanvas->GetCanvas();
-	canvas->cd(1);
-	fBarrelPad->cd();
-	fBarrelHist->Draw("colz");
-	canvas->Modified();
-	canvas->Update();
+  	// Take the plots one by one and draw them.
+  	TCanvas *canvas = fHitMapCanvas->GetCanvas();
+  	canvas->cd(1);
+  	fBarrelPad->cd();
+  	fBarrelHist->Draw("colz");
+  	canvas->Modified();
+  	canvas->Update();
 
-	fTopPad->cd();
-	fTopHist->Draw("colz");
-	canvas->Modified();
-	canvas->Update();
+  	fTopPad->cd();
+  	fTopHist->Draw("colz");
+  	canvas->Modified();
+  	canvas->Update();
 
-	fBottomPad->cd();
-	fBottomHist->Draw("colz");
-	canvas->Modified();
-	canvas->Update();
+  	fBottomPad->cd();
+  	fBottomHist->Draw("colz");
+  	canvas->Modified();
+  	canvas->Update();
 
-	if(fShow1DHists){
-		fChargePad->cd();
-		this->MakePlotsPretty(fChargeHist);
-		fChargeHist->Draw();
+  	if(fShow1DHists){
+  		fChargePad->cd();
+  		this->MakePlotsPretty(fChargeHist);
+  		fChargeHist->Draw();
 
-		fTimePad->cd();
-		this->MakePlotsPretty(fTimeHist);
-		fTimeHist->Draw();
-	}
+  		fTimePad->cd();
+  		this->MakePlotsPretty(fTimeHist);
+  		fTimeHist->Draw();
+  	}
+  }
+  else{
+  	TCanvas *canvas = fHitMapCanvas->GetCanvas();
+    fTruthPad->cd();
+    fTruthPad->Draw();
+    fTruthTextMain->Draw();
+    fTruthTextPrimaries->Draw();
+  	canvas->Modified();
+  	canvas->Update();
+  }
 }
 
 void WCSimEvDisplay::NextEvent() {
@@ -560,6 +617,177 @@ void WCSimEvDisplay::SetStyle(){
 //	gROOT->SetStyle("eds");
 	gROOT->ForceStyle();
 
+}
+
+void WCSimEvDisplay::ShowTruth(){
+
+  if(fTruthSummary != 0x0){
+
+    if(fShowTruth == false){
+
+      fShowTruth = true;
+  
+      std::cout << "== Event Truth Information ==" << std::endl;
+  
+      if(fTruthSummary->IsNeutrinoEvent()){
+        std::string intType = this->ConvertTrueEventType();
+        TVector3 vtx = fTruthSummary->GetVertex();
+        TVector3 dir = fTruthSummary->GetBeamDir();      
+        // The interaction
+        std::cout << "= Interaction = " << std::endl;
+        std::cout << " - Type: " << intType << std::endl;
+        std::cout << " - Neutrino flavour  : " << fTruthSummary->GetBeamPDG() << std::endl;
+        std::cout << " - Neutrino energy   : " << fTruthSummary->GetBeamEnergy() << std::endl;
+        std::cout << " - Neutrino vertex   : (" << vtx.X() << "," << vtx.Y() << "," << vtx.Z() << ")" << std::endl;
+        std::cout << " - Neutrino direction: (" << dir.X() << "," << dir.Y() << "," << dir.Z() << ")" << std::endl;
+        std::cout << " - Target nucleus    : " << fTruthSummary->GetTargetPDG() << std::endl;
+        // Primaries
+        std::cout << "= Primary Particles = " << std::endl;
+        for(unsigned int n = 0; n < fTruthSummary->GetNPrimaries(); ++n){
+          TVector3 dir = fTruthSummary->GetPrimaryDir(n);
+          std::cout << " - Particle: " << fTruthSummary->GetPrimaryPDG(n);
+          std::cout << " with energy " << fTruthSummary->GetPrimaryEnergy(n);
+          std::cout << " MeV and direction (" << dir.X() << "," << dir.Y() << "," << dir.Z() << ")" << std::endl;
+        }     
+      }
+      else{
+        // Must have some sort of particle gun event
+        TVector3 vtx = fTruthSummary->GetVertex();
+        TVector3 dir = fTruthSummary->GetBeamDir();
+  
+        std::cout << "= Particle Gun Information =" << std::endl;
+        std::cout << " - Particle : " << fTruthSummary->GetBeamPDG() << std::endl;
+        std::cout << " - Energy   : " << fTruthSummary->GetBeamEnergy() << std::endl;
+        std::cout << " - Vertex   : (" << vtx.X() << "," << vtx.Y() << "," << vtx.Z() << ")" << std::endl;
+        std::cout << " - Direction: (" << dir.X() << "," << dir.Y() << "," << dir.Z() << ")" << std::endl;
+      }
+      this->ResizePads();
+    }
+    else{
+      std::cerr << "Already displaying the truth information" << std::endl;
+    }
+  }
+  else{
+    std::cerr << "No truth information found, so can't display it" << std::endl;
+  }
+}
+
+void WCSimEvDisplay::ShowReco(){
+  if(fShowTruth == true){
+    fShowTruth = false;
+    this->ResizePads();
+  }
+  else{
+    std::cerr << "Already displaying reco view." << std::endl;
+  }
+}
+
+void WCSimEvDisplay::UpdateTruthPave(){
+  fTruthTextMain->Clear();
+  fTruthTextMain->SetFillColor(kWhite);
+  fTruthTextMain->SetBorderSize(0);
+
+  fTruthTextPrimaries->Clear();
+  fTruthTextPrimaries->SetFillColor(kWhite);
+  fTruthTextPrimaries->SetBorderSize(0);
+
+  // Stream to parse things into strings
+  std::stringstream tmpS;
+  TVector3 vtx = fTruthSummary->GetVertex();
+  tmpS << vtx.X() << "," << vtx.Y() << "," << vtx.Z();
+  fTruthTextMain->AddText(("Vertex at ("+tmpS.str()+") mm").c_str());
+  if(fTruthSummary->IsNeutrinoEvent()){
+    // Neutrino information
+    tmpS.str("");
+    tmpS << this->ConvertTrueEventType();
+    fTruthTextMain->AddText(("Interaction Type = "+tmpS.str()).c_str());
+    fTruthTextMain->AddText("");
+    fTruthTextMain->AddText("Neutrino Information");
+  }
+  else{
+    tmpS.str("");
+    fTruthTextMain->AddText("Beam Information");
+  }
+  tmpS.str("");
+  tmpS << fTruthSummary->GetBeamPDG();
+  fTruthTextMain->AddText(("PDG Code = "+tmpS.str()).c_str());
+  tmpS.str("");
+  tmpS << fTruthSummary->GetBeamEnergy();
+  fTruthTextMain->AddText(("Energy = "+tmpS.str()+" MeV").c_str());
+  TVector3 dir = fTruthSummary->GetBeamDir();
+  tmpS.str("");
+  tmpS << dir.X() << "," << dir.Y() << "," << dir.Z();
+  fTruthTextMain->AddText(("Direction = ("+tmpS.str()+")").c_str());
+  if(fTruthSummary->IsNeutrinoEvent()){
+    // Target information
+    fTruthTextMain->AddText("");
+    fTruthTextMain->AddText("Target Information");
+    tmpS.str("");
+    tmpS << fTruthSummary->GetTargetPDG();
+    fTruthTextMain->AddText(("PDG Code = "+tmpS.str()).c_str());
+  }
+
+  // The primary particles list
+  if(fTruthSummary->IsNeutrinoEvent()){
+    fTruthTextPrimaries->AddText("List of Primary Particles");
+    for(unsigned int n = 0; n < fTruthSummary->GetNPrimaries(); ++n){
+      dir = fTruthSummary->GetPrimaryDir(n);
+      tmpS.str("");
+      tmpS << "Particle: " << fTruthSummary->GetPrimaryPDG(n);
+      tmpS << " with energy " << fTruthSummary->GetPrimaryEnergy(n);
+      tmpS << " MeV and direction (" << dir.X() << "," << dir.Y() << "," << dir.Z() << ")";
+      fTruthTextPrimaries->AddText(tmpS.str().c_str());
+    } 
+  }
+}
+
+std::string WCSimEvDisplay::ConvertTrueEventType() const{
+
+  std::string type = "";
+
+  if(fTruthSummary != 0x0){
+    // QE events
+    if(fTruthSummary->IsCCEvent() && fTruthSummary->IsQEEvent()) type = "CC QE";
+    if(fTruthSummary->IsNCEvent() && fTruthSummary->IsQEEvent()) type = "NC QE";
+    // Resonant events
+    if(fTruthSummary->IsCCEvent() && fTruthSummary->IsResEvent()) type = "CC Res";
+    if(fTruthSummary->IsNCEvent() && fTruthSummary->IsResEvent()) type = "NC Res";
+    // DIS events
+    if(fTruthSummary->IsCCEvent() && fTruthSummary->IsDISEvent()) type = "CC DIS";
+    if(fTruthSummary->IsNCEvent() && fTruthSummary->IsDISEvent()) type = "NC DIS";
+    // Coherent events
+    if(fTruthSummary->IsCCEvent() && fTruthSummary->IsCohEvent()) type = "CC Coherent";
+    if(fTruthSummary->IsNCEvent() && fTruthSummary->IsCohEvent()) type = "NC Coherent";
+    // Others
+    if(fTruthSummary->IsNueElectronElasticEvent()) type = "Nue Elastic";
+    if(fTruthSummary->IsInverseMuonDecayEvent()) type = "Inverse Muon Decay";
+    // If the interaction mode is 0, we likely have have a complex resonant event.
+    // Look at the primaries and look for a lepton to decide CC or NC
+    if(fTruthSummary->GetInteractionMode() == WCSimTruthSummary::kOther){
+
+      bool isCC = false;
+
+      for(unsigned int n = 0; n < fTruthSummary->GetNPrimaries(); ++n){
+        // Neutrinos
+        if(fTruthSummary->IsNuEEvent() && fTruthSummary->GetPrimaryPDG(n) == 11) isCC = true;
+        if(fTruthSummary->IsNuMuEvent() && fTruthSummary->GetPrimaryPDG(n) == 13) isCC = true;
+        if(fTruthSummary->IsNuTauEvent() && fTruthSummary->GetPrimaryPDG(n) == 15) isCC = true;
+        // Antineutrinos
+        if(fTruthSummary->IsNuEBarEvent() && fTruthSummary->GetPrimaryPDG(n) == -11) isCC = true;
+        if(fTruthSummary->IsNuMuBarEvent() && fTruthSummary->GetPrimaryPDG(n) == -13) isCC = true;
+        if(fTruthSummary->IsNuTauBarEvent() && fTruthSummary->GetPrimaryPDG(n) == -15) isCC = true;
+        // Stop if we find the correct lepton
+        if(isCC) break;
+      }
+      
+      if(isCC) type = "CC Res";
+      else type = "NC Res";
+
+    }
+
+  }  
+
+  return type;
 }
 
 WCSimEvDisplay::~WCSimEvDisplay() {
