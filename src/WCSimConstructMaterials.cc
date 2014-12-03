@@ -88,7 +88,7 @@ void WCSimDetectorConstruction::ConstructMaterials()
   Water->AddElement(elH, 2);
   Water->AddElement(elO, 1);
 
-  density = 1.00*g/cm;
+  density = 1.00*g/cm3;
   G4Material* PitWater = new G4Material("PitWater",density,2);
   PitWater->AddElement(elH,2);
   PitWater->AddElement(elO,1);
