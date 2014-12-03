@@ -53,18 +53,6 @@ namespace WCSimGeometryEnums
 			return myVec;
 		}
 
-    static std::vector<std::string> GetAllTypeNames(){
-			std::vector<std::string> myVec;
-      std::vector<PhotodetectorLimit_t> pmtVec = GetAllTypes();
-      std::vector<PhotodetectorLimit_t>::const_iterator pmtIter = pmtVec.begin();
-      while(pmtIter != pmtVec.end())
-      {
-        myVec.push_back(pmtIter->AsString());
-        ++pmtIter;
-      }
-			return myVec;
-		}
-
 		static std::string AsString(Type type){
 			std::string str("");
 			if( type == kUnknown )  { str = "kUnknown"; }
@@ -111,18 +99,6 @@ namespace WCSimGeometryEnums
 			myVec.push_back(kWall);
 			myVec.push_back(kTop);
 			myVec.push_back(kBottom);
-			return myVec;
-		}
-    
-    static std::vector<std::string> GetAllTypeNames(){
-			std::vector<std::string> myVec;
-      std::vector<DetectorRegion_t> pmtVec = GetAllTypes();
-      std::vector<DetectorRegion_t>::const_iterator pmtIter = pmtVec.begin();
-      while(pmtIter != pmtVec.end())
-      {
-        myVec.push_back(pmtIter->AsString());
-        ++pmtIter;
-      }
 			return myVec;
 		}
 
@@ -172,18 +148,6 @@ namespace WCSimGeometryEnums
 			myVec.push_back(kAngledUpstream);
 			myVec.push_back(kAngledDownstream);
 			myVec.push_back(kArbitrary);
-			return myVec;
-		}
-		
-    static std::vector<std::string> GetAllTypeNames(){
-			std::vector<std::string> myVec;
-      std::vector<PMTDirection_t> pmtVec = GetAllTypes();
-      std::vector<PMTDirection_t>::const_iterator pmtIter = pmtVec.begin();
-      while(pmtIter != pmtVec.end())
-      {
-        myVec.push_back(pmtIter->AsString());
-        ++pmtIter;
-      }
 			return myVec;
 		}
 
