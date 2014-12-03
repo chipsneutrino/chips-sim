@@ -174,7 +174,7 @@ void WCSimMaterialsBuilder::BuildMaterials() {
 	Water->AddElement(GetElement("Oxygen"), 1);
 	fMaterials.push_back(name);
 
-	density = 1.00 * g / cm;
+	density = 1.00 * g / cm3;
 	name = "PitWater";
 	G4Material* PitWater = new G4Material(name, density, 2);
 	PitWater->AddElement(GetElement("Hydrogen"), 2);
