@@ -33,24 +33,28 @@ namespace WCSimPolygonTools {
 	 * \brief Take a regular n-sided polygon centred on (0,0), cut it into slices along the lines
 	 * joining every corner to the centre, and check if the jth slice contains every corner of a square
 	 * \param nSides Number of sides for the polygon
-	 * \param slice Which slice to check (counting anticlockwise from theta = 0)
+	 * \param thetaStart Angle at which the slice begins (counting anticlockwise from theta = 0)
+	 * \param thetaEnd Angle at which the slice ends (counting anticlockwise from theta = 0)
 	 * \param outerRadius Distance from the centre of the polygon to the corners
 	 * \param squareCorner The bottom left corner of the square
 	 * \param squareSide The side length of the square
 	 * \return True if the polygon contains every point on the square
 	 */
-	bool PolygonSliceContainsSquare(unsigned int nSides, unsigned int slice, double outerRadius, G4TwoVector squareCorner, double squareSide);
+	bool PolygonSliceContainsSquare(unsigned int nSides, double thetaStart, double thetaEnd,
+																	double outerRadius, G4TwoVector squareCorner, double squareSide);
 
 	/**
 	 * \brief Take a regular n-sided polygon centred on (0,0), cut it into slices along the lines
 	 * joining every corner to the centre, and check if the jth slice contains every corner of a square
 	 * \param nSides Number of sides for the polygon
-	 * \param slice Which slice to check (counting anticlockwise from theta = 0)
+	 * \param thetaStart Angle at which the slice begins (counting anticlockwise from theta = 0)
+	 * \param thetaEnd Angle at which the slice ends (counting anticlockwise from theta = 0)
 	 * \param outerRadius Distance from the centre of the polygon to the corners
 	 * \param point Cartesian coordinates of point to test
 	 * \return True if the polygon contains every point on the square
 	 */
-	bool PolygonSliceContains(unsigned int nSides, unsigned int slice, double outerRadius, G4TwoVector point);
+	bool PolygonSliceContains(unsigned int nSides, double thetaStart, double thetaEnd,
+														double outerRadius, G4TwoVector point);
 
 
 	double GetSideFromRadius( unsigned int nSides, double outerRadius );
@@ -61,8 +65,12 @@ namespace WCSimPolygonTools {
 	double GetSliceAreaFromSide( unsigned int nSides, double side);
   double GetInnerRadiusFromOuter( unsigned int nSides, double outerRadius);
   double GetOuterRadiusFromInner( unsigned int nSides, double innerRadius);
+  int IsInSliceNumber(unsigned int nSides, G4TwoVector point);
 	G4TwoVector ShiftVector( G4TwoVector vec, double x, double y );
   bool CheckPolygonSide( unsigned int nSides, double side );
   bool CheckPolygon( unsigned int nSides, double outerRadius );
+
+  double NormaliseAngle(double angle);
+  bool IsAngleBetween(double testAngle, double startAngle, double endAngle);
 } /* namespace WCSimPolygonTools */
 #endif /* WCSIMPOLYGONTOOLS_HH_ */

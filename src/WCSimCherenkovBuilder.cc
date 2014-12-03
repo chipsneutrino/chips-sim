@@ -43,7 +43,7 @@
 #include <cmath>
 
 WCSimCherenkovBuilder::WCSimCherenkovBuilder(G4int DetConfig) :
-		fConstructed(false), fGeoConfig(NULL), WCSimDetectorConstruction(DetConfig) {
+	WCSimDetectorConstruction(DetConfig), fConstructed(false), fGeoConfig(NULL) {
 
 	fBlacksheetThickness = 2 * mm;
 	fDebugMode 			 = true;
@@ -53,7 +53,6 @@ WCSimCherenkovBuilder::WCSimCherenkovBuilder(G4int DetConfig) :
 	fLakeLogic = NULL;
 	fBarrelLogic = NULL;
 	fPrismLogic = NULL;
-	fPrismRingLogic = NULL;
 	fCapLogicTop = NULL;
 	fCapLogicBottom = NULL;
 	fCapLogicBottomRing = NULL;
@@ -71,16 +70,13 @@ WCSimCherenkovBuilder::WCSimCherenkovBuilder(G4int DetConfig) :
 
 	fPrismRingRadiusInside = -999 * m; // Radius is to centre of wall not the vertex
 	fPrismRingRadiusOutside = -999 * m;
-	fPrismRingHeight = -999 * m;
 
 	fPrismRingSegmentRadiusInside = -999 * m; // To centre of segment not edge
 	fPrismRingSegmentRadiusInside = -999 * m;
-	fPrismRingSegmentHeight = -999 * m;
 	fPrismRingSegmentDPhi = -999 * m;
 
 	fPrismRingSegmentBSRadiusInside = -999 * m; // To centre not edge
 	fPrismRingSegmentBSRadiusOutside = -999 * m;
-	fPrismRingSegmentBSHeight = -999 * m;
 
 	fCapAssemblyHeight = -999 * m;
 	fCapAssemblyRadius = -999 * m;
@@ -132,13 +128,18 @@ WCSimCherenkovBuilder::~WCSimCherenkovBuilder() {
 	}
 	fBottomUnitCells.clear();
 
+	for(unsigned int iWall = 0; iWall < fSegmentLogics.size(); ++iWall)
+	{
+		if( fPrismWallLogics.at(iWall) != NULL ){ delete fPrismWallLogics.at(iWall);}
+		if( fPrismWallPhysics.at(iWall) != NULL ){ delete fPrismWallPhysics.at(iWall);}
+		if( fPrismRingLogics.at(iWall) != NULL ) { delete fPrismRingLogics.at(iWall); }
+		if( fPrismRingPhysics.at(iWall) != NULL) { delete fPrismRingPhysics.at(iWall); }
+	}
+
+
 	for(unsigned int iSegment = 0; iSegment < fSegmentLogics.size(); ++iSegment)
 	{
 		if( fSegmentLogics.at(iSegment) != NULL ){ delete fSegmentLogics.at(iSegment);}
-	}
-
-	for(unsigned int iSegment = 0; iSegment < fSegmentPhysics.size(); ++iSegment)
-	{
 		if( fSegmentPhysics.at(iSegment) != NULL ){ delete fSegmentPhysics.at(iSegment);}
 	}
 
@@ -146,7 +147,6 @@ WCSimCherenkovBuilder::~WCSimCherenkovBuilder() {
 	if(fCapLogicBottom != NULL ) { delete fCapLogicBottom;}
 	if(fCapLogicBottomRing != NULL) { delete fCapLogicBottomRing; }
   if( fCapLogicTop != NULL ) { delete fCapLogicTop;}
-  if( fPrismRingLogic != NULL ) { delete fPrismRingLogic;}
   if( fPrismLogic != NULL ) { delete fPrismLogic;}
   if( fBarrelLogic != NULL ) { delete fBarrelLogic;}
   if( fLakeLogic != NULL ) { delete fLakeLogic;}
@@ -161,6 +161,12 @@ void WCSimCherenkovBuilder::SetCustomGeometry()
 {
   WCSimGeoManager * manager = new WCSimGeoManager();
   fGeoConfig = new WCSimGeoConfig(manager->GetGeometryByName(fDetectorName));
+
+  fWallCellsX.resize(fGeoConfig->GetNSides());
+  fWallCellsZ.resize(fGeoConfig->GetNSides());
+  fWallCellLength.resize(fGeoConfig->GetNSides());
+  fWallCellSize.resize(fGeoConfig->GetNSides());
+
   delete manager;
 
   ResetPMTConfigs();
@@ -188,7 +194,6 @@ void WCSimCherenkovBuilder::ConstructDetectorWrapper() {
 	if (!fConstructed) {
 
 		if( !fGotMeasurements ) { std::cout << "Getting measurements" << std::endl; GetMeasurements(); }
-		CalculateZoneCoverages();
 		ConstructUnitCells();
 		ConstructEnvironment();
 		ConstructFrame();
@@ -242,7 +247,9 @@ void WCSimCherenkovBuilder::ConstructFrame() {
 
 	G4Tubs* barrelTubs = new G4Tubs("barrelTubs", 0, fBarrelRadius, fBarrelHeight/2.0, 0. * deg, 360. * deg);
 	fBarrelLogic = new G4LogicalVolume(barrelTubs, barrelWater, "barrelTubs", 0, 0, 0);
-	G4VPhysicalVolume* barrelPhysic = new G4PVPlacement(0, G4ThreeVector(0., 0., 0.),
+
+	// G4VPhysicalVolume* barrelPhysic = // Gets rid of compiler warning
+	new G4PVPlacement(0, G4ThreeVector(0., 0., 0.),
 														fBarrelLogic, "barrelTubs",
 														fLakeLogic, false, 0);
 }
@@ -253,14 +260,13 @@ void WCSimCherenkovBuilder::ConstructVeto() {
 
 void WCSimCherenkovBuilder::ConstructInnerDetector() {
 	CreatePrism();
+	CreatePrismWalls();
 	CreatePrismRings();
 	CreateRingSegments();
 	CreateSegmentCells();
 }
 
 void WCSimCherenkovBuilder::CreatePrism() {
-	G4double WCPosition = 0.;	  //Set the WC tube offset to zero
-
 
 	//-----------------------------------------------------
 	// Form annular section of barrel to hold PMTs
@@ -288,48 +294,108 @@ void WCSimCherenkovBuilder::CreatePrism() {
 	fPrismLogic = new G4LogicalVolume(prismSolid, WCSimMaterialsBuilder::Instance()->GetMaterial("Water"),
 									  "prism", 0, 0, 0);
 
-	G4VPhysicalVolume* prismPhysic = new G4PVPlacement(0, G4ThreeVector(0., 0., 0.),
+	// G4VPhysicalVolume* prismPhysic = // Fixes compiler warning
+	new G4PVPlacement(0, G4ThreeVector(0., 0., 0.),
 														fPrismLogic, "prism",
 														fBarrelLogic, false, 0, true);
 }
 
+void WCSimCherenkovBuilder::CreatePrismWalls()
+{
+	fPrismWallLogics.resize(fGeoConfig->GetNSides());
+	fPrismWallPhysics.resize(fGeoConfig->GetNSides());
+	for(unsigned int iZone = 0; iZone < fGeoConfig->GetNumZones(WCSimGeometryEnums::DetectorRegion_t::kWall); ++iZone)
+	{
+		std::cout << "Making wall " << iZone << std::endl;
+		G4double prismWallZ[2] = { -0.5 * fPrismHeight, 0.5 * fPrismHeight };
+		G4double prismWallRmin[2] = { fPrismWallRadiusInside, fPrismWallRadiusInside };
+		G4double prismWallRmax[2] = { fPrismWallRadiusOutside, fPrismWallRadiusOutside };
+		std::cout << "Wall z: " << prismWallZ[0] << "  " << prismWallZ[1] << std::endl;
+		std::cout << "Wall rmin: " << prismWallRmin[0] << "  " << prismWallRmin[1] << std::endl;
+		std::cout << "Wall rmax: " << prismWallRmax[0] << "  " << prismWallRmax[1] << std::endl;
+
+		G4RotationMatrix* prismWallRotation = new G4RotationMatrix;
+		prismWallRotation->rotateZ(360.0 * (iZone/(double)fGeoConfig->GetNSides()) * deg);
+
+		// Now make the volumes
+		std::stringstream ss;
+		ss << "prism" << iZone;
+		G4Polyhedra* prismWallSolid = new G4Polyhedra(ss.str().c_str(),
+																								 -0.5 * 360.0 * ((double)fGeoConfig->GetNSides()) * deg,  // phi start
+																									360.0 * ((double)fGeoConfig->GetNSides()) * deg,  // phi end
+																  								1, //number of sides
+																									2, prismWallZ, // number and location of z planes
+																									prismWallRmin, prismWallRmax); // inner and outer radii
+		if(fPrismWallLogics.at(iZone) != NULL) { delete fPrismWallLogics.at(iZone); }
+		fPrismWallLogics.at(iZone) = new G4LogicalVolume(prismWallSolid, WCSimMaterialsBuilder::Instance()->GetMaterial("Water"),
+																										 ss.str().c_str(), 0,0,0);
+		if(fPrismWallPhysics.at(iZone) != NULL) { delete fPrismWallPhysics.at(iZone); }
+		fPrismWallPhysics.at(iZone) = new G4PVPlacement(prismWallRotation, G4ThreeVector(0,0,0), fPrismWallLogics.at(iZone),
+																									  ss.str().c_str(), fPrismLogic, false, 0);
+
+	}
+
+
+
+}
+
 void WCSimCherenkovBuilder::CreatePrismRings() {
 	// Slice the prism up lengthways
+	fPrismRingLogics.resize(fGeoConfig->GetNSides());
+	fPrismRingPhysics.resize(fGeoConfig->GetNSides());
+  for(unsigned int iZone = 0; iZone < fGeoConfig->GetNumZones(WCSimGeometryEnums::DetectorRegion_t::kWall); ++iZone)
+  {
+		//-----------------------------------------------------
+		// Subdivide the BarrelAnnulus into rings
+		//-----------------------------------------------------
+		G4Material * pureWater  = WCSimMaterialsBuilder::Instance()->GetMaterial("Water");
 
+		G4double RingZ[2] 			= { -0.5 * fPrismRingHeight.at(iZone), 0.5 * fPrismRingHeight.at(iZone) };
+		G4double mainAnnulusRmin[2] = { fPrismRingRadiusInside, fPrismRingRadiusInside };
+		G4double mainAnnulusRmax[2] = { fPrismRingRadiusOutside, fPrismRingRadiusOutside };
 
-	//-----------------------------------------------------
-	// Subdivide the BarrelAnnulus into rings
-	//-----------------------------------------------------
-	G4Material * pureWater  = WCSimMaterialsBuilder::Instance()->GetMaterial("Water");
+		// Now make all the volumes
+		std::cout << "Making solid, nSides = " << fGeoConfig->GetNSides() << std::endl;
+		std::cout << "fPrismRingHeight = " << fPrismRingHeight.at(iZone) << "  fPrismRingSegmentRadiusInside = " << fPrismRingSegmentRadiusInside << " and fPrismRingSegmentRadiusOutside = " << fPrismRingRadiusOutside << std::endl;
 
-  G4double RingZ[2] 			= { -0.5 * fPrismRingHeight, 0.5 * fPrismRingHeight };
-	G4double mainAnnulusRmin[2] = { fPrismRingRadiusInside, fPrismRingRadiusInside };
-	G4double mainAnnulusRmax[2] = { fPrismRingRadiusOutside, fPrismRingRadiusOutside };
+		std::stringstream ss;
+		ss << "prismRing" << iZone << std::endl;
 
-	// Now make all the volumes
-    std::cout << "Making solid, nSides = " << fGeoConfig->GetNSides() << std::endl;
-    std::cout << "fPrismRingHeight = " << fPrismRingHeight << "  fPrismRingSegmentRadiusInside = " << fPrismRingSegmentRadiusInside << " and fPrismRingSegmentRadiusOutside = " << fPrismRingRadiusOutside << std::endl;
-	G4Polyhedra* prismRingSolid = new G4Polyhedra("prismRing", 0. * deg,// phi start
-													 360.0 * deg, //phi end
-													 (G4int) fGeoConfig->GetNSides(), //NPhi-gon
-													 2, RingZ, mainAnnulusRmin, mainAnnulusRmax);
+		const char * name = ss.str().c_str();
+		G4Polyhedra* prismRingSolid = new G4Polyhedra(name,
+																								 -fPrismRingSegmentDPhi/2.0, // phi start
+																								  fPrismRingSegmentDPhi, //total Phi
+																									1, //One side of our NPhi-gon
+																									2, RingZ, mainAnnulusRmin, mainAnnulusRmax);
 
-    std::cout << "Making logic" << std::endl;
-	fPrismRingLogic = new G4LogicalVolume(prismRingSolid,
-                                          pureWater, "prismRing", 0, 0, 0);
+		std::cout << "Making logic" << std::endl;
+		if(fPrismRingLogics.at(iZone) != NULL) { delete fPrismRingLogics.at(iZone); }
+		fPrismRingLogics.at(iZone) = new G4LogicalVolume(prismRingSolid,
+																										 pureWater, name, 0, 0, 0);
 
-    std::cout << "Making physic" << std::endl;
-	G4VPhysicalVolume* prismRingPhysic = new G4PVReplica("prismRing",
-                                                         fPrismRingLogic, fPrismLogic, kZAxis,
-		                          						 (G4int) fWallCellsZ, fPrismRingHeight);
-    std::cout << "Made!" << std::endl;
-	if (!fDebugMode)
-		fPrismLogic->SetVisAttributes(G4VisAttributes::Invisible);
-	else {
-		G4VisAttributes* tmpVisAtt = new G4VisAttributes(G4Colour(0, 0.5, 1.));
-		tmpVisAtt->SetForceWireframe(true);
-		fPrismRingLogic->SetVisAttributes(tmpVisAtt);
-	}
+		if(fPrismRingPhysics.at(iZone) != NULL) { delete fPrismRingPhysics.at(iZone); }
+		std::cout << "Making physic" << std::endl;
+//		fPrismRingPhysics.at(iZone) = new G4PVPlacement(0, G4ThreeVector(0,0,0), fPrismRingLogics.at(iZone),
+//																									  ss.str().c_str(), false, 0, true);
+//
+		std::cout << "Region  = kWall, zone = " << iZone;
+		std::cout << "  Z cells = " << fWallCellsZ.at(iZone);
+		std::cout << "  height = " << fPrismRingHeight.at(iZone);
+	  std::cout << "  num prismringlogics = " << fPrismRingLogics.size();
+	  std::cout << "  num prismwalllogics = " << fPrismWallLogics.size() << std::endl;
+		fPrismRingPhysics.at(iZone) = new G4PVReplica("prismRing",
+																									fPrismRingLogics.at(iZone), fPrismWallLogics.at(iZone), kZAxis,
+																									(G4int) fWallCellsZ.at(iZone), fPrismRingHeight.at(iZone));
+																									std::cout << "Made!" << std::endl;
+
+		if (!fDebugMode)
+			fPrismLogic->SetVisAttributes(G4VisAttributes::Invisible);
+		else {
+			G4VisAttributes* tmpVisAtt = new G4VisAttributes(G4Colour(0, 0.5, 1.));
+			tmpVisAtt->SetForceWireframe(true);
+			fPrismRingLogics.at(iZone)->SetVisAttributes(tmpVisAtt);
+		}
+  }
 }
 
 void WCSimCherenkovBuilder::CreateRingSegments() {
@@ -337,15 +403,14 @@ void WCSimCherenkovBuilder::CreateRingSegments() {
 	// Set up constants (factorise these somewhere else later)
 	G4Material * pureWater = WCSimMaterialsBuilder::Instance()->GetMaterial("Water");
 
-	// Zip these up into arrays to pass to Geant
-	G4double RingZ[2] 			= { -0.5 * fPrismRingSegmentHeight, 0.5 * fPrismRingSegmentHeight};
-	G4double mainAnnulusRmin[2] = { fPrismRingSegmentRadiusInside, fPrismRingSegmentRadiusInside};
-	G4double mainAnnulusRmax[2] = { fPrismRingSegmentRadiusOutside, fPrismRingSegmentRadiusOutside };
-
-
 	// Now divide each ring (an n-gon prism) into n rectangular segments
 	for(unsigned int iSide = 0; iSide < fGeoConfig->GetNSides(); ++iSide)
 	{
+		// Zip these up into arrays to pass to Geant
+		G4double RingZ[2] 			= { -0.5 * fPrismRingSegmentHeight.at(iSide), 0.5 * fPrismRingSegmentHeight.at(iSide)};
+		G4double mainAnnulusRmin[2] = { fPrismRingSegmentRadiusInside, fPrismRingSegmentRadiusInside};
+		G4double mainAnnulusRmax[2] = { fPrismRingSegmentRadiusOutside, fPrismRingSegmentRadiusOutside };
+
 		std::stringstream ss;
 		ss << "segment" << iSide;
 		const char * name = ss.str().c_str();
@@ -370,7 +435,7 @@ void WCSimCherenkovBuilder::CreateRingSegments() {
     																											G4ThreeVector(0.,0., 0.),
     																											fSegmentLogics.at(iSide),
     																											name,
-    																											fPrismRingLogic,
+    																											fPrismRingLogics.at(iSide),
     																											false,
     																											iSide);
     fSegmentPhysics.push_back(segmentPhysic);
@@ -380,7 +445,7 @@ void WCSimCherenkovBuilder::CreateRingSegments() {
   	else {
   		G4VisAttributes* tmpVisAtt = new G4VisAttributes(
   				G4Colour(1., 0.5, 0.5));
-  		tmpVisAtt->SetForceWireframe(true);
+  		tmpVisAtt->SetForceWireframe(false);
   		fSegmentLogics.at(iSide)->SetVisAttributes(tmpVisAtt);
   	}
 
@@ -390,15 +455,17 @@ void WCSimCherenkovBuilder::CreateRingSegments() {
 	//-------------------------------------------------------------
 	// add barrel blacksheet to the normal barrel cells
 	// ------------------------------------------------------------
-	G4double segmentBlacksheetZ[2] = { -fPrismRingSegmentBSHeight/2.0,
-                                        fPrismRingSegmentBSHeight/2.0 };
-	G4double segmentBlacksheetRmax[2] = { fPrismRingSegmentBSRadiusOutside,
-										  fPrismRingSegmentBSRadiusOutside };
-	G4double segmentBlacksheetRmin[2] = { fPrismRingSegmentBSRadiusInside,
-                                          fPrismRingSegmentBSRadiusInside,};
 
 	for(unsigned int iSide = 0; iSide < fGeoConfig->GetNSides(); ++iSide)
 	{
+		G4double segmentBlacksheetZ[2] = { -fPrismRingSegmentBSHeight.at(iSide)/2.0,
+																				fPrismRingSegmentBSHeight.at(iSide)/2.0 };
+		G4double segmentBlacksheetRmax[2] = { fPrismRingSegmentBSRadiusOutside,
+												  								fPrismRingSegmentBSRadiusOutside };
+		G4double segmentBlacksheetRmin[2] = { fPrismRingSegmentBSRadiusInside,
+		                                      fPrismRingSegmentBSRadiusInside,};
+
+
 		std::stringstream ss;
 		ss << "segmentBlacksheet" << iSide;
 		const char * name = ss.str().c_str();
@@ -477,7 +544,7 @@ void WCSimCherenkovBuilder::PlaceBarrelPMTs()
 
 	G4double segmentWidth = 2. * (fPrismRingSegmentBSRadiusInside) * sin(fPrismRingSegmentDPhi / 2.);
 
-	for(int iZone = 0; iZone < fGeoConfig->GetNSides(); ++iZone)
+	for(unsigned int iZone = 0; iZone < fGeoConfig->GetNumZones(WCSimGeometryEnums::DetectorRegion_t::kWall); ++iZone)
 	{
 
 		G4double widthPerCell = segmentWidth / fWallCellsX.at(iZone);
@@ -531,13 +598,14 @@ void WCSimCherenkovBuilder::PlaceBarrelPMTs()
 				std::cout << "Cell mother height and width: " << heightPerCell/2. << "  "  << segmentWidth/2. << std::endl;
 				WCSimPMTConfig config = unitCell->GetPMTPlacement(nPMT).GetPMTConfig();
 				std::cout << " PMT logical volume name = " << fPMTBuilder.GetPMTLogicalVolume(config)->GetName() << std::endl;
-				G4VPhysicalVolume* physiWCBarrelPMT = new G4PVPlacement(WCPMTRotation,     // its rotation
-																																PMTPosition,
-																																fPMTBuilder.GetPMTLogicalVolume(config),        // its logical volume //
-																																"WCPMT",           // its name
-																																fSegmentLogics.at(iZone),      // its mother volume
-																																false,             // no boolean operations
-																																fNumPMTs, true);
+				// G4VPhysicalVolume* physiWCBarrelPMT =
+				new G4PVPlacement(WCPMTRotation,     // its rotation
+													PMTPosition,
+													fPMTBuilder.GetPMTLogicalVolume(config),        // its logical volume //
+													"WCPMT",           // its name
+													fSegmentLogics.at(iZone),      // its mother volume
+													false,             // no boolean operations
+													fNumPMTs, true);
 				fNumPMTs++;
 
 				// logicWCPMT->GetDaughter(0),physiCapPMT is the glass face. If you add more
@@ -547,9 +615,6 @@ void WCSimCherenkovBuilder::PlaceBarrelPMTs()
 		}
 		std::cout << "PMTs placed on walls!" << std::endl;
 	}
-}
-
-void WCSimCherenkovBuilder::SetGeoConfig(WCSimGeoConfig* config) {
 }
 
 WCSimGeoConfig * WCSimCherenkovBuilder::GetGeoConfig() const {
@@ -572,6 +637,10 @@ void WCSimCherenkovBuilder::GetMeasurements()
     fPrismRadiusOutside = fGeoConfig->GetInnerRadius() + fBlacksheetThickness + GetMaxBarrelExposeHeight() + nEpsilons * epsilon;
     fPrismHeight = fBarrelLengthForCells;
 
+    assert( --nEpsilons > 0);
+    fPrismWallRadiusInside  = fPrismRadiusInside + epsilon;
+    fPrismWallRadiusOutside = fPrismRadiusOutside - epsilon;
+
     assert(--nEpsilons > 0);
     fPrismRingRadiusInside = fPrismRadiusInside + epsilon;
     fPrismRingRadiusOutside = fPrismRadiusOutside - epsilon;
@@ -590,7 +659,7 @@ void WCSimCherenkovBuilder::GetMeasurements()
     fPrismRingHeight.resize(fGeoConfig->GetNSides());
     fPrismRingSegmentHeight.resize(fGeoConfig->GetNSides());
     fPrismRingSegmentBSHeight.resize(fGeoConfig->GetNSides());
-    for(unsigned int iZone = 0; iZone < fGeoConfig->GetNSides(); ++iZone)
+    for(unsigned int iZone = 0; iZone < fGeoConfig->GetNumZones(WCSimGeometryEnums::DetectorRegion_t::kWall); ++iZone)
     {
     	fPrismRingHeight.at(iZone) = fPrismHeight / fWallCellsZ.at(iZone);
     	fPrismRingSegmentHeight.at(iZone) = fPrismRingHeight.at(iZone) - epsilon;
@@ -637,13 +706,17 @@ double WCSimCherenkovBuilder::GetBarrelLengthForCells() {
 
 double WCSimCherenkovBuilder::GetMaxCapExposeHeight() {
 	double maxHeight = 0.0;
-	for(unsigned int iZone = 0; iZone < fGeoConfig->GetNSides(); ++iZone)
+	for(unsigned int iZone = 0; iZone < fGeoConfig->GetNumZones(WCSimGeometryEnums::DetectorRegion_t::kTop); ++iZone)
 	{
 		WCSimUnitCell * cell = GetTopUnitCell(iZone);
-		WCSimUnitCell * cell2 = GetBottomUnitCell(iZone);
 		double expHeight = cell->GetCellExposeHeight();
-		double expHeight2 = cell2->GetCellExposeHeight();
 		if(expHeight > maxHeight) { maxHeight = expHeight; }
+	}
+
+	for(unsigned int iZone = 0; iZone < fGeoConfig->GetNumZones(WCSimGeometryEnums::DetectorRegion_t::kBottom); ++iZone)
+	{
+		WCSimUnitCell * cell2 = GetBottomUnitCell(iZone);
+		double expHeight2 = cell2->GetCellExposeHeight();
 		if(expHeight2 > maxHeight) { maxHeight = expHeight2; }
 	}
 	return maxHeight;
@@ -651,7 +724,7 @@ double WCSimCherenkovBuilder::GetMaxCapExposeHeight() {
 
 double WCSimCherenkovBuilder::GetMaxBarrelExposeHeight() {
 	double maxHeight = 0.0;
-	for(unsigned int iZone = 0; iZone < fGeoConfig->GetNSides(); ++iZone)
+	for(unsigned int iZone = 0; iZone < fGeoConfig->GetNumZones(WCSimGeometryEnums::DetectorRegion_t::kWall); ++iZone)
 	{
 		WCSimUnitCell * cell = GetWallUnitCell(iZone);
 		double expHeight = cell->GetCellExposeHeight();
@@ -665,7 +738,7 @@ void WCSimCherenkovBuilder::ConstructUnitCells() {
 
   // Wall cells:
   fWallUnitCells.clear();
-  for(int iZone = 0; iZone < fGeoConfig->GetNSides(); ++iZone)
+	for(unsigned int iZone = 0; iZone < fGeoConfig->GetNumZones(WCSimGeometryEnums::DetectorRegion_t::kWall); ++iZone)
   {
   	std::vector<double> pmtX = fGeoConfig->GetCellPMTX(WCSimGeometryEnums::DetectorRegion_t::kWall, iZone);
   	std::vector<double> pmtY = fGeoConfig->GetCellPMTY(WCSimGeometryEnums::DetectorRegion_t::kWall, iZone);
@@ -684,7 +757,7 @@ void WCSimCherenkovBuilder::ConstructUnitCells() {
 
   // Top cells:
   fTopUnitCells.clear();
-  for(int iZone = 0; iZone < fGeoConfig->GetNSides(); ++iZone)
+	for(unsigned int iZone = 0; iZone < fGeoConfig->GetNumZones(WCSimGeometryEnums::DetectorRegion_t::kTop); ++iZone)
   {
   	std::vector<double> pmtX = fGeoConfig->GetCellPMTX(WCSimGeometryEnums::DetectorRegion_t::kTop, iZone);
   	std::vector<double> pmtY = fGeoConfig->GetCellPMTY(WCSimGeometryEnums::DetectorRegion_t::kTop, iZone);
@@ -703,7 +776,7 @@ void WCSimCherenkovBuilder::ConstructUnitCells() {
 
   // Bottom cells:
   fBottomUnitCells.clear();
-  for(int iZone = 0; iZone < fGeoConfig->GetNSides(); ++iZone)
+	for(unsigned int iZone = 0; iZone < fGeoConfig->GetNumZones(WCSimGeometryEnums::DetectorRegion_t::kBottom); ++iZone)
   {
   	std::vector<double> pmtX = fGeoConfig->GetCellPMTX(WCSimGeometryEnums::DetectorRegion_t::kBottom, iZone);
   	std::vector<double> pmtY = fGeoConfig->GetCellPMTY(WCSimGeometryEnums::DetectorRegion_t::kBottom, iZone);
@@ -766,13 +839,23 @@ void WCSimCherenkovBuilder::CalculateCellSizes() {
 	fTopCellSize.resize(fGeoConfig->GetNSides(), 0.0);
 	fBottomCellSize.resize(fGeoConfig->GetNSides(), 0.0);
 
-	for(unsigned int iZone = 0; iZone < fGeoConfig->GetNSides(); ++iZone)
+	for(unsigned int iZone = 0; iZone < fGeoConfig->GetNumZones(WCSimGeometryEnums::DetectorRegion_t::kWall); ++iZone)
 	{
 		fWallCellSize.at(iZone) = GetOptimalWallCellSize(iZone);
-		fTopCellSize.at(iZone) = GetOptimalTopCellSize(iZone);
-		fTopCellSize.at(iZone) = GetOptimalBottomCellSize(iZone);
 	}
-  assert(fTopCellSize > 0);
+
+	for(unsigned int iZone = 0; iZone < fGeoConfig->GetNumZones(WCSimGeometryEnums::DetectorRegion_t::kTop); ++iZone)
+	{
+		fTopCellSize.at(iZone) = GetOptimalTopCellSize(iZone);
+	}
+
+	for(unsigned int iZone = 0; iZone < fGeoConfig->GetNumZones(WCSimGeometryEnums::DetectorRegion_t::kBottom); ++iZone)
+	{
+		fBottomCellSize.at(iZone) = GetOptimalBottomCellSize(iZone);
+	}
+	assert(fWallCellSize.size() > 0);
+	assert(fTopCellSize.size() > 0);
+	assert(fBottomCellSize.size() > 0);
 }
 
 double WCSimCherenkovBuilder::GetOptimalEndcapCellSize(WCSimGeometryEnums::DetectorRegion_t region, int zoneNum) {
@@ -780,7 +863,8 @@ double WCSimCherenkovBuilder::GetOptimalEndcapCellSize(WCSimGeometryEnums::Detec
 	// is in general non-trivial.  Here we'll lay them out in a regular
 	// grid and then iterate making the cells slightly smaller or larger
 	// to get close to the desired coverage.
-  std::cout << " *** WCSimCherenkovBuilder::GetOptimalTopCellSide *** " << std::endl;
+  // std::cout << " *** WCSimCherenkovBuilder::GetOptimalTopCellSide *** " << std::endl;
+  // std::cout << "Getting cell size for " << region.AsString() << ", zone " << zoneNum << std::endl;
 
 	// Fit our n-gon inside a square:
 	double squareSide = 2.0*(fCapPolygonCentreRadius);
@@ -790,35 +874,38 @@ double WCSimCherenkovBuilder::GetOptimalEndcapCellSize(WCSimGeometryEnums::Detec
 
 	double defaultSide = 0.0;
 	bool canHaveMorePMTs = true;
+	double targetCoverage = 0.0;
+
 	if(fGeoConfig->GetLimitPMTNumber())
 	{
 		double pmtArea = topCell.GetPhotocathodeArea();
-		double maxNumCells = fGeoConfig.GetMaxZoneCells(region, zone);
-		double coverage =   pmtArea * maxNumCells
+		double maxNumCells = fGeoConfig->GetMaxZoneCells(region, zoneNum);
+		double maxCoverage = pmtArea * maxNumCells
 										  / WCSimPolygonTools::GetSliceAreaFromRadius(fGeoConfig->GetNSides(), fGeoConfig->GetOuterRadius());
 
-
-		defaultSide = topCell.GetCellSizeForCoverage(fGeoConfig->GetCoverageFraction(region, zoneNum));
+//	std::cout << "Maximum coverage with available PMTs for region " << region.AsString() << ", zone " << zoneNum << " = " << maxCoverage << std::endl;
+		targetCoverage = maxCoverage;
+		defaultSide = topCell.GetCellSizeForCoverage(targetCoverage);
 		canHaveMorePMTs = false;
 	}
 	else
 	{
-		if(fGeoConfig->GetUseOverallCoverage()){
-			defaultSide = topCell.GetCellSizeForCoverage(fGeoConfig->GetOverallCoverageFraction());
-		}
-		else if(fGeoConfig->GetUseZonalCoverage()){
-			defaultSide = topCell.GetCellSizeForCoverage(fGeoConfig->GetZonalCoverageFraction(region, zoneNum));
+		if(fGeoConfig->GetUseOverallCoverage() || fGeoConfig->GetUseZonalCoverage()){
+			targetCoverage = GetZoneCoverage(region, zoneNum);
+			defaultSide = topCell.GetCellSizeForCoverage(targetCoverage);
 		}
 		else{
-			std::cerr << "Error: can't tell what coverage type fGeoConfig should use - bailing out" << std::endl;
+//			std::cerr << "Error: can't tell what coverage type fGeoConfig should use - bailing out" << std::endl;
 			assert(0);
 		}
 		canHaveMorePMTs = true;
 	}
-	std::cout << "Default side = " << defaultSide << " Coverage = " << topCell.GetPhotocathodeCoverage(defaultSide) << std::endl;
+
+//	std::cout << "Default side = " << defaultSide << " Coverage = " << topCell.GetPhotocathodeCoverage(defaultSide) << std::endl;
+
 
 	int cellRows = (int)(squareSide/defaultSide); // Round down
-  std::cout << "cellRows = " << cellRows << std::endl;
+//  std::cout << "cellRows = " << cellRows << std::endl;
 
 /*	TODO: implement this feature
     G4TwoVector centreOffset;
@@ -839,9 +926,11 @@ double WCSimCherenkovBuilder::GetOptimalEndcapCellSize(WCSimGeometryEnums::Detec
 	// so it's sufficient to test if each corner of a square is inside
 	// the polygon.
 	double cellSide = squareSide / cellRows;
+  double startingSide = cellSide;
 	unsigned int nSides = fGeoConfig->GetNSides();
 
 	double bestSide = cellSide;
+	double bestCoverageDiff = -999.9;;
 	double bestCoverage = 0;
 
 	for( int iteration = 0; iteration < 10; ++iteration ){
@@ -861,14 +950,16 @@ double WCSimCherenkovBuilder::GetOptimalEndcapCellSize(WCSimGeometryEnums::Detec
 				G4TwoVector bottomRight = G4TwoVector((iHoriz+1) * cellSide, -(iVert+1) * cellSide) + centreToTopLeft;
 
 				bool cellInPolygonSlice = true;
+				double thetaStart = fGeoConfig->GetZoneThetaStart(region, zoneNum);
+				double thetaEnd = fGeoConfig->GetZoneThetaEnd(region, zoneNum);
         double capPolygonInnerRadius = WCSimPolygonTools::GetOuterRadiusFromInner(fGeoConfig->GetNSides(), fCapPolygonCentreRadius);
         // std::cout << "iHoriz = " << iHoriz << "  " << "iVert = " << iVert << std::endl
         //           << "(" << topLeft.x() << ", " << topLeft.y() << ") (" << topRight.x() << ", " << topRight.y()
         //           << ") (" << bottomLeft.x() << ", " << bottomLeft.y() << ") (" << bottomRight.x() << bottomRight.y() << ")" << std::endl;
-				if(    !(WCSimPolygonTools::PolygonSliceContains(nSides, zoneNum, capPolygonInnerRadius, topLeft))
-					  || !(WCSimPolygonTools::PolygonSliceContains(nSides, zoneNum, capPolygonInnerRadius, topRight))
-					  || !(WCSimPolygonTools::PolygonSliceContains(nSides, zoneNum, capPolygonInnerRadius, bottomLeft))
-					  || !(WCSimPolygonTools::PolygonSliceContains(nSides, zoneNum, capPolygonInnerRadius, bottomRight)) ){
+				if(    !(WCSimPolygonTools::PolygonSliceContains(nSides, thetaStart, thetaEnd, capPolygonInnerRadius, topLeft))
+					  || !(WCSimPolygonTools::PolygonSliceContains(nSides, thetaStart, thetaEnd, capPolygonInnerRadius, topRight))
+					  || !(WCSimPolygonTools::PolygonSliceContains(nSides, thetaStart, thetaEnd, capPolygonInnerRadius, bottomLeft))
+					  || !(WCSimPolygonTools::PolygonSliceContains(nSides, thetaStart, thetaEnd, capPolygonInnerRadius, bottomRight)) ){
 					cellInPolygonSlice = false;
 				}
 				cellsInPolygon += cellInPolygonSlice;
@@ -876,6 +967,8 @@ double WCSimCherenkovBuilder::GetOptimalEndcapCellSize(WCSimGeometryEnums::Detec
 		}
 		double topCoverage =   (cellsInPolygon * topCell.GetPhotocathodeCoverage(cellSide) * cellSide * cellSide)
 												 / (WCSimPolygonTools::GetSliceAreaFromRadius(nSides, fGeoConfig->GetOuterRadius()));
+
+		double coverageDiff = topCoverage - targetCoverage;
 		// std::cout << "Coverage = " << (cellsInPolygon * topCell.GetPhotocathodeCoverage(cellSide) * cellSide * cellSide)
 		// 					<< " / " << (WCSimPolygonTools::GetAreaFromRadius(nSides, fGeoConfig->GetOuterRadius()))
     //           << " = " << topCoverage << std::endl;
@@ -883,7 +976,9 @@ double WCSimCherenkovBuilder::GetOptimalEndcapCellSize(WCSimGeometryEnums::Detec
     // std::cout << "cellSide = " << cellSide << std::endl;
     // std::cout << "innerRadius = " << fGeoConfig->GetOuterRadius() << std::endl;
 
-		if( fabs(topCoverage-fGeoConfig->GetCoverageFraction()) < bestCoverage ){
+		if(    ((canHaveMorePMTs) || (!canHaveMorePMTs && coverageDiff > 0))
+				&& fabs(coverageDiff < bestCoverageDiff)){
+			bestCoverageDiff = fabs(coverageDiff);
 			bestCoverage = topCoverage;
 			bestSide = cellSide;
 		}
@@ -893,6 +988,10 @@ double WCSimCherenkovBuilder::GetOptimalEndcapCellSize(WCSimGeometryEnums::Detec
 		if(topCoverage > 0){
       // std::cout << "cellSide was " << cellSide << std::endl;
       cellSide = cellSide * sqrt(topCoverage / fGeoConfig->GetCoverageFraction() );
+      while(!canHaveMorePMTs && cellSide < startingSide && cellSide > 0.0)
+      {
+      	cellSide *= 1.02;
+      }
       // std::cout << "now cellSide is " << cellSide << std::endl;
     }
 	}
@@ -901,69 +1000,146 @@ double WCSimCherenkovBuilder::GetOptimalEndcapCellSize(WCSimGeometryEnums::Detec
 }
 
 double WCSimCherenkovBuilder::GetOptimalWallCellSize(int iZone) {
-	double coverage 		= fGeoConfig->GetCoverageFraction(WCSimGeometryEnums::DetectorRegion_t::kWall, iZone); // Photocathode coverage
-	double wallHeight 		= GetBarrelLengthForCells(); // Height of walls
+
+
+	double coverage 		= -999.9; // Photocathode coverage
+	double wallHeight 	= GetBarrelLengthForCells(); // Height of walls
 	double wallSide 		= 2.0 * fPrismRingSegmentBSRadiusInside * sin(M_PI / fGeoConfig->GetNSides()); // Side length of walls
-	double wallCentreRadius = fPrismRingSegmentBSRadiusInside;; // Distance from centre of detector to centre of wall
 	WCSimUnitCell *wallCell  = (GetWallUnitCell(iZone)); // Make a copy because we'll mess with it
-  
-  std::cout << "Wall height = " << wallHeight << " ( * m = " << wallHeight * m << ")" << std::endl;
-  std::cout << "Wall side = " << wallSide << std::endl;
-  wallCell->Print();
-  std::cout << "Minimum side length allowed = " << wallCell->GetMinimumCellSize() << std::endl;
 
-	// Number of unit cells spanning across the width of the wall
-	int tileX = (int)(wallSide / (this->GetWallUnitCell(iZone)->GetCellSizeForCoverage(coverage)));
-	// Number of unit cells to span the height of the detector
-	int tileZ = (int)(wallHeight / (this->GetWallUnitCell(iZone)->GetCellSizeForCoverage(coverage)));
+	/////////////////
 
-	// In general the number of cells needed is non-integral
-	// We need an m x n arrangement of cells that gives coverage close
-	// to the desired percentage.  So round the number of cells up and down
-	// and see which arrangement gets closest
-	int xNums[2] = { tileX, tileX+1 };
-	int zNums[2] = { tileZ, tileZ+1 };
+	double defaultSide = 0.0;
+	bool canHaveMorePMTs = true;
+	if(fGeoConfig->GetLimitPMTNumber())
+	{
 
-	double bestCoverage = 0.0;
-	double minCoverageDiff = coverage;
+		double pmtArea = wallCell->GetPhotocathodeArea();
+		double maxNumCells = fGeoConfig->GetMaxZoneCells(WCSimGeometryEnums::DetectorRegion_t::kWall, iZone);
+		double maxCoverage = pmtArea * maxNumCells / (wallHeight * wallSide);
+
+//		std::cout << "Maximum coverage with available PMTs for region " << " kWall, zone " << iZone << " = " << maxCoverage << std::endl;
+		defaultSide = wallCell->GetCellSizeForCoverage(maxCoverage);
+		coverage = maxCoverage;
+		canHaveMorePMTs = false;
+	}
+	else
+	{
+		if(fGeoConfig->GetUseOverallCoverage() || fGeoConfig->GetUseZonalCoverage()){
+			coverage = GetZoneCoverage(WCSimGeometryEnums::DetectorRegion_t::kWall, iZone);
+			defaultSide = wallCell->GetCellSizeForCoverage(coverage);
+		}
+		else{
+			std::cerr << "Error: can't tell what coverage type fGeoConfig should use - bailing out" << std::endl;
+			assert(0);
+		}
+		canHaveMorePMTs = true;
+	}
+
 	double bestLength = 0.0;
+	if(!canHaveMorePMTs)
+	{
+		int maxNumCells = fGeoConfig->GetMaxZoneCells(WCSimGeometryEnums::DetectorRegion_t::kWall, iZone);
+		double minSize = wallCell->GetCellSizeForCoverage(wallCell->GetPhotocathodeArea() * maxNumCells / (wallHeight * wallSide));
 
-	for( int xIndex = 0; xIndex < 2; ++xIndex ){
-		for( int zIndex = 0; zIndex < 2; ++zIndex){
-			// How big does the cell have to be to fit a given number
-			// of them horizontally or vertically on the detector wall?
-			double lengthForSide = wallSide / xNums[xIndex];
-			double lengthForHeight = wallHeight / zNums[zIndex];
-
-			// Pick the smallest cell and plan to put them slightly
-			// further apart in the other dimension
-			double length = lengthForHeight;
-			if ( lengthForSide < lengthForHeight ){
-				length = lengthForSide;
-			}
-
-			// Does this beat the last configuration?
-			double newCoverage = wallCell->GetPhotocathodeCoverage(length) * (xNums[xIndex] * zNums[zIndex]) * length * length / (wallSide * wallHeight);
-			double coverageDiff = fabs(coverage - newCoverage);
-      std::cout << "Test: wall coverage is " << newCoverage << std::endl;
-      std::cout << "Difference from ideal = " << coverageDiff << std::endl;
-      std::cout << "Side = " << length << std::endl;
-      std::cout << "Are there overlaps? Computer says... " << wallCell->ContainsOverlaps(length) << std::endl;
-      std::cout << "Minimum side length allowed = " << wallCell->GetMinimumCellSize() << std::endl;
-
-			if( (!wallCell->ContainsOverlaps(length)) && coverageDiff < minCoverageDiff){
-				minCoverageDiff = coverageDiff;
-				bestCoverage    = newCoverage;
-				bestLength		= length;
-
-				fWallCellLength.at(iZone) = bestLength;
-				fWallCellsX.at(iZone) 	  = xNums[xIndex];
-				fWallCellsZ.at(iZone) 	  = zNums[zIndex];
+		// We want X cells wide by Y cells high
+		// Subject to constraints: (X x Y) <= maxNumCells
+		//												      X  <= wallSide/minSize
+		//															Y  <= wallHeight/minSize
+		// These place (X,Y) inside a rectangle so we can just evaluate all the
+		// allowed points and it will only take quadratic time (also our PMTs are not tiny
+		// compared to the wall size so it won't be many calculations)
+		int bestX = 0, bestY = 0;
+		for(int iX = 1; iX <= (int)(wallSide/minSize); ++iX)
+		{
+			for(int iY = 1; iY <= (int)(wallHeight/minSize); ++iY)
+			{
+				int nCells = iX * iY;
+				if(nCells > maxNumCells){ break; }
+				if(nCells > bestX * bestY){
+					bestX = iX;
+					bestY = iY;
+				}
 			}
 		}
-	}
-	std::cout << "Best wall coverage is " << bestCoverage << " (c.f. " << coverage << ")" << std::endl;
 
+		bestLength = wallSide / bestX;
+		if( wallHeight / bestY < bestLength ){ bestLength = wallHeight / bestY; }
+		fWallCellLength.at(iZone) = bestLength;
+		fWallCellsX.at(iZone) 	  = bestX;
+		fWallCellsZ.at(iZone) 	  = bestY;
+	}
+	else
+	{
+
+		///////////////////
+
+
+
+//		std::cout << "Wall height = " << wallHeight << " ( * m = " << wallHeight * m << ")" << std::endl;
+//		std::cout << "Wall side = " << wallSide << std::endl;
+//		wallCell->Print();
+//		std::cout << "Minimum side length allowed = " << wallCell->GetMinimumCellSize() << std::endl;
+
+		// Number of unit cells spanning across the width of the wall
+//		std::cout << "Before casting: " << (wallSide / (this->GetWallUnitCell(iZone)->GetCellSizeForCoverage(coverage)));
+		int tileX = (int)(wallSide / (this->GetWallUnitCell(iZone)->GetCellSizeForCoverage(coverage)));
+		// Number of unit cells to span the height of the detector
+		int tileZ = (int)(wallHeight / (this->GetWallUnitCell(iZone)->GetCellSizeForCoverage(coverage)));
+		if(tileX == 0){ tileX = 1; }
+		if(tileZ == 0){ tileZ = 1; }
+
+		// In general the number of cells needed is non-integral
+		// We need an m x n arrangement of cells that gives coverage close
+		// to the desired percentage.  So round the number of cells up and down
+		// and see which arrangement gets closest
+		int xNums[2] = { tileX, tileX+1 };
+		int zNums[2] = { tileZ, tileZ+1 };
+
+		double bestCoverage = 0.0;
+		double minCoverageDiff = coverage;
+
+		for( int xIndex = 0; xIndex < 2; ++xIndex ){
+			for( int zIndex = 0; zIndex < 2; ++zIndex){
+				// How big does the cell have to be to fit a given number
+				// of them horizontally or vertically on the detector wall?
+				double lengthForSide = wallSide / xNums[xIndex];
+				double lengthForHeight = wallHeight / zNums[zIndex];
+
+				// Pick the smallest cell and plan to put them slightly
+				// further apart in the other dimension
+				double length = lengthForHeight;
+				if ( lengthForSide < lengthForHeight ){
+					length = lengthForSide;
+				}
+
+				// Does this beat the last configuration?
+				double newCoverage = wallCell->GetPhotocathodeCoverage(length) * (xNums[xIndex] * zNums[zIndex]) * length * length / (wallSide * wallHeight);
+				double coverageDiff = fabs(coverage - newCoverage);
+//				std::cout << "Test: wall coverage is " << newCoverage << std::endl;
+//				std::cout << "Difference from ideal = " << coverageDiff << std::endl;
+//				std::cout << "Side = " << length << std::endl;
+//				std::cout << "In x: " << xNums[xIndex] << std::endl;
+//				std::cout << "In z: " << zNums[zIndex] << std::endl;
+//				std::cout << "Length = " << length << std::endl;
+//				std::cout << "Coverage = " << wallCell->GetPhotocathodeCoverage(length) << std::endl;
+//				std::cout << "Are there overlaps? Computer says... " << wallCell->ContainsOverlaps(length) << std::endl;
+//				std::cout << "Minimum side length allowed = " << wallCell->GetMinimumCellSize() << std::endl;
+//				std::cout << "Wall side = " << wallSide << " and wallHeight = " << wallHeight << std::endl;
+
+				if( (!wallCell->ContainsOverlaps(length)) && coverageDiff < minCoverageDiff){
+					minCoverageDiff = coverageDiff;
+					bestCoverage    = newCoverage;
+					bestLength		= length;
+
+					fWallCellLength.at(iZone) = bestLength;
+					fWallCellsX.at(iZone) 	  = xNums[xIndex];
+					fWallCellsZ.at(iZone) 	  = zNums[zIndex];
+				}
+			}
+		}
+//		std::cout << "Best wall coverage is " << bestCoverage << " (c.f. " << coverage << ")" << std::endl;
+	}
 	return bestLength;
 }
 
@@ -1010,9 +1186,6 @@ void WCSimCherenkovBuilder::ConstructEndCapRings( G4int zflip ){
     G4cout << "G4cout capLogic" << capLogic << std::endl;
 
 	G4Material * pureWater = WCSimMaterialsBuilder::Instance()->GetMaterial("Water");
-	G4Material * blacksheet = WCSimMaterialsBuilder::Instance()->GetMaterial("Blacksheet");
-
-
 
 	G4double borderRingZ[2] = {-0.5 * fCapRingHeight * zflip, 0.5 * fCapRingHeight * zflip };
 	G4double borderRingRMin[2] = { fCapRingRadiusInside, fCapRingRadiusInside};
@@ -1047,13 +1220,13 @@ void WCSimCherenkovBuilder::ConstructEndCapRings( G4int zflip ){
  								  << ((capAssemblyHeight/2.- (fGeoConfig->GetInnerHeight() - GetBarrelLengthForCells())/2.)*zflip)
  								  << " - height is " << borderRingZ[2] - borderRingZ[0]
  								  << " c.f. capAssemblyHeight = " << capAssemblyHeight << std::endl;
- 	  G4VPhysicalVolume* physiEndCapRing =
-       new G4PVPlacement(0,
- 						G4ThreeVector(0.,0., (0.5 * fCapAssemblyHeight - 0.5 * fCapRingHeight) * zflip),
- 						logicEndCapRing,
- 						"EndCapRing",
- 						capLogic,
- 						false, 0,true);
+ 	  // G4VPhysicalVolume* physiEndCapRing =
+    new G4PVPlacement(0,
+    									G4ThreeVector(0.,0., (0.5 * fCapAssemblyHeight - 0.5 * fCapRingHeight) * zflip),
+											logicEndCapRing,
+											"EndCapRing",
+											capLogic,
+											false, 0,true);
 }
 
 void WCSimCherenkovBuilder::ConstructEndCapRingSegments( G4int zflip )
@@ -1184,13 +1357,14 @@ void WCSimCherenkovBuilder::ConstructEndCapSurfaces(G4int zflip){
                                                       capPolygonCentreRMin,
                                                       capPolygonCentreRMax);
     G4LogicalVolume* logicCapPolygonCentre = new G4LogicalVolume(solidCapPolygonCentre, pureWater, "CapPolygonCentre",0,0,0);
-    G4VPhysicalVolume* physiCapPolygonCentre = new G4PVPlacement( 0,
-                                                                 G4ThreeVector(0.,0., (-0.5 * fCapPolygonHeight + 0.5 * fCapPolygonCentreHeight) * zflip),
-                                                                 logicCapPolygonCentre,
-                                                                 "CapPolygonCentre",
-                                                                 logicCapPolygon,
-                                                                 false, 0, true );
-    std::cout << *solidCapPolygonCentre << std::endl;
+    // G4VPhysicalVolume* physiCapPolygonCentre =
+    new G4PVPlacement( 0,
+    									 G4ThreeVector(0.,0., (-0.5 * fCapPolygonHeight + 0.5 * fCapPolygonCentreHeight) * zflip),
+    									 logicCapPolygonCentre,
+    									 "CapPolygonCentre",
+    									 logicCapPolygon,
+    									 false, 0, true );
+    // std::cout << *solidCapPolygonCentre << std::endl;
 
     // Now the outside edges:
 
@@ -1260,14 +1434,14 @@ void WCSimCherenkovBuilder::ConstructEndCapSurfaces(G4int zflip){
 																  blacksheet,
 																  "WCCapEndBlacksheet",
 																  0,0,0);
-	  G4VPhysicalVolume* physiWCCapEndBlacksheet = new G4PVPlacement(0,
-                                  G4ThreeVector(0.,0., (0.5 * fCapPolygonHeight - 0.5 * fCapPolygonEndBSHeight) * zflip),
-																  logicWCCapEndBlacksheet,
-																  "WCCapEndBlacksheet",
-																  logicCapPolygon,
-																  false,
-																  0,true);
-
+	  // G4VPhysicalVolume* physiWCCapEndBlacksheet =
+	  new G4PVPlacement(0,
+	  									G4ThreeVector(0.,0., (0.5 * fCapPolygonHeight - 0.5 * fCapPolygonEndBSHeight) * zflip),
+	  									logicWCCapEndBlacksheet,
+	  									"WCCapEndBlacksheet",
+	  									logicCapPolygon,
+	  									false,
+	  									0,true);
 
 	  // And finally place the whole container volume
     
@@ -1326,15 +1500,15 @@ void WCSimCherenkovBuilder::PlaceEndCapPMTs(G4int zflip){
 	  	cellSizeVec = &(fBottomCellSize);
 	  }
 
-    G4cout << "G4cout capLogic again" << capLogic << std::endl;
-    G4cout << "capLogic top = " << fCapLogicTop << "  and bottom ... " << fCapLogicBottom << std::endl;
+//    G4cout << "G4cout capLogic again" << capLogic << std::endl;
+//    G4cout << "capLogic top = " << fCapLogicTop << "  and bottom ... " << fCapLogicBottom << std::endl;
 
 	  //---------------------------------------------------------
 	  // Add top and bottom PMTs
 	  // -----------------------------------------------------
     std::cout << " *** PlaceEndCapPMTs ***    zflip = " << zflip << std::endl;
 
-    for(unsigned int iZone = 0; iZone < fGeoConfig->GetNSides(); ++iZone)
+    for(unsigned int iZone = 0; iZone < fGeoConfig->GetNumZones(region); ++iZone)
     {
     	// loop over the cap
  		  // Build a square that contains the cap:
@@ -1351,12 +1525,16 @@ void WCSimCherenkovBuilder::PlaceEndCapPMTs(G4int zflip){
 				xpos = -0.5 * squareEdge;
 				while(fabs(xpos) <= 0.5 * squareEdge){
 					G4ThreeVector cellpos = G4ThreeVector(xpos, ypos, 0.0); // Coordinates of the bottom left corner of the unit cell
+					double thetaStart = fGeoConfig->GetZoneThetaStart(region, iZone);
+					double thetaEnd = fGeoConfig->GetZoneThetaEnd(region, iZone);
 
 
 					WCSimUnitCell * unitCell = GetUnitCell(region, iZone);
 					double capRadius = WCSimPolygonTools::GetOuterRadiusFromInner(fGeoConfig->GetNSides(), fCapPolygonCentreRadius);
-					if( WCSimPolygonTools::PolygonSliceContainsSquare(fGeoConfig->GetNSides(), iZone, capRadius,
+					if( WCSimPolygonTools::PolygonSliceContainsSquare(fGeoConfig->GetNSides(), thetaStart, thetaEnd, capRadius,
 																													  G4TwoVector(cellpos.x(), cellpos.y()), cellSizeVec->at(iZone))){
+//						std::cout << "Placing cap PMT at (" << cellpos.x() << ", " << cellpos.y() << std::endl;
+//						std::cout << "Here, phi = " << cellpos.phi() << " and start = " << thetaStart << ", end = " << thetaEnd << std::endl;
 
 						for(unsigned int nPMT = 0; nPMT < unitCell->GetNumPMTs(); ++nPMT){
 							G4TwoVector pmtCellPosition = unitCell->GetPMTPos(nPMT, cellSizeVec->at(iZone)); // PMT position in cell, relative to top left of cell
@@ -1365,13 +1543,14 @@ void WCSimCherenkovBuilder::PlaceEndCapPMTs(G4int zflip){
 																													cellSizeVec->at(iZone) - pmtCellPosition.y(),
 																													0.0); // top left of cell to PMT
 							WCSimPMTConfig config = unitCell->GetPMTPlacement(nPMT).GetPMTConfig();
-							G4VPhysicalVolume* physiCapPMT = new G4PVPlacement(WCCapPMTRotation,     // its rotation
-																														 PMTPosition,
-																														 fPMTBuilder.GetPMTLogicalVolume(config),        // its logical volume
-																														 "WCPMT",           // its name
-																														 capLogic,      // its mother volume
-																														 false,             // no boolean operations
-																														 fNumPMTs);
+							// G4VPhysicalVolume* physiCapPMT =
+						  new G4PVPlacement(WCCapPMTRotation,     // its rotation
+						  									PMTPosition,
+						  									fPMTBuilder.GetPMTLogicalVolume(config),        // its logical volume
+						  									"WCPMT",           // its name
+						  									capLogic,      // its mother volume
+						  									false,             // no boolean operations
+						  									fNumPMTs);
 							//std::cout << "name of capLogic = " << capLogic->GetName() << std::endl;
 							if( fNumPMTs == 0){
 								 //std::cout << "inner radius = " << fGeoConfig->GetOuterRadius() << "   xpos = " << xpos << "   ypos = " << ypos << "  top cell size = " << cellSizeVec->at(iZone) << "   wall cell size = " << fWallCellSize << std::endl;
@@ -1403,18 +1582,20 @@ void WCSimCherenkovBuilder::ConstructEndCapPhysicalVolumes(){
   // std::cout << "InnerHeight=  " << fGeoConfig->GetInnerHeight() << " (in m = " << fGeoConfig->GetInnerHeight()/m << ")" << std::endl;
   // std::cout << "BarrelLengthForCells = " << GetBarrelLengthForCells() << " (in m = " << GetBarrelLengthForCells()/m << ")" << std::endl;
   // std::cout << "fBlacksheet thickness = " << fBlacksheetThickness << " (in m = " << fBlacksheetThickness/m << ")" << std::endl;
-  G4VPhysicalVolume* physiTopCapAssembly = new G4PVPlacement(0,
-                                                             G4ThreeVector(0.,0.,0.5 * (fGeoConfig->GetInnerHeight() + fCapAssemblyHeight)),
-                                                             fCapLogicTop,
-                                                             "TopCapAssembly",
-                                                             fBarrelLogic,
-                                                             false, 0,true);
-  G4VPhysicalVolume* physiBottomCapAssembly = new G4PVPlacement(0,
-                                                                G4ThreeVector(0.,0., -0.5 * (fGeoConfig->GetInnerHeight() + fCapAssemblyHeight)),
-                                                                fCapLogicBottom,
-                                                                "BottomCapAssembly",
-                                                                fBarrelLogic,
-                                                                false, 0,true);
+  // G4VPhysicalVolume* physiTopCapAssembly =
+  new G4PVPlacement(0,
+  									G4ThreeVector(0.,0.,0.5 * (fGeoConfig->GetInnerHeight() + fCapAssemblyHeight)),
+  									fCapLogicTop,
+  									"TopCapAssembly",
+  									fBarrelLogic,
+  									false, 0,true);
+  // G4VPhysicalVolume* physiBottomCapAssembly =
+  new G4PVPlacement(0,
+  									G4ThreeVector(0.,0., -0.5 * (fGeoConfig->GetInnerHeight() + fCapAssemblyHeight)),
+  									fCapLogicBottom,
+										"BottomCapAssembly",
+										fBarrelLogic,
+										false, 0,true);
     // G4cout << "physiTopCapAssembly: " << physiTopCapAssembly << std::endl;
     // G4cout << "physiBottomCapAssembly: " << physiBottomCapAssembly << std::endl;
     return;
@@ -1510,7 +1691,23 @@ void WCSimCherenkovBuilder::Update() {
 	}
 	fBottomUnitCells.clear();
 
-  if( fGeoConfig != NULL ) { delete fGeoConfig; }
+	for(unsigned int iWall = 0; iWall < fSegmentLogics.size(); ++iWall)
+	{
+		if( fPrismWallLogics.at(iWall) != NULL ){ delete fPrismWallLogics.at(iWall);}
+		if( fPrismWallPhysics.at(iWall) != NULL ){ delete fPrismWallPhysics.at(iWall);}
+		if( fPrismRingLogics.at(iWall) != NULL ) { delete fPrismRingLogics.at(iWall); }
+		if( fPrismRingPhysics.at(iWall) != NULL) { delete fPrismRingPhysics.at(iWall); }
+	}
+
+
+	for(unsigned int iSegment = 0; iSegment < fSegmentLogics.size(); ++iSegment)
+	{
+		if( fSegmentLogics.at(iSegment) != NULL ){ delete fSegmentLogics.at(iSegment);}
+		if( fSegmentPhysics.at(iSegment) != NULL ){ delete fSegmentPhysics.at(iSegment);}
+	}
+
+
+	if( fGeoConfig != NULL ) { delete fGeoConfig; }
   WCSimGeoManager * manager = new WCSimGeoManager();
   fGeoConfig = new WCSimGeoConfig(manager->GetGeometryByName(fDetectorName));
   delete manager;
@@ -1519,16 +1716,12 @@ void WCSimCherenkovBuilder::Update() {
 	fPMTBuilder.Reset();
 	delete fCapLogicBottom;
   delete fCapLogicTop;
-  delete fSegmentLogics;
-  delete fPrismRingLogic;
   delete fPrismLogic;
   delete fBarrelLogic;
   delete fLakeLogic;
 	fLakeLogic = NULL;
 	fBarrelLogic = NULL;
 	fPrismLogic = NULL;
-	fPrismRingLogic = NULL;
-	fSegmentLogics = NULL;
 	fCapLogicTop = NULL;
 	fCapLogicBottom = NULL;
 	fConstructed = false;
@@ -1546,27 +1739,45 @@ void WCSimCherenkovBuilder::Update() {
 
 	fPrismRingRadiusInside = -999 * m; // Radius is to centre of wall not the vertex
 	fPrismRingRadiusOutside = -999 * m;
-	fPrismRingHeight = -999 * m;
 
 	fPrismRingSegmentRadiusInside = -999 * m; // To centre of segment not edge
 	fPrismRingSegmentRadiusInside = -999 * m;
-	fPrismRingSegmentHeight = -999 * m;
 	fPrismRingSegmentDPhi = -999 * m;
 
 	fPrismRingSegmentBSRadiusInside = -999 * m; // To centre not edge
 	fPrismRingSegmentBSRadiusOutside = -999 * m;
-	fPrismRingSegmentBSHeight = -999 * m;
 
 	WCSimDetectorConstruction::Update();
 }
 
-double WCSimCherenkovBuilder::GetZoneCoverage(WCSimGeometryEnums::DetectorRegion_t, int zone)
+double WCSimCherenkovBuilder::GetZoneCoverage(WCSimGeometryEnums::DetectorRegion_t region, int zone)
 {
 	double coverage = 0.0;
-	if(fGeoConfig->GetUseOverallCoverage()){ return fGeoConfig->GetCoverageFraction(); }
-	else if(fGeoConfig->GetUseZonalCoverage()){ return fGeoConfig->GetZonalCoverageFraction(region, zone); }
+	if(fGeoConfig->GetUseOverallCoverage()){
+		std::cout << "Getting straight from geoConfig " << fGeoConfig->GetCoverageFraction() << std::endl;
+		return fGeoConfig->GetCoverageFraction(); }
+	else if(fGeoConfig->GetUseZonalCoverage()){
+		std::cout << "Getting zonal coverage from geoConfig " << fGeoConfig->GetCoverageFraction() << std::endl;
+		return fGeoConfig->GetZonalCoverageFraction(region, zone); }
+	else {
+		std::cout << "Still getting zonal coverage from geoConfig " << fGeoConfig->GetCoverageFraction() << std::endl;
+		return fGeoConfig->GetZonalCoverageFraction(region, zone); } // Default to same as above for now - tries for max coverage with a fixed number of PMTs
 	assert(coverage != 0.0);
 	return coverage;
+}
+
+void WCSimCherenkovBuilder::SetCustomDetectorName()
+{
+}
+
+double WCSimCherenkovBuilder::GetOptimalTopCellSize(int zoneNum)
+{
+	return GetOptimalEndcapCellSize(WCSimGeometryEnums::DetectorRegion_t::kTop, zoneNum);
+}
+
+double WCSimCherenkovBuilder::GetOptimalBottomCellSize(int zoneNum)
+{
+	return GetOptimalEndcapCellSize(WCSimGeometryEnums::DetectorRegion_t::kBottom, zoneNum);
 }
 
 void WCSimCherenkovBuilder::ConstructPMTs()

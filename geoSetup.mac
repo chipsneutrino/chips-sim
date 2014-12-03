@@ -1,5 +1,5 @@
 ## select the geometry
-/WCSim/WCgeom CHIPS_pancake_10inch_HQE_10perCent
+/WCSim/WCgeom CHIPS_pancake_10inch_HQE_varying2
 
 # uncomment to use Leigh's pmt simulation
 #/WCSim/PMTSim chips

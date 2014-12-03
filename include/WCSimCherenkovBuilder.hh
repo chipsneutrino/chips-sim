@@ -21,7 +21,6 @@ class WCSimCherenkovBuilder : public WCSimDetectorConstruction{
 public:
 	WCSimCherenkovBuilder(G4int DetConfig);
 	virtual ~WCSimCherenkovBuilder();
-	void SetGeoConfig(WCSimGeoConfig * config);
 	WCSimGeoConfig * GetGeoConfig() const;
 	G4LogicalVolume * ConstructDetector(); //< Main function to build the detector - has to return a pointer for compatibility with old code
 
@@ -44,7 +43,8 @@ private:
 	void ConstructVeto(); //< The veto region (currently not implemented)
 	void ConstructInnerDetector(); //< The inner part of the detector
 	void CreatePrism(); //< Build the inner wall (an n-sided prism)
-	void CreatePrismRings(); //< Divide it into slices along the long axis
+	void CreatePrismWalls(); //< Split the prism up into n rectangular walls
+	void CreatePrismRings(); //< Divide the walls into slices along the long axis
 	void CreateRingSegments(); //< Divide each slice into n segments
 	void CreateSegmentCells(); //< Fill each segment with WCSimUnitCells
 
@@ -76,6 +76,8 @@ private:
 	double GetOptimalWallCellSize(int zoneNum); //< Optimise the cell placement on the detector walls
 
 	void CalculateZoneCoverages(); //< Work out what fraction of each zone should be covered
+	double GetZoneCoverage(WCSimGeometryEnums::DetectorRegion_t region, int zone); //< Get the fraction of a given zone that should be covered
+
 	void ConstructUnitCells(); //< Construct the unit cell objects specified in the geometry config
 	WCSimUnitCell * GetUnitCell(WCSimGeometryEnums::DetectorRegion_t region, int zone);
 	WCSimUnitCell * GetTopUnitCell(int zone); //< For now we only have one type all over the detector
@@ -111,7 +113,10 @@ private:
 	G4LogicalVolume* fLakeLogic;
 	G4LogicalVolume* fBarrelLogic;
 	G4LogicalVolume* fPrismLogic;
-	G4LogicalVolume* fPrismRingLogic;
+	std::vector<G4LogicalVolume*> fPrismWallLogics;
+	std::vector<G4VPhysicalVolume*> fPrismWallPhysics;
+	std::vector<G4LogicalVolume*> fPrismRingLogics;
+	std::vector<G4VPhysicalVolume*> fPrismRingPhysics;
 	std::vector<G4LogicalVolume*> fSegmentLogics;
 	std::vector<G4VPhysicalVolume*> fSegmentPhysics;
 	G4LogicalVolume* fCapLogicTop;
@@ -131,6 +136,11 @@ private:
 	G4double fPrismRadiusInside; // Radius is to centre of wall not the vertex
 	G4double fPrismRadiusOutside;
 	G4double fPrismHeight;
+
+	// Divide the prism into individual walls
+	G4double fPrismWallRadiusInside; // Radius is to centre of wall not the vertex
+	G4double fPrismWallRadiusOutside;
+	G4double fPrismWallHeight;
 
 	// We chop the prism into a whole number of rings
 	G4double fPrismRingRadiusInside; // Radius is to centre of wall not the vertex

@@ -40,6 +40,9 @@ public:
 	std::string GetGeoName() const;
 	void SetGeoName(std::string name);
 
+	void SetCoverageType(std::string typeName);
+	void SetCoverageType(WCSimGeometryEnums::PhotodetectorLimit_t type);
+
 	double GetCoverage() const;
 	double GetCoverageFraction() const;
 
@@ -109,6 +112,15 @@ public:
 	void SetPMTLimit(std::string name, int limit);
 	int GetPMTLimit(WCSimGeometryEnums::DetectorRegion_t region, int zone, std::string name);
 	int GetMaxZoneCells(WCSimGeometryEnums::DetectorRegion_t region, int zone) const;
+
+	void SetZoneThetaStart(WCSimGeometryEnums::DetectorRegion_t region, int zoneNum, double theta);
+	void SetZoneThetaEnd(WCSimGeometryEnums::DetectorRegion_t region, int zoneNum, double theta);
+	double GetZoneThetaStart(WCSimGeometryEnums::DetectorRegion_t region, int zoneNum);
+	double GetZoneThetaEnd(WCSimGeometryEnums::DetectorRegion_t region, int zoneNum);
+	void SetZoneThetaStart(double theta);
+	void SetZoneThetaEnd(double theta);
+
+	unsigned int GetNumZones(WCSimGeometryEnums::DetectorRegion_t region) const;
 
 private:
 

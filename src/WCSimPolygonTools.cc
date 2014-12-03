@@ -11,6 +11,7 @@
 #include <math.h>
 #include <vector>
 #include <iostream>
+#include "TMath.h"
 
 namespace WCSimPolygonTools {
   
@@ -134,7 +135,7 @@ namespace WCSimPolygonTools {
     return innerRadius / (cos(M_PI/nSides)) ; 
   }
 
-  bool PolygonSliceContainsSquare(unsigned int nSides, unsigned int slice,
+  bool PolygonSliceContainsSquare(unsigned int nSides, double thetaStart, double thetaEnd,
 		double outerRadius, G4TwoVector squareCorner, double squareSide)
   {
      assert(CheckPolygon( nSides, outerRadius));
@@ -149,7 +150,8 @@ namespace WCSimPolygonTools {
      for( std::vector<G4TwoVector>::const_iterator itr = squareCorners.begin() ;
           itr != squareCorners.end(); ++itr ){
        // std::cout << "itr = ( " << (*itr).x() << ", " << (*itr).y() << std::endl;
-       contained = ( contained && PolygonSliceContains(nSides, slice, outerRadius, (*itr)) );
+       contained = ( contained && (PolygonSliceContains(nSides, thetaStart, thetaEnd, outerRadius, (*itr))));
+
        if( !contained ){ break; }
      }
 
@@ -160,17 +162,25 @@ namespace WCSimPolygonTools {
      return contained;
   }
 
-  bool PolygonSliceContains(unsigned int nSides, unsigned int slice,
+  bool PolygonSliceContains(unsigned int nSides, double thetaStart, double thetaEnd,
 		double outerRadius, G4TwoVector point)
   {
 
   	// We have a regular polygon which means we don't need to do raytracing or winding numbers
   	assert(CheckPolygon( nSides, outerRadius ));
-  	bool contained =    (PolygonContains(nSides, outerRadius, point))
-  								   && (point.phi() >= 2 * M_PI * (  slice    % nSides) / (double)nSides)
-  							     && (point.phi() <  2 * M_PI * ( (slice+1) % nSides ) / (double)nSides);
+  	double phi = point.phi();
+  	if(phi < 0) { phi = phi + 2*M_PI; }
+  	bool contained =    (PolygonContains(nSides, outerRadius, point) && IsAngleBetween(phi, thetaStart, thetaEnd));
+//  	std::cout << "Point is... " << point.x() << " " << point.y() << " " << contained << " " << (PolygonContains(nSides, outerRadius, point)) << " " << IsAngleBetween(phi, thetaStart, thetaEnd) << std::endl;
 
   	return contained;
+  }
+
+  int IsInSliceNumber(unsigned int nSides, G4TwoVector point)
+  {
+  	double phi = point.phi();
+  	if( phi < 0 ) { phi += 2*M_PI; }
+  	return TMath::FloorNint(fmod(phi, (2. * M_PI)/nSides));
   }
 
 
@@ -181,7 +191,59 @@ namespace WCSimPolygonTools {
 
 	double GetSliceAreaFromSide(unsigned int nSides, double side)
 	{
-		return GetAreaFromSide(nSides, nSides) / nSides;
+		return GetAreaFromSide(nSides, side) / nSides;
 	}
+
+	double NormaliseAngle(double angle)
+	{
+		// Puts angle into the range [0, 2pi]
+		float numCircles = (angle / (2*M_PI));
+		angle = angle - 2*M_PI*(int)numCircles;
+		if( 0.0 > angle )
+		{
+			angle += 2*M_PI;
+		}
+		return angle;
+	}
+
+	bool IsAngleBetween(double testAngle, double startAngle, double endAngle)
+	{
+		double twoPi = 2 * M_PI;
+
+		// Is allowed range >= a full circle?
+		if( fabs( endAngle - startAngle ) >= twoPi )
+		{
+//			std::cout << "Difference > 2pi for " << startAngle << " and " << endAngle << std::endl;
+			return true;
+		}
+
+		double normTest = NormaliseAngle(testAngle);
+
+		// Make sure the start angle is < test
+		double normStart = NormaliseAngle( startAngle );
+		if( normStart > normTest )
+		{
+			normStart -= twoPi;
+		}
+
+		// Do the same with the end angle, to make sure it comes after the start one
+		double normEnd = NormaliseAngle(endAngle);
+		if( normEnd < normStart ){ normEnd += twoPi; }
+		else if( (normEnd - normStart) >= twoPi ) { normEnd -= twoPi; }
+
+		// Now is our angle between these two?
+		if( (normTest < normStart) || (normTest > normEnd) )
+		{
+			return false;
+		}
+
+//		std::cout << "I think this is inside... " << std::endl
+//				 << testAngle << " between " << startAngle << " and " << endAngle << std::endl
+//				 << "Becomes" << std::endl
+//				 << normTest << " between " << normStart << " and " << normEnd << std::endl;
+
+		return true;
+	}
+
 }
 /* namespace WCSimPolygonTools */

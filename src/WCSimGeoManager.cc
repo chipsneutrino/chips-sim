@@ -85,16 +85,8 @@ void WCSimGeoManager::FillGeoAttribute(WCSimGeoConfig &geo, rapidxml::xml_attrib
 		ss >> tempVal;
 		geo.SetNSides(tempVal);
 	}
-  else if(name == "overallCoverage"){
-    double tempVal;
-    ss >> tempVal;
-    geo.SetOverallCoverage(tempVal);
-  }
-  else if(name == "limitPMTNumbers"){
-  	std::string tempVal;
-  	ss>> tempVal;
-  	if(MeansYes(tempval)) { geo.SetLimitPMTNumbers(true); }
-  	else if(MeansNo(tempVal)) { geo.SetLimitPMTNumbers(false); }
+  else if(name == "coverageType"){
+    geo.SetCoverageType(ss.str());
   }
 	else{
 		std::cerr << "WCSimGeoManager::FillGeoAttribute: Unexpected parameter " << attr->name() << ", " << attr->value() << std::endl;
@@ -139,7 +131,31 @@ void WCSimGeoManager::FillRegion(WCSimGeoConfig& geo,
 		ss << childNode->value();
 		double coverage;
 		ss >> coverage;
-		geo.SetZoneCoverage(coverage);
+		if(coverage > 1.0)
+		{
+			std::cerr << "Warning: You've asked for coverage of " << coverage << " which is greater than 1" << std::endl
+					      << "         I'm going to assume you meant that as a percentage and set the fractional coverage to " << coverage/100. << std::endl;
+			coverage = coverage / 100.;
+		}
+		geo.SetZonalCoverage(coverage);
+	}
+
+	for(rapidxml::xml_node<> *childNode = node->first_node("startAngle") ; childNode; childNode = childNode->next_sibling("startAngle"))
+	{
+		std::stringstream ss;
+		ss << childNode->value();
+		double start;
+		ss >> start;
+		geo.SetZoneThetaStart(start);
+	}
+
+	for(rapidxml::xml_node<> *childNode = node->first_node("endAngle") ; childNode; childNode = childNode->next_sibling("endAngle"))
+	{
+		std::stringstream ss;
+		ss << childNode->value();
+		double end;
+		ss >> end;
+		geo.SetZoneThetaEnd(end);
 	}
 
 }
@@ -248,6 +264,15 @@ bool WCSimGeoManager::GeometryExists( std::string name ) const {
 			break;
 		}
 	}
+
+  if( !foundIt ) {
+    std::cerr << "Could not find geometry called ===" << name << "===" << std::endl;
+    std::cerr << "Available geometries are:" << std::endl;
+    for(unsigned int g = 0; g < fGeoVector.size(); ++g)
+    {
+      std::cerr << "\t ===" << fGeoVector.at(g).GetGeoName() << "===" << std::endl;
+    }
+  }
   return foundIt;
 }
 

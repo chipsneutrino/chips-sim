@@ -12,7 +12,7 @@
 
 // Default constructor
 WCSimGeoConfig::WCSimGeoConfig(){
-  fPMTLimit = WCSimGeometryEnums::PhotodetectorLimit_t::kPercentCoverage;
+  fPMTLimit = WCSimGeometryEnums::PhotodetectorLimit_t::kUnknown;
 	fGeoName = "";
 	fOuterRadius = 0.;
 	fInnerHeight = 0.;
@@ -104,7 +104,7 @@ bool WCSimGeoConfig::IsGood() const{
     std::vector<WCSimGeometryEnums::DetectorRegion_t> regions = WCSimGeometryEnums::DetectorRegion_t::GetAllTypes();
     for( std::vector<WCSimGeometryEnums::DetectorRegion_t>::const_iterator regItr = regions.begin(); regItr != regions.end(); ++regItr)
     {
-    	for(unsigned int i = 0; i < fNSides; ++i)
+			for(unsigned int i = 0; i < GetNumZones(*regItr); ++i)
     	{
     		std::pair<WCSimGeometryEnums::DetectorRegion_t, int> key = std::make_pair(*regItr, i);
     		if(fZoneMap.find(key) == fZoneMap.end())
@@ -119,6 +119,9 @@ bool WCSimGeoConfig::IsGood() const{
     	}
     }
 
+    assert(GetNumZones(WCSimGeometryEnums::DetectorRegion_t::kWall) == fNSides);
+
+
     if( !isGood ) { std::cerr << "Check the geometry xml file!" << std::endl; }
     return isGood;
 }
@@ -129,7 +132,7 @@ bool WCSimGeoConfig::IsGoodZone(std::pair<WCSimGeometryEnums::DetectorRegion_t, 
   std::map<std::pair<WCSimGeometryEnums::DetectorRegion_t, int>, WCSimDetectorZone>::const_iterator zoneItr = fZoneMap.find(zone);
 	if( zoneItr != fZoneMap.end())
 	{
-		isGoodZone = (*zoneItr).second.IsGood();
+		isGoodZone = (*zoneItr).second.IsGood((zoneItr->first).first);
 	}
 	return isGoodZone;
 }
@@ -604,6 +607,142 @@ int WCSimGeoConfig::GetMaxZoneCells(WCSimGeometryEnums::DetectorRegion_t region,
 		assert(0);
 	}
 	return nCells;
+}
+
+void WCSimGeoConfig::SetZoneThetaStart(
+		WCSimGeometryEnums::DetectorRegion_t region, int zoneNum, double theta)
+{
+	CreateMissingZone(region, zoneNum);
+	if( region == WCSimGeometryEnums::DetectorRegion_t::kTop || region == WCSimGeometryEnums::DetectorRegion_t::kBottom)
+	{
+		std::cout << "Setting zone map theta start = " << theta << std::endl;
+		fZoneMap[std::make_pair(region, zoneNum)].SetThetaStart(theta);
+	}
+	else
+	{
+		std::cerr << "Warning: Trying to set end angle for a zone not on the end cap.  " << std::endl
+							<< "         Will default to the detector wall for that side" << std::endl;
+		double defaultTheta = GetNSides() / 2*M_PI * ((zoneNum+1) % GetNSides());
+		fZoneMap[std::make_pair(region, zoneNum)].SetThetaEnd(defaultTheta);
+	}
+}
+
+void WCSimGeoConfig::SetZoneThetaEnd(
+		WCSimGeometryEnums::DetectorRegion_t region, int zoneNum, double theta)
+{
+	CreateMissingZone(region, zoneNum);
+	if( region == WCSimGeometryEnums::DetectorRegion_t::kTop || region == WCSimGeometryEnums::DetectorRegion_t::kBottom)
+	{
+//		std::cout << "Setting zone map theta end = " << theta << std::endl;
+		fZoneMap[std::make_pair(region, zoneNum)].SetThetaEnd(theta);
+	}
+	else
+	{
+		std::cerr << "Warning: Trying to set start angle for a zone not on the end cap.  " << std::endl
+							<< "         Will default to the detector wall for that side" << std::endl;
+		double defaultTheta = GetNSides() / 2*M_PI * (zoneNum % GetNSides());
+		fZoneMap[std::make_pair(region, zoneNum)].SetThetaEnd(defaultTheta);
+	}
+}
+
+double WCSimGeoConfig::GetZoneThetaStart(
+		WCSimGeometryEnums::DetectorRegion_t region, int zoneNum)
+{
+	double thetaStart = 0.0;
+	std::pair<WCSimGeometryEnums::DetectorRegion_t, int> myPair = std::make_pair(region, zoneNum);
+	std::map<std::pair<WCSimGeometryEnums::DetectorRegion_t, int>, WCSimDetectorZone>::const_iterator zoneItr = fZoneMap.find(myPair);
+	if(zoneItr != fZoneMap.end())
+	{
+		WCSimDetectorZone zone = (*zoneItr).second;
+		thetaStart = zone.GetThetaStart();
+	}
+	else
+	{
+		std::cerr << "Error: Could not find region " << region.AsString() << ", zone " << zoneNum << std::endl;
+		assert(0);
+	}
+	return thetaStart;
+}
+
+double WCSimGeoConfig::GetZoneThetaEnd(
+		WCSimGeometryEnums::DetectorRegion_t region, int zoneNum)
+{
+	double thetaEnd = 0.0;
+	std::pair<WCSimGeometryEnums::DetectorRegion_t, int> myPair = std::make_pair(region, zoneNum);
+	std::map<std::pair<WCSimGeometryEnums::DetectorRegion_t, int>, WCSimDetectorZone>::const_iterator zoneItr = fZoneMap.find(myPair);
+	if(zoneItr != fZoneMap.end())
+	{
+		WCSimDetectorZone zone = (*zoneItr).second;
+		thetaEnd = zone.GetThetaEnd();
+	}
+	else
+	{
+		std::cerr << "Error: Could not find region " << region.AsString() << ", zone " << zoneNum << std::endl;
+		assert(0);
+	}
+	return thetaEnd;
+
+}
+
+void WCSimGeoConfig::SetZoneThetaStart(double theta)
+{
+	std::vector<WCSimGeometryEnums::DetectorRegion_t>::iterator regionItr = fCurrentRegions.begin();
+	std::vector<int>::iterator zoneItr = fCurrentZones.begin();
+
+	for( ; regionItr != fCurrentRegions.end(); ++regionItr)
+	{
+		for( zoneItr = fCurrentZones.begin(); zoneItr != fCurrentZones.end(); ++zoneItr )
+		{
+//			std::cout << "Geoconfig setting start angle to " << theta << std::endl;
+			SetZoneThetaStart(*regionItr, *zoneItr, theta);
+		}
+	}
+}
+
+void WCSimGeoConfig::SetZoneThetaEnd(double theta)
+{
+	std::vector<WCSimGeometryEnums::DetectorRegion_t>::iterator regionItr = fCurrentRegions.begin();
+	std::vector<int>::iterator zoneItr = fCurrentZones.begin();
+
+	for( ; regionItr != fCurrentRegions.end(); ++regionItr)
+	{
+		for( zoneItr = fCurrentZones.begin(); zoneItr != fCurrentZones.end(); ++zoneItr )
+		{
+//			std::cout << "Geoconfig setting end angle to " << theta << std::endl;
+			SetZoneThetaEnd(*regionItr, *zoneItr, theta);
+		}
+	}
+}
+
+unsigned int WCSimGeoConfig::GetNumZones(
+		WCSimGeometryEnums::DetectorRegion_t region) const
+{
+	unsigned int count = 0;
+	std::map<std::pair<WCSimGeometryEnums::DetectorRegion_t, int>, WCSimDetectorZone>::const_iterator mapItr;
+	for( mapItr = fZoneMap.begin(); mapItr != fZoneMap.end(); ++mapItr)
+	{
+		if( (mapItr->first).first == region ){ count++; }
+	}
+	return count;
+}
+
+void WCSimGeoConfig::SetCoverageType(std::string typeName)
+{
+	WCSimGeometryEnums::PhotodetectorLimit_t type = WCSimGeometryEnums::PhotodetectorLimit_t(typeName);
+	SetCoverageType(type);
+
+}
+
+void WCSimGeoConfig::SetCoverageType(
+		WCSimGeometryEnums::PhotodetectorLimit_t type)
+{
+	if(type == WCSimGeometryEnums::PhotodetectorLimit_t::kPercentCoverage){ SetUseOverallCoverage(true); }
+	else if(type == WCSimGeometryEnums::PhotodetectorLimit_t::kZonalCoverage){ SetUseZonalCoverage(true); }
+	else if(type == WCSimGeometryEnums::PhotodetectorLimit_t::kTotalNumber){ SetLimitPMTNumbers(true); }
+	else{
+		std::cerr << "Error: unknown coverage type: " << type.AsString() << std::endl;
+		assert(0);
+	}
 }
 
 void WCSimGeoConfig::CreateMissingZone(
