@@ -154,24 +154,24 @@ void WCSimPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
         if(useRandomVertex)
         {
           std::cerr << " About to do the random vertex " << std::endl;
-          // Andy P hack: //
-          // genie generates them all at (0,0,0) - I want them randomly distributed
+          // Genie events are generates at (0,0,0) - we want to place them randomly in a 
+          // box or cylinder
           if( myDetector->GetIsMailbox() )
           {
             G4double xMax = myDetector->GetWCCylInfo(0);
             G4double yMax = myDetector->GetWCCylInfo(1);
             G4double zMax = myDetector->GetWCCylInfo(2);
-            double vtxX = (G4UniformRand() - 0.5) * xMax;
-            double vtxY = (G4UniformRand() - 0.5) * yMax;
-            double vtxZ = (G4UniformRand() - 0.5) * zMax;
+            double vtxX = (G4UniformRand() - 0.5) * xMax * cm;
+            double vtxY = (G4UniformRand() - 0.5) * yMax * cm;
+            double vtxZ = (G4UniformRand() - 0.5) * zMax * cm;
             nuVtx = G4ThreeVector(vtxX, vtxY, vtxZ);
             fTruthSummary.SetVertex(vtxX,vtxY,vtxZ);
           }
           else
           {
             double rRand,thetaRand,zRand;
-            rRand = sqrt(G4UniformRand()) * 0.5 * myDetector->GetWCCylInfo(0);
-            zRand = (G4UniformRand() - 0.5) * myDetector->GetWCCylInfo(2);
+            rRand = sqrt(G4UniformRand()) * 0.5 * myDetector->GetWCCylInfo(0) * cm;
+            zRand = (G4UniformRand() - 0.5) * myDetector->GetWCCylInfo(2) * cm;
             thetaRand = (G4UniformRand()) * 2.0 * M_PI;
             nuVtx = G4ThreeVector(rRand*cos(thetaRand),rRand*sin(thetaRand),zRand); 
             fTruthSummary.SetVertex(rRand*cos(thetaRand),rRand*sin(thetaRand),zRand); 
