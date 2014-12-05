@@ -14,7 +14,7 @@ ifndef G4INSTALL
 endif
 
 ROOTCFLAGS   := $(shell root-config --cflags) -DUSE_ROOT -fPIC
-ROOTLIBS     := $(shell root-config --glibs)
+ROOTLIBS     := $(shell root-config --glibs) -lEG
 
 LIBNAME := WCSim
 
@@ -65,6 +65,6 @@ libWCSim.a : $(ROOTOBJS)
 rootcint: ./src/WCSimRootDict.cc
 
 evDisp : 
-	g++ `root-config --cflags --glibs` -I./include -L./ -o evDisplay evDisplay.cc src/WCSimRootDict.cc -lWCSim
+	g++ `root-config --cflags --glibs` -I./include -L./ -o evDisplay evDisplay.cc src/WCSimRootDict.cc -lWCSim -lEG
 
 include $(G4INSTALL)/config/binmake.gmk

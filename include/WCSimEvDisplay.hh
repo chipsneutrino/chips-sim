@@ -14,6 +14,7 @@ class TPad;
 class TGHorizontalFrame;
 class TGNumberEntry;
 class TPaveText;
+class TDatabasePDG;
 class WCSimTruthSummary;
 
 class WCSimEvDisplay : public TGMainFrame {
@@ -30,6 +31,7 @@ private:
   TPad *fTruthPad;
   // Boolean to flag whether we are showing truth or not
   bool fShowTruth;
+  TDatabasePDG* fDatabasePDG;
 
 	// The three 2D histograms that show the hits
 	TH2D *fBarrelHist;
@@ -166,6 +168,9 @@ public:
 
   // Update the truth TPaveText panel
   void UpdateTruthPave();
+
+  // Is a particle above Cherenkov threshold?
+  bool IsAboveCherenkovThreshold(int pdg, double energy);
 
 	ClassDef(WCSimEvDisplay,0)
 };

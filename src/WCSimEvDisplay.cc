@@ -20,6 +20,8 @@
 #include <TGLabel.h>
 #include <TVector3.h>
 #include <TPaveText.h>
+#include <TDatabasePDG.h>
+#include <TParticlePDG.h>
 //#include <TRootEmbeddedCanvas.h>
 //#include <RQ_OBJECT.h>
 #include "WCSimEvDisplay.hh"
@@ -51,6 +53,7 @@ WCSimEvDisplay::WCSimEvDisplay(const TGWindow *p,UInt_t w,UInt_t h) : TGMainFram
   fShowTruth = false; 
   fTruthTextMain = new TPaveText(0.05,0.45,0.95,0.90,"NDC");
   fTruthTextPrimaries = new TPaveText(0.05,0.1,0.95,0.40,"NDC");
+  fDatabasePDG = 0x0;
 
   // Initialise the TGNumberEntry
   fPEInput = 0x0;
@@ -695,7 +698,7 @@ void WCSimEvDisplay::UpdateTruthPave(){
   std::stringstream tmpS;
   TVector3 vtx = fTruthSummary->GetVertex();
   tmpS << vtx.X() << "," << vtx.Y() << "," << vtx.Z();
-  fTruthTextMain->AddText(("Vertex at ("+tmpS.str()+") mm").c_str());
+  fTruthTextMain->AddText(("Vertex at ("+tmpS.str()+") cm").c_str());
   if(fTruthSummary->IsNeutrinoEvent()){
     // Neutrino information
     tmpS.str("");
@@ -729,17 +732,65 @@ void WCSimEvDisplay::UpdateTruthPave(){
 
   // The primary particles list
   if(fTruthSummary->IsNeutrinoEvent()){
-    fTruthTextPrimaries->AddText("List of Primary Particles");
+    fTruthTextPrimaries->AddText("List of Primary Particles (*** above Cherenkov threshold)");
     for(unsigned int n = 0; n < fTruthSummary->GetNPrimaries(); ++n){
+      int pdg = fTruthSummary->GetPrimaryPDG(n);
+      double energy = fTruthSummary->GetPrimaryEnergy(n);
+      std::string mod = "";
+      if(this->IsAboveCherenkovThreshold(pdg,energy)){
+        mod = "***";
+      }
       dir = fTruthSummary->GetPrimaryDir(n);
       tmpS.str("");
-      tmpS << "Particle: " << fTruthSummary->GetPrimaryPDG(n);
-      tmpS << " with energy " << fTruthSummary->GetPrimaryEnergy(n);
+      tmpS << mod << " ";
+      tmpS << "Particle: " << pdg;
+      tmpS << " with energy " << energy;
       tmpS << " MeV and direction (" << dir.X() << "," << dir.Y() << "," << dir.Z() << ")";
+      tmpS << " " << mod;
       fTruthTextPrimaries->AddText(tmpS.str().c_str());
     } 
   }
 }
+
+bool WCSimEvDisplay::IsAboveCherenkovThreshold(int pdg, double energy){
+
+  if(fDatabasePDG == 0x0){
+    fDatabasePDG = new TDatabasePDG();
+  }
+
+  TParticlePDG* particle = fDatabasePDG->GetParticle(pdg);
+  if(!particle) return false;
+
+  double charge = particle->Charge(); // Charge in |e| / 3
+  double mass = particle->Mass() * 1000.; // Mass in MeV
+  double threshold = 1e6;
+
+  // See if the particle is charged
+  if(charge != 0.0){
+    
+    // Cherenkov threshold happens at cos_theta = 1/(n*beta) = 1
+    // -> p/E = 1/n
+    // -> E = sqrt (m*m / (1-1/(n*n)) ) where n = 1.33 for water
+    double refracWater = 1.33;
+    threshold = sqrt((mass*mass)/(1-(1/(refracWater*refracWater))));
+
+  }
+  else{
+    // Photons cause electromagnetic showers that create Cherenkov light...
+    // Set limit for a few pair productions?
+    if(pdg == 22){
+      threshold = 20 * 0.511;
+    }
+  }
+
+  if(energy > threshold){
+    return true;
+  }
+  
+  return false;
+  
+}
+
 
 std::string WCSimEvDisplay::ConvertTrueEventType() const{
 
