@@ -4,6 +4,8 @@
 #include <TRootEmbeddedCanvas.h>
 #include <TGFrame.h>
 
+#include <TVector3.h>
+
 class TChain;
 class TH1;
 class TH1D;
@@ -15,6 +17,7 @@ class TGHorizontalFrame;
 class TGNumberEntry;
 class TPaveText;
 class TDatabasePDG;
+class TPolyMarker;
 class WCSimTruthSummary;
 
 class WCSimEvDisplay : public TGMainFrame {
@@ -81,6 +84,11 @@ private:
   // A pointer to the truth summary object of the current event
   WCSimTruthSummary *fTruthSummary;
 
+  // Vectors of TPolyMarkers to store the truth rings for each detector region
+  std::vector<TPolyMarker*> fTruthMarkersTop;
+  std::vector<TPolyMarker*> fTruthMarkersBarrel;
+  std::vector<TPolyMarker*> fTruthMarkersBottom;
+
   // Charge cut and corresponding entry box
   TGNumberEntry *fPEInput;
   double fChargeCut;
@@ -127,6 +135,15 @@ private:
   // Convert the true event type into a string
   std::string ConvertTrueEventType() const;
 
+  // Few functions to draw truth rings
+  void DrawTruthRing(unsigned int particleNo, int colour);
+  void ProjectToWall(TVector3 vtx, TVector3 dir, TVector3& proj, unsigned int& region);
+  void FindCircle(TVector3 proj, TVector3 vtx, double thetaC, double phi, TVector3& circPos, TVector3& circDir);
+  void MakePolyMarker(std::vector<double> coord1, std::vector<double> coord2, std::vector<TPolyMarker*>& poly, int colour);
+  void ClearTruthMarkerVectors();
+  void DeleteAndClearElements(std::vector<TPolyMarker*>& vec);
+  int GetTruthRingColour(int ring) const;
+
 public:
   WCSimEvDisplay(const TGWindow *p,UInt_t w,UInt_t h);
   WCSimEvDisplay();
@@ -171,6 +188,7 @@ public:
 
   // Is a particle above Cherenkov threshold?
   bool IsAboveCherenkovThreshold(int pdg, double energy);
+
 
 	ClassDef(WCSimEvDisplay,0)
 };

@@ -22,6 +22,7 @@
 #include <TPaveText.h>
 #include <TDatabasePDG.h>
 #include <TParticlePDG.h>
+#include <TPolyMarker.h>
 //#include <TRootEmbeddedCanvas.h>
 //#include <RQ_OBJECT.h>
 #include "WCSimEvDisplay.hh"
@@ -198,6 +199,7 @@ void WCSimEvDisplay::FillPlotsFromWCSimEvent(){
     fTruthSummary = 0x0;
   }
   fTruthSummary = new WCSimTruthSummary(wcSimEvt->GetTruthSummary());
+  // Update the truth view
   this->UpdateTruthPave();
 
   int nDigiHits = wcSimTrigger->GetNcherenkovdigihits();
@@ -214,7 +216,7 @@ void WCSimEvDisplay::FillPlotsFromWCSimEvent(){
 		double pmtX = pmt.GetPosition(0);
 		double pmtY = pmt.GetPosition(1);
 		double pmtZ = pmt.GetPosition(2);
-		double pmtPhi = -1*TMath::ATan2(pmtY,pmtX);
+		double pmtPhi = TMath::ATan2(pmtY,pmtX);
 		double pmtQ = wcSimDigiHit->GetQ();
 		double pmtT = wcSimDigiHit->GetT();
 		// Set the z-axis to be charge or time.
@@ -413,11 +415,14 @@ void WCSimEvDisplay::ResizePads(){
       fBarrelPad->SetPad(0.0,0.5,1.0,1.0);
       fTopPad->SetPad(0.0,0.0,0.5,0.5);
       fBottomPad->SetPad(0.5,0.0,1.0,0.5);
-  	}	
+  	}
     fBarrelPad->Draw();
     fTopPad->Draw();
     fBottomPad->Draw();
   }
+
+//  can->Modified();
+//  can->Update();
 	this->UpdateCanvases();
 }
 
@@ -435,16 +440,35 @@ void WCSimEvDisplay::UpdateCanvases(){
   	canvas->cd(1);
   	fBarrelPad->cd();
   	fBarrelHist->Draw("colz");
+    // Draw the truth rings if needed
+    for(unsigned int r = 0; r < fTruthMarkersBarrel.size(); ++r){
+      std::cout << "Drawing Barrel Truth " << r << std::endl;
+      if(!fTruthMarkersBarrel[r]){
+        std::cout << "Why the hell am I a null pointer?" << std::endl;
+      }
+      else fTruthMarkersBarrel[r]->Draw("C");
+      
+    }
   	canvas->Modified();
   	canvas->Update();
 
   	fTopPad->cd();
   	fTopHist->Draw("colz");
+    // Draw the truth rings if needed
+    for(unsigned int r = 0; r < fTruthMarkersTop.size(); ++r){
+      std::cout << "Drawing Top Truth " << r << std::endl;
+      fTruthMarkersTop[r]->Draw("C");
+    }
   	canvas->Modified();
   	canvas->Update();
 
   	fBottomPad->cd();
   	fBottomHist->Draw("colz");
+    // Draw the truth rings if needed
+    for(unsigned int r = 0; r < fTruthMarkersBottom.size(); ++r){
+      std::cout << "Drawing Bottom Truth " << r << std::endl;
+      fTruthMarkersBottom[r]->Draw("C");
+    }
   	canvas->Modified();
   	canvas->Update();
 
@@ -694,9 +718,14 @@ void WCSimEvDisplay::UpdateTruthPave(){
   fTruthTextPrimaries->SetFillColor(kWhite);
   fTruthTextPrimaries->SetBorderSize(0);
 
+  // Clear truth ring vectors
+  this->ClearTruthMarkerVectors();
+
   // Stream to parse things into strings
   std::stringstream tmpS;
   TVector3 vtx = fTruthSummary->GetVertex();
+  std::cout << "Vertex = " << vtx.X() << ", " << vtx.Y() << ", " << vtx.Z() << std::endl;
+  std::cout << "Radius = " << fWCRadius << ", " << "Height = " << fWCLength << std::endl;
   tmpS << vtx.X() << "," << vtx.Y() << "," << vtx.Z();
   fTruthTextMain->AddText(("Vertex at ("+tmpS.str()+") cm").c_str());
   if(fTruthSummary->IsNeutrinoEvent()){
@@ -730,6 +759,7 @@ void WCSimEvDisplay::UpdateTruthPave(){
     fTruthTextMain->AddText(("PDG Code = "+tmpS.str()).c_str());
   }
 
+  int nTruthRings = 0;
   // The primary particles list
   if(fTruthSummary->IsNeutrinoEvent()){
     fTruthTextPrimaries->AddText("List of Primary Particles (*** above Cherenkov threshold)");
@@ -739,6 +769,9 @@ void WCSimEvDisplay::UpdateTruthPave(){
       std::string mod = "";
       if(this->IsAboveCherenkovThreshold(pdg,energy)){
         mod = "***";
+        // Add a true ring to the display
+        ++nTruthRings;
+        this->DrawTruthRing(n,this->GetTruthRingColour(nTruthRings));
       }
       dir = fTruthSummary->GetPrimaryDir(n);
       tmpS.str("");
@@ -790,7 +823,6 @@ bool WCSimEvDisplay::IsAboveCherenkovThreshold(int pdg, double energy){
   return false;
   
 }
-
 
 std::string WCSimEvDisplay::ConvertTrueEventType() const{
 
@@ -898,7 +930,7 @@ void WCSimEvDisplay::ResizePlotsFromGeometry(){
 			if(std::find(zPos.begin(),zPos.end(),tempZ) == zPos.end()){
 				zPos.push_back(tempZ);
 			}
-			double tempPhi = -1*TMath::ATan2(pmt.GetPosition(1),pmt.GetPosition(0));
+			double tempPhi = TMath::ATan2(pmt.GetPosition(1),pmt.GetPosition(0));
 			if(std::find(phiPos.begin(),phiPos.end(),tempPhi) == phiPos.end()){
 				phiPos.push_back(tempPhi);
 //				std::cout << "UNIQUE PHIPOS: " << tempPhi << std::endl;
@@ -972,4 +1004,336 @@ void WCSimEvDisplay::MakeDefaultPlots(){
 	fTimeHist = new TH1D("timeHist","Time;Time / ns",1,0,1);	
 }
 
+// Draw the truth ring corresponding to primary particle number particleNo
+void WCSimEvDisplay::DrawTruthRing(unsigned int particleNo, int colour){
+
+  // Does the truth information exist
+  if(fTruthSummary==0x0) return; 
+
+  // Get the track vertex and direction
+  TVector3 trkVtx = fTruthSummary->GetVertex();
+  trkVtx = trkVtx * 0.1; // Convert to cm
+  TVector3 trkDir = fTruthSummary->GetPrimaryDir(particleNo);
+
+  // Get the projection of the track vertex onto the wall
+  TVector3 trkVtxProj; // Point where the track would hit the wall, filled by ProjectToWall
+  unsigned int detRegion; // Region of the detector, filled by ProjectToWall 
+  this->ProjectToWall(trkVtx,trkDir,trkVtxProj, detRegion);
+
+  // Now that we have the projected point on the wall, iterate around the Cherenkov cone and
+  // find where all the points of the cone intercept the wall
+  unsigned int nMarkers = 360; // Number of points that will appear on the final plots
+  double dPhi = 360 / (double)nMarkers; // Angle step around the direction vector
+
+  // Get the particle mass
+  if(fDatabasePDG == 0x0){
+    fDatabasePDG = new TDatabasePDG();
+  }
+  double mass = 1000*fDatabasePDG->GetParticle(fTruthSummary->GetPrimaryPDG(particleNo))->Mass();
+  double en = fTruthSummary->GetPrimaryEnergy(particleNo);
+  double beta = sqrt(en*en - mass*mass) / en; // beta = p / E
+  double refrac = 1.33; // Refractive index of water
+  double thetaC = (180.0 / TMath::Pi()) * TMath::ACos(1./(refrac*beta)); // Cherenkov angle
+
+  // Also need 6 vectors to store the 2D-coordinates for the 3 regions
+  std::vector<double> topPos1; // For top, this is the y coord
+  std::vector<double> topPos2; // For top, this is the x coord
+  std::vector<double> barrelPos1; // This is the phi coord
+  std::vector<double> barrelPos2; // This is the z coord
+  std::vector<double> bottomPos1; // This is the y coord
+  std::vector<double> bottomPos2; // This is the x coord
+
+  for(unsigned int n = 0; n < nMarkers; ++n){
+
+    double phi = n * dPhi;
+
+    // Find a point on the Cherenkov cone and its direction
+    TVector3 circPos;
+    TVector3 circDir;
+    this->FindCircle(trkVtxProj,trkVtx,thetaC,phi,circPos,circDir);     
+
+    // Now we have the point on the circle, project this onto the wall
+    TVector3 finalPos;
+    this->ProjectToWall(circPos,circDir,finalPos,detRegion);
+
+    if(detRegion == 0){
+      topPos1.push_back(finalPos.Y());
+      topPos2.push_back(finalPos.X());
+    }    
+    else if(detRegion == 1){
+      barrelPos1.push_back(TMath::ATan2(finalPos.Y(),finalPos.X()));
+      barrelPos2.push_back(finalPos.Z());
+    }
+    else{
+      bottomPos1.push_back(finalPos.Y());
+      bottomPos2.push_back(finalPos.X());
+    }
+  }
+
+  // Now we have the vectors of coordinates that we need for each region. Now to make the TPolyMarkers
+  std::cout << "= Making markers for particle " << particleNo << std::endl;
+  if(topPos1.size() != 0){
+    this->MakePolyMarker(topPos1,topPos2,fTruthMarkersTop,colour);
+  }
+  if(barrelPos1.size() != 0){
+    this->MakePolyMarker(barrelPos1,barrelPos2,fTruthMarkersBarrel,colour);
+  }
+  if(bottomPos1.size() != 0){
+    this->MakePolyMarker(bottomPos1,bottomPos2,fTruthMarkersBottom,colour);
+  }
+
+}
+
+// Project the position and direction onto the detector wall, returning proj vector
+// Adapted from the method in WCSimAnalysis' WCSimGeometry
+void WCSimEvDisplay::ProjectToWall(TVector3 vtx, TVector3 dir, TVector3& proj, unsigned int& region){
+
+  // Defaults
+  proj = TVector3(-99999.9,-99999.9,-99999.9);
+  region = 999;
+
+//  Double_t xNear = -99999.9;
+//  Double_t yNear = -99999.9;
+//  Double_t zNear = -99999.9;
+//  Int_t regionNear = WCSimGeometry::kUnknown;
+
+//  Double_t xFar = -99999.9;
+//  Double_t yFar = -99999.9;
+//  Double_t zFar = -99999.9;
+//  Int_t regionFar = WCSimGeometry::kUnknown;
+
+  // Get the geometry information
+  Double_t r = fWCRadius;
+  Double_t L = fWCLength;
+
+  Bool_t foundProjectionXY = 0;
+  Bool_t foundProjectionZ = 0;
+
+  Double_t t1 = 0.0;
+  Double_t x1 = 0.0;
+  Double_t y1 = 0.0;
+  Double_t z1 = 0.0;
+  Int_t region1 = -1;
+
+  Double_t t2 = 0.0;  
+  Double_t x2 = 0.0;
+  Double_t y2 = 0.0;
+  Double_t z2 = 0.0;
+  Int_t region2 = -1;
+
+  Double_t rSq = r*r;
+//  Double_t r0r0 = x0*x0 + y0*y0;
+  Double_t r0r0 = vtx.X()*vtx.X() + vtx.Y()*vtx.Y();
+//  Double_t r0p = x0*px + y0*py;
+  Double_t r0p = vtx.X()*dir.X() + vtx.Y()*dir.Y();
+//  Double_t pSq = px*px+py*py;
+  Double_t pSq = dir.X()*dir.X() + dir.Y()*dir.Y();
+  
+  // calculate intersection in XY
+  if( pSq>0.0 ){
+    if( r0p*r0p - pSq*(r0r0-rSq)>0.0 ){
+      t1 = ( -r0p - sqrt(r0p*r0p-pSq*(r0r0-rSq)) ) / pSq;
+      t2 = ( -r0p + sqrt(r0p*r0p-pSq*(r0r0-rSq)) ) / pSq;
+      foundProjectionXY = 1;
+    }
+  }
+  // propagation along z-axis
+  else if( r0r0<=rSq ){
+
+    if( dir.Z()>0 ){
+      t1 = -L/2.0 - vtx.Z();
+      t2 = +L/2.0 - vtx.Z();
+    }
+    else{
+      t1 = -L/2.0 + vtx.Z();
+      t2 = +L/2.0 + vtx.Z();
+    }
+    foundProjectionXY = 1;
+  }
+  
+  // found intersection in XY
+  if( foundProjectionXY ){
+
+    z1 = vtx.Z() + t1*dir.Z();
+    z2 = vtx.Z() + t2*dir.Z();
+
+    if( ( z1>=-L/2.0 && z2<=+L/2.0 )
+     || ( z2>=-L/2.0 && z1<=+L/2.0 ) ){
+      foundProjectionZ = 1;
+    }
+  }
+
+  // found intersection in Z
+  if( foundProjectionZ ){
+
+    // first intersection
+    if( z1>-L/2.0 && z1<+L/2.0 ){
+      region1 = 1;
+    }
+    if( z1>=+L/2.0 ){
+      region1 = 0;
+      if( z1>+L/2.0 ){
+        z1 = +L/2.0; 
+        t1 = (+L/2.0-vtx.Z())/dir.Z();
+      }
+    }
+    if( z1<=-L/2.0 ){
+      region1 = 2;
+      if( z1<-L/2.0 ){
+        z1 = -L/2.0; 
+        t1 = (-L/2.0-vtx.Z())/dir.Z();
+      }
+    }
+
+    x1 = vtx.X() + t1*dir.X();
+    y1 = vtx.Y() + t1*dir.Y();
+
+    // second intersection
+    if( z2>-L/2.0 && z2<+L/2.0 ){
+      region2 = 1;
+    }
+    if( z2>=+L/2.0 ){
+      region2 = 0;
+      if( z2>+L/2.0 ){
+        z2 = +L/2.0; 
+        t2 = (+L/2.0-vtx.Z())/dir.Z();
+      }
+    }
+    if( z2<=-L/2.0 ){
+      region2 = 2;
+      if( z2<-L/2.0 ){
+        z2 = -L/2.0; 
+        t2 = (-L/2.0-vtx.Z())/dir.Z();
+      }
+    }
+
+    x2 = vtx.X() + t2*dir.X();
+    y2 = vtx.Y() + t2*dir.Y();
+
+    // near/far projection
+//    if( t1>=0 ){
+//      xNear = x1;
+//      yNear = y1;
+//      zNear = z1;
+//      regionNear = region1;
+
+//      xFar = x2;
+//      yFar = y2;
+//      zFar = z2;
+//      regionFar = region2;
+//    }
+//    else if( t2>0 ){
+//      xNear = x2;
+//      yNear = y2;
+//      zNear = z2;
+//      regionNear = region2;
+
+//      xFar = x2;
+//      yFar = y2;
+//      zFar = z2;
+//      regionFar = region2;
+//    }
+    // If we always want the far one... always want region 2?
+    proj = TVector3(x2,y2,z2);
+    region = region2;
+  }
+ 
+//  }
+}
+
+// Find the point on the circle with position circPos and direction circDir given the vector projected
+// onto the wall and vertex position, and the Cherenkov angle and rotation angle (both in degrees)
+// Adapted from WCSimAnalysis' WCSimGeometry class
+void WCSimEvDisplay::FindCircle(TVector3 proj, TVector3 vtx, double thetaC, double phi, TVector3& circPos, TVector3& circDir){
+
+  // Default values
+  circPos = proj;
+  circDir = TVector3(0.,0.,0.);
+
+  // Inputs
+  Double_t angle = (TMath::Pi()/180.0)*thetaC; // radians
+  Double_t omega = (TMath::Pi()/180.0)*phi; // radians
+
+  // Gives the vector from the vertex to the projected position
+  TVector3 v2p = proj - vtx;
+
+  // Unit vector from vertex to projected position
+  TVector3 unit = v2p.Unit();
+
+  // Rotate away from the projected positon by the cone angle, then around by omega, which runs up 
+  // to 2pi to draw a cone of given angle around the projected position
+  TVector3 initDir = unit;
+  TVector3 orthDir = unit.Orthogonal();
+  unit.Rotate(angle,orthDir);
+  unit.Rotate(omega,initDir);
+ 
+  // Outputs
+//  rx = x0 + ds*myDir.x(); 
+//  ry = y0 + ds*myDir.y();   
+//  rz = z0 + ds*myDir.z();   
+
+  // This is making a cone around the pmt hit starting at the vertex
+  // whose cone angle is "angle" 
+  // We increment omega to step round the edge of the cone
+  // For each step we return the (x,y,z) coordinate of the point on the cone
+  // and the direction
+  circPos = vtx + v2p.Mag() * unit;
+  circDir = unit;
+
+//  nx = myDir.x();   
+//  ny = myDir.y();       // circDir is the unit vector from the vertex to the rim of the cone
+//  nz = myDir.z();
+
+//  r = ds*sin(angle);      // the radius from the PMT hit to the edge of the cone
+
+  return;
+}
+
+// Create the TPolyMarker from two vectors reprsenting the "x" and "y" coordinates
+void WCSimEvDisplay::MakePolyMarker(std::vector<double> coord1, std::vector<double> coord2, std::vector<TPolyMarker*>& poly, int colour){
+  // Convert vectors into arrays
+  double *x = new double[coord1.size()];
+  double *y = new double[coord1.size()];
+
+  std::cout << "New ring info: " << std::endl;
+  for(unsigned int e = 0; e < coord1.size(); ++e){
+    x[e] = coord1[e];
+    y[e] = coord2[e];
+  }
+
+  TPolyMarker *newPoly = new TPolyMarker(coord1.size(),x,y);
+  newPoly->SetMarkerColor(colour);
+  newPoly->SetMarkerStyle(7);
+  newPoly->SetMarkerSize(1.0);
+  poly.push_back(newPoly);
+
+  delete [] x;
+  delete [] y;
+  x = 0x0;
+  y = 0x0;
+}
+
+void WCSimEvDisplay::ClearTruthMarkerVectors(){
+  this->DeleteAndClearElements(fTruthMarkersTop);
+  this->DeleteAndClearElements(fTruthMarkersBarrel);
+  this->DeleteAndClearElements(fTruthMarkersBottom);
+}
+
+void WCSimEvDisplay::DeleteAndClearElements(std::vector<TPolyMarker*>& vec){
+  if(vec.size()!=0){
+    for(unsigned int v = 0; v < vec.size(); ++v){
+      delete (TPolyMarker*)vec[v];
+      vec[v] = 0x0;
+    }
+  }
+  vec.clear();
+}
+
+int WCSimEvDisplay::GetTruthRingColour(int ring) const{
+  if(ring == 1) return kMagenta;
+  if(ring == 2) return kGreen;
+  if(ring == 3) return kRed;
+  if(ring == 4) return kOrange;
+  return kBlack;
+}
 
