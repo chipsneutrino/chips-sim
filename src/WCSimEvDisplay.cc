@@ -393,28 +393,29 @@ void WCSimEvDisplay::MatchPlotZAxes(){
 // Resize the pads when hiding / showing the 1D plots
 void WCSimEvDisplay::ResizePads(){
 
-	TCanvas *can = fHitMapCanvas->GetCanvas();
-	can->cd();
-  TList *list = can->GetListOfPrimitives();
+  // Get list of objects attached to the main canvas
+  TList *list = fHitMapCanvas->GetCanvas()->GetListOfPrimitives();
+  std::cout << "TCanvas list: " << std::endl;
+  for(int i = 0; i < list->GetEntries(); ++i){
+    std::cout << list->At(i)->ClassName() << ", " << list->At(i)->GetName() << std::endl;
+  }
+
+  // UpdateCanvases draw the pads we want, so remove them all here
+  if(list->FindObject(fTruthPad)) list->Remove(fTruthPad);
+ 	if(list->FindObject(fTruthOverlayPad)) list->Remove(fTruthOverlayPad);   
+  if(list->FindObject(fBarrelPad)) list->Remove(fBarrelPad);
+  if(list->FindObject(fTopPad)) list->Remove(fTopPad);
+  if(list->FindObject(fBottomPad)) list->Remove(fBottomPad);
+  if(list->FindObject(fChargePad)) list->Remove(fChargePad);
+  if(list->FindObject(fTimePad)) list->Remove(fTimePad); 
 
   // If we want to show truth
   if(fWhichPads == 1){
- 		if(list->FindObject(fTruthOverlayPad)) list->Remove(fTruthOverlayPad);   
-    if(list->FindObject(fBarrelPad)) list->Remove(fBarrelPad);
-    if(list->FindObject(fTopPad)) list->Remove(fTopPad);
-    if(list->FindObject(fBottomPad)) list->Remove(fBottomPad);
-  	if(fShow1DHists){
-  		if(list->FindObject(fChargePad)) list->Remove(fChargePad);
-  		if(list->FindObject(fTimePad)) list->Remove(fTimePad); 
-  	}
     fTruthPad->SetPad(0.0,0.0,1.0,1.0);
   }
   // Or else show the reco
   else if (fWhichPads == 0){
-    // Remove the truth information pad
- 		if(list->FindObject(fTruthPad)) list->Remove(fTruthPad);   
- 		if(list->FindObject(fTruthOverlayPad)) list->Remove(fTruthOverlayPad);   
-  	// Are the 1D plots visible?
+  	// Resize the reco pads
   	if(fShow1DHists){
   		fBarrelPad->SetPad(0.0,0.6,1.0,1.0);
   		fTopPad->SetPad(0.0,0.2,0.5,0.6);
@@ -423,10 +424,7 @@ void WCSimEvDisplay::ResizePads(){
   		fTimePad->SetPad(0.5,0.0,1.0,0.2);
   	}
   	else{
-  		// Firstly, remove the 1D pads from the TList
-  		if(list->FindObject(fChargePad)) list->Remove(fChargePad);
-  		if(list->FindObject(fTimePad)) list->Remove(fTimePad);  
-  		// Now resize the othe pads
+  		// Resize the reco pads
       fBarrelPad->SetPad(0.0,0.5,1.0,1.0);
       fTopPad->SetPad(0.0,0.0,0.5,0.5);
       fBottomPad->SetPad(0.5,0.0,1.0,0.5);
@@ -434,12 +432,6 @@ void WCSimEvDisplay::ResizePads(){
   }
   // Else show the truth overlays
   else{
-    std::cout << "Attempting to resize for truth overlays" << std::endl;
-    if(list->FindObject(fTruthPad)) list->Remove(fTruthPad);
-  	if(fShow1DHists){
-  		if(list->FindObject(fChargePad)) list->Remove(fChargePad);
-  		if(list->FindObject(fTimePad)) list->Remove(fTimePad); 
-  	}
     // Make sure to leave space for the truth overlay pad at the bottom
     fBarrelPad->SetPad(0.0,0.6,1.0,1.0);
   	fTopPad->SetPad(0.0,0.2,0.5,0.6);
@@ -454,9 +446,11 @@ void WCSimEvDisplay::UpdateCanvases(){
 
   TCanvas *canvas = fHitMapCanvas->GetCanvas();
   canvas->cd();
+
+  // Remove the truth overlays
+  this->HideTruthOverlays();
+  
   if(fWhichPads == 0){
-    // Get rid of any truth overlays
-    this->HideTruthOverlays();
     // Now draw the pads
     fBarrelPad->Draw();
     fTopPad->Draw();
@@ -470,7 +464,6 @@ void WCSimEvDisplay::UpdateCanvases(){
     fTruthPad->Draw();
   }
   else{
-    std::cout << "Attempting to show the truth overlays" << std::endl;
     this->DrawTruthOverlays();
     canvas->cd(); // Need to cd back here since the above changes directory
     fBarrelPad->Draw();
@@ -485,47 +478,50 @@ void WCSimEvDisplay::UpdateCanvases(){
 // Draw the reco plots to the reco pads
 void WCSimEvDisplay::UpdateRecoPads(){
 
-	  this->MatchPlotZAxes();
-    // Set the styles how we want them
-  	this->MakePlotsPretty(fBarrelHist);
-  	this->MakePlotsPretty(fTopHist);
-  	this->MakePlotsPretty(fBottomHist);
-  	this->MakePlotsPretty(fChargeHist);
-  	this->MakePlotsPretty(fTimeHist);
+	this->MatchPlotZAxes();
+  // Set the styles how we want them
+  this->MakePlotsPretty(fBarrelHist);
+  this->MakePlotsPretty(fTopHist);
+  this->MakePlotsPretty(fBottomHist);
+  this->MakePlotsPretty(fChargeHist);
+  this->MakePlotsPretty(fTimeHist);
 
-  	// Take the plots one by one and draw them.
-    fBarrelPad->cd();
-  	fBarrelHist->Draw("colz");
-    fBarrelPad->Modified();
-    fBarrelPad->Update();
+  // Take the plots one by one and draw them.
+  fBarrelPad->cd();
+  fBarrelHist->Draw("colz");
+  fBarrelPad->Modified();
+  fBarrelPad->Update();
 
-  	fTopPad->cd();
-  	fTopHist->Draw("colz");
-    fTopPad->Modified();
-    fTopPad->Update();
+  fTopPad->cd();
+  fTopHist->Draw("colz");
+  fTopPad->Modified();
+  fTopPad->Update();
 
-  	fBottomPad->cd();
-  	fBottomHist->Draw("colz");
-    fBottomPad->Modified();
-    fBottomPad->Update();
+  fBottomPad->cd();
+  fBottomHist->Draw("colz");
+  fBottomPad->Modified();
+  fBottomPad->Update();
 
-  	fChargePad->cd();
-  	fChargeHist->Draw();
-    fChargePad->Modified();
-    fChargePad->Update();
+  fChargePad->cd();
+  fChargeHist->Draw();
+  fChargePad->Modified();
+  fChargePad->Update();
 
-  	fTimePad->cd();
-  	fTimeHist->Draw();
-    fTimePad->Modified();
-    fTimePad->Update();
- 
+  fTimePad->cd();
+  fTimeHist->Draw();
+  fTimePad->Modified();
+  fTimePad->Update();
+
+  fHitMapCanvas->GetCanvas()->cd();
 }
 
 // Draw the truth information to the truth pad
 void WCSimEvDisplay::UpdateTruthPad(){
-    fTruthPad->cd();
-    fTruthTextMain->Draw();
-    fTruthTextPrimaries->Draw();
+  fTruthPad->cd();
+  fTruthTextMain->Draw();
+  fTruthTextPrimaries->Draw();
+  
+  fHitMapCanvas->GetCanvas()->cd();
 }
 
 // Draw the truth overlay information
@@ -540,20 +536,17 @@ void WCSimEvDisplay::UpdateTruthOverlayPad(){
     std::cout << "No truth rings found" << std::endl;
   }
 
+  fHitMapCanvas->GetCanvas()->cd();
 }
 
 // Actually draw the Truth Overlays
 void WCSimEvDisplay::DrawTruthOverlays(){
-
-    // Make sure we haven't already drawn the objects
-    this->HideTruthOverlays();
 
   	// Take the plots one by one and draw them.
     fBarrelPad->cd();
   	fBarrelHist->Draw("colz");
     // Draw the truth rings
     for(unsigned int r = 0; r < fTruthMarkersBarrel.size(); ++r){
-      std::cout << "Drawing Barrel Truth " << r << std::endl;
       fTruthMarkersBarrel[r]->Draw("C");      
     }
     fBarrelPad->Modified();
@@ -563,7 +556,6 @@ void WCSimEvDisplay::DrawTruthOverlays(){
   	fTopHist->Draw("colz");
     // Draw the truth rings
     for(unsigned int r = 0; r < fTruthMarkersTop.size(); ++r){
-      std::cout << "Drawing Top Truth " << r << std::endl;
       fTruthMarkersTop[r]->Draw("C");
     }
     fTopPad->Modified();
@@ -573,7 +565,6 @@ void WCSimEvDisplay::DrawTruthOverlays(){
   	fBottomHist->Draw("colz");
     // Draw the truth rings
     for(unsigned int r = 0; r < fTruthMarkersBottom.size(); ++r){
-      std::cout << "Drawing Bottom Truth " << r << std::endl;
       fTruthMarkersBottom[r]->Draw("C");
     }
     fBottomPad->Modified();
@@ -602,8 +593,6 @@ void WCSimEvDisplay::HideTruthOverlays(){
       list->Remove(fTruthMarkersBottom[r]);
     }
   }
-  TCanvas *canvas = fHitMapCanvas->GetCanvas();
-  canvas->cd();
 }
 
 void WCSimEvDisplay::NextEvent() {
@@ -850,7 +839,7 @@ void WCSimEvDisplay::UpdateTruthPave(){
   std::cout << "Vertex = " << vtx.X() << ", " << vtx.Y() << ", " << vtx.Z() << std::endl;
   std::cout << "Radius = " << fWCRadius << ", " << "Height = " << fWCLength << std::endl;
   tmpS << vtx.X() << "," << vtx.Y() << "," << vtx.Z();
-  fTruthTextMain->AddText(("Vertex at ("+tmpS.str()+") cm").c_str());
+  fTruthTextMain->AddText(("Vertex at ("+tmpS.str()+") mm").c_str());
   if(fTruthSummary->IsNeutrinoEvent()){
     // Neutrino information
     tmpS.str("");
@@ -885,6 +874,10 @@ void WCSimEvDisplay::UpdateTruthPave(){
   int nTruthRings = 0;
   // Create the TLegend for the truth overlays
   if(fTruthLegend != 0x0){
+    // Remove it from the pad
+    if(fTruthOverlayPad->GetListOfPrimitives()->FindObject(fTruthLegend)){
+      fTruthOverlayPad->GetListOfPrimitives()->Remove(fTruthLegend);
+    }
     delete fTruthLegend;
     fTruthLegend = 0x0;
   }
@@ -1440,6 +1433,7 @@ void WCSimEvDisplay::ClearTruthMarkerVectors(){
 void WCSimEvDisplay::DeleteAndClearElements(std::vector<TPolyMarker*>& vec){
   if(vec.size()!=0){
     for(unsigned int v = 0; v < vec.size(); ++v){
+      std::cout << "About to delete element " << v << " of " << vec.size() << std::endl;
       delete (TPolyMarker*)vec[v];
       vec[v] = 0x0;
     }
