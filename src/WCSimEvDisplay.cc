@@ -395,10 +395,6 @@ void WCSimEvDisplay::ResizePads(){
 
   // Get list of objects attached to the main canvas
   TList *list = fHitMapCanvas->GetCanvas()->GetListOfPrimitives();
-  std::cout << "TCanvas list: " << std::endl;
-  for(int i = 0; i < list->GetEntries(); ++i){
-    std::cout << list->At(i)->ClassName() << ", " << list->At(i)->GetName() << std::endl;
-  }
 
   // UpdateCanvases draw the pads we want, so remove them all here
   if(list->FindObject(fTruthPad)) list->Remove(fTruthPad);
@@ -1433,7 +1429,6 @@ void WCSimEvDisplay::ClearTruthMarkerVectors(){
 void WCSimEvDisplay::DeleteAndClearElements(std::vector<TPolyMarker*>& vec){
   if(vec.size()!=0){
     for(unsigned int v = 0; v < vec.size(); ++v){
-      std::cout << "About to delete element " << v << " of " << vec.size() << std::endl;
       delete (TPolyMarker*)vec[v];
       vec[v] = 0x0;
     }
