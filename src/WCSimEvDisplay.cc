@@ -23,6 +23,8 @@
 #include <TDatabasePDG.h>
 #include <TParticlePDG.h>
 #include <TPolyMarker.h>
+#include <TLine.h>
+#include <TLegend.h>
 //#include <TRootEmbeddedCanvas.h>
 //#include <RQ_OBJECT.h>
 #include "WCSimEvDisplay.hh"
@@ -51,7 +53,8 @@ WCSimEvDisplay::WCSimEvDisplay(const TGWindow *p,UInt_t w,UInt_t h) : TGMainFram
 
   // Initialise the truth object
   fTruthSummary = 0x0;
-  fShowTruth = false; 
+  fTruthLegend = 0x0;
+  fWhichPads = 0; // Default is reco
   fTruthTextMain = new TPaveText(0.05,0.45,0.95,0.90,"NDC");
   fTruthTextPrimaries = new TPaveText(0.05,0.1,0.95,0.40,"NDC");
   fDatabasePDG = 0x0;
@@ -86,6 +89,7 @@ WCSimEvDisplay::WCSimEvDisplay(const TGWindow *p,UInt_t w,UInt_t h) : TGMainFram
 	fTimePad->Draw();
   // Create the truth information pad, but don't draw it
   fTruthPad = new TPad("fTruthPad","",0.0,0.0,1.0,1.0);
+  fTruthOverlayPad = new TPad("fTruthOverlayPad","",0.0,0.0,1.0,0.2);
 
 	this->AddFrame(fHitMapCanvas, new TGLayoutHints(kLHintsExpandX| kLHintsExpandY,10,10,10,1));
 
@@ -142,18 +146,27 @@ void WCSimEvDisplay::CreateMainButtonBar(){
 void WCSimEvDisplay::CreateSubButtonBar(){
 	// Create a horizontal frame to store buttons specific to WCSim files
 	hWCSimButtons = new TGHorizontalFrame(this,200,40);
+  // Show Charge on z axis
 	TGTextButton *togCharge = new TGTextButton(hWCSimButtons,"&Charge");
 	togCharge->Connect("Clicked()","WCSimEvDisplay",this,"SetViewCharge()");
 	hWCSimButtons->AddFrame(togCharge, new TGLayoutHints(kLHintsCenterX,5,5,3,4));
+  // Show time on z axis
 	TGTextButton *togTime = new TGTextButton(hWCSimButtons,"&Time");
 	togTime->Connect("Clicked()","WCSimEvDisplay",this,"SetViewTime()");
 	hWCSimButtons->AddFrame(togTime, new TGLayoutHints(kLHintsCenterX,5,5,3,4));
+  // Toggle the 1D plots
 	TGTextButton *togHists = new TGTextButton(hWCSimButtons,"Toggle 1D Plots");
 	togHists->Connect("Clicked()","WCSimEvDisplay",this,"Toggle1DHists()");
 	hWCSimButtons->AddFrame(togHists, new TGLayoutHints(kLHintsCenterX,5,5,3,4));
+  // Show the standard reco view
   TGTextButton *showReco = new TGTextButton(hWCSimButtons,"&Reco");
   showReco->Connect("Clicked()","WCSimEvDisplay",this,"ShowReco()");
   hWCSimButtons->AddFrame(showReco, new TGLayoutHints(kLHintsCenterX,5,5,3,4));
+  // Show the truth overlay view
+  TGTextButton *showTruthOverlay = new TGTextButton(hWCSimButtons,"&Truth Overlay");
+  showTruthOverlay->Connect("Clicked()","WCSimEvDisplay",this,"ShowTruthOverlay()");
+  hWCSimButtons->AddFrame(showTruthOverlay, new TGLayoutHints(kLHintsCenterX,5,5,3,4));
+  // Show the truth summary information
   TGTextButton *showTruth = new TGTextButton(hWCSimButtons,"&Truth");
   showTruth->Connect("Clicked()","WCSimEvDisplay",this,"ShowTruth()");
   hWCSimButtons->AddFrame(showTruth, new TGLayoutHints(kLHintsCenterX,5,5,3,4));
@@ -250,6 +263,11 @@ void WCSimEvDisplay::FillPlotsFromWCSimEvent(){
 	delete geo;
 	geo = 0x0;
 
+  // Update the pads
+  this->UpdateRecoPads();
+  this->UpdateTruthPad();
+  this->UpdateTruthOverlayPad();
+  // Now draw whichever pad we need
 	this->UpdateCanvases();
 }
 
@@ -380,21 +398,22 @@ void WCSimEvDisplay::ResizePads(){
   TList *list = can->GetListOfPrimitives();
 
   // If we want to show truth
-  if(fShowTruth){
-    list->Remove(fBarrelPad);
-    list->Remove(fTopPad);
-    list->Remove(fBottomPad);
+  if(fWhichPads == 1){
+ 		if(list->FindObject(fTruthOverlayPad)) list->Remove(fTruthOverlayPad);   
+    if(list->FindObject(fBarrelPad)) list->Remove(fBarrelPad);
+    if(list->FindObject(fTopPad)) list->Remove(fTopPad);
+    if(list->FindObject(fBottomPad)) list->Remove(fBottomPad);
   	if(fShow1DHists){
-  		list->Remove(fChargePad);
-  		list->Remove(fTimePad); 
+  		if(list->FindObject(fChargePad)) list->Remove(fChargePad);
+  		if(list->FindObject(fTimePad)) list->Remove(fTimePad); 
   	}
     fTruthPad->SetPad(0.0,0.0,1.0,1.0);
-    fTruthPad->Draw();
   }
   // Or else show the reco
-  else{
+  else if (fWhichPads == 0){
     // Remove the truth information pad
- 		list->Remove(fTruthPad);   
+ 		if(list->FindObject(fTruthPad)) list->Remove(fTruthPad);   
+ 		if(list->FindObject(fTruthOverlayPad)) list->Remove(fTruthOverlayPad);   
   	// Are the 1D plots visible?
   	if(fShow1DHists){
   		fBarrelPad->SetPad(0.0,0.6,1.0,1.0);
@@ -402,95 +421,189 @@ void WCSimEvDisplay::ResizePads(){
   		fBottomPad->SetPad(0.5,0.2,1.0,0.6);
   		fChargePad->SetPad(0.0,0.0,0.5,0.2);
   		fTimePad->SetPad(0.5,0.0,1.0,0.2);
-  		// Only need to draw the 1D plots since they are
-  		// the only ones that are hidden.
-  		fChargePad->Draw();
-  		fTimePad->Draw();
   	}
   	else{
   		// Firstly, remove the 1D pads from the TList
-  		list->Remove(fChargePad);
-  		list->Remove(fTimePad); 
+  		if(list->FindObject(fChargePad)) list->Remove(fChargePad);
+  		if(list->FindObject(fTimePad)) list->Remove(fTimePad);  
   		// Now resize the othe pads
       fBarrelPad->SetPad(0.0,0.5,1.0,1.0);
       fTopPad->SetPad(0.0,0.0,0.5,0.5);
       fBottomPad->SetPad(0.5,0.0,1.0,0.5);
   	}
-    fBarrelPad->Draw();
-    fTopPad->Draw();
-    fBottomPad->Draw();
+  }
+  // Else show the truth overlays
+  else{
+    std::cout << "Attempting to resize for truth overlays" << std::endl;
+    if(list->FindObject(fTruthPad)) list->Remove(fTruthPad);
+  	if(fShow1DHists){
+  		if(list->FindObject(fChargePad)) list->Remove(fChargePad);
+  		if(list->FindObject(fTimePad)) list->Remove(fTimePad); 
+  	}
+    // Make sure to leave space for the truth overlay pad at the bottom
+    fBarrelPad->SetPad(0.0,0.6,1.0,1.0);
+  	fTopPad->SetPad(0.0,0.2,0.5,0.6);
+  	fBottomPad->SetPad(0.5,0.2,1.0,0.6);
+    fTruthOverlayPad->SetPad(0.0,0.0,1.0,0.2); 
   }
 
-//  can->Modified();
-//  can->Update();
 	this->UpdateCanvases();
 }
 
 void WCSimEvDisplay::UpdateCanvases(){
 
-  if(!fShowTruth){
-	  this->MatchPlotZAxes();
+  TCanvas *canvas = fHitMapCanvas->GetCanvas();
+  canvas->cd();
+  if(fWhichPads == 0){
+    // Get rid of any truth overlays
+    this->HideTruthOverlays();
+    // Now draw the pads
+    fBarrelPad->Draw();
+    fTopPad->Draw();
+    fBottomPad->Draw();
+  	if(fShow1DHists){
+  		fChargePad->Draw();
+      fTimePad->Draw();
+  	}
+  }
+  else if (fWhichPads == 1){
+    fTruthPad->Draw();
+  }
+  else{
+    std::cout << "Attempting to show the truth overlays" << std::endl;
+    this->DrawTruthOverlays();
+    canvas->cd(); // Need to cd back here since the above changes directory
+    fBarrelPad->Draw();
+    fTopPad->Draw();
+    fBottomPad->Draw();
+    fTruthOverlayPad->Draw();  
+  }
+ 	canvas->Modified();
+ 	canvas->Update();
+}
 
+// Draw the reco plots to the reco pads
+void WCSimEvDisplay::UpdateRecoPads(){
+
+	  this->MatchPlotZAxes();
+    // Set the styles how we want them
   	this->MakePlotsPretty(fBarrelHist);
   	this->MakePlotsPretty(fTopHist);
   	this->MakePlotsPretty(fBottomHist);
+  	this->MakePlotsPretty(fChargeHist);
+  	this->MakePlotsPretty(fTimeHist);
 
   	// Take the plots one by one and draw them.
-  	TCanvas *canvas = fHitMapCanvas->GetCanvas();
-  	canvas->cd(1);
-  	fBarrelPad->cd();
+    fBarrelPad->cd();
   	fBarrelHist->Draw("colz");
-    // Draw the truth rings if needed
-    for(unsigned int r = 0; r < fTruthMarkersBarrel.size(); ++r){
-      std::cout << "Drawing Barrel Truth " << r << std::endl;
-      if(!fTruthMarkersBarrel[r]){
-        std::cout << "Why the hell am I a null pointer?" << std::endl;
-      }
-      else fTruthMarkersBarrel[r]->Draw("C");
-      
-    }
-  	canvas->Modified();
-  	canvas->Update();
+    fBarrelPad->Modified();
+    fBarrelPad->Update();
 
   	fTopPad->cd();
   	fTopHist->Draw("colz");
-    // Draw the truth rings if needed
+    fTopPad->Modified();
+    fTopPad->Update();
+
+  	fBottomPad->cd();
+  	fBottomHist->Draw("colz");
+    fBottomPad->Modified();
+    fBottomPad->Update();
+
+  	fChargePad->cd();
+  	fChargeHist->Draw();
+    fChargePad->Modified();
+    fChargePad->Update();
+
+  	fTimePad->cd();
+  	fTimeHist->Draw();
+    fTimePad->Modified();
+    fTimePad->Update();
+ 
+}
+
+// Draw the truth information to the truth pad
+void WCSimEvDisplay::UpdateTruthPad(){
+    fTruthPad->cd();
+    fTruthTextMain->Draw();
+    fTruthTextPrimaries->Draw();
+}
+
+// Draw the truth overlay information
+void WCSimEvDisplay::UpdateTruthOverlayPad(){
+
+  fTruthOverlayPad->cd();
+  // Draw the TLegend
+  if(fTruthLegend){
+    fTruthLegend->Draw();
+  }
+  else{
+    std::cout << "No truth rings found" << std::endl;
+  }
+
+}
+
+// Actually draw the Truth Overlays
+void WCSimEvDisplay::DrawTruthOverlays(){
+
+    // Make sure we haven't already drawn the objects
+    this->HideTruthOverlays();
+
+  	// Take the plots one by one and draw them.
+    fBarrelPad->cd();
+  	fBarrelHist->Draw("colz");
+    // Draw the truth rings
+    for(unsigned int r = 0; r < fTruthMarkersBarrel.size(); ++r){
+      std::cout << "Drawing Barrel Truth " << r << std::endl;
+      fTruthMarkersBarrel[r]->Draw("C");      
+    }
+    fBarrelPad->Modified();
+    fBarrelPad->Update();
+
+  	fTopPad->cd();
+  	fTopHist->Draw("colz");
+    // Draw the truth rings
     for(unsigned int r = 0; r < fTruthMarkersTop.size(); ++r){
       std::cout << "Drawing Top Truth " << r << std::endl;
       fTruthMarkersTop[r]->Draw("C");
     }
-  	canvas->Modified();
-  	canvas->Update();
+    fTopPad->Modified();
+    fTopPad->Update();
 
   	fBottomPad->cd();
   	fBottomHist->Draw("colz");
-    // Draw the truth rings if needed
+    // Draw the truth rings
     for(unsigned int r = 0; r < fTruthMarkersBottom.size(); ++r){
       std::cout << "Drawing Bottom Truth " << r << std::endl;
       fTruthMarkersBottom[r]->Draw("C");
     }
-  	canvas->Modified();
-  	canvas->Update();
+    fBottomPad->Modified();
+    fBottomPad->Update();
 
-  	if(fShow1DHists){
-  		fChargePad->cd();
-  		this->MakePlotsPretty(fChargeHist);
-  		fChargeHist->Draw();
+}
 
-  		fTimePad->cd();
-  		this->MakePlotsPretty(fTimeHist);
-  		fTimeHist->Draw();
-  	}
+void WCSimEvDisplay::HideTruthOverlays(){
+  TList *list = fBarrelPad->GetListOfPrimitives();
+  for(unsigned int r = 0; r < fTruthMarkersBarrel.size(); ++r){
+    if(list->FindObject(fTruthMarkersBarrel[r])){
+      list->Remove(fTruthMarkersBarrel[r]);
+    }
   }
-  else{
-  	TCanvas *canvas = fHitMapCanvas->GetCanvas();
-    fTruthPad->cd();
-    fTruthPad->Draw();
-    fTruthTextMain->Draw();
-    fTruthTextPrimaries->Draw();
-  	canvas->Modified();
-  	canvas->Update();
+
+  list = fTopPad->GetListOfPrimitives();
+  for(unsigned int r = 0; r < fTruthMarkersTop.size(); ++r){
+    if(list->FindObject(fTruthMarkersTop[r])){
+      list->Remove(fTruthMarkersTop[r]);
+    }
   }
+  
+  list = fBottomPad->GetListOfPrimitives();
+  for(unsigned int r = 0; r < fTruthMarkersBottom.size(); ++r){
+    if(list->FindObject(fTruthMarkersBottom[r])){
+      list->Remove(fTruthMarkersBottom[r]);
+    }
+  }
+  TCanvas *canvas = fHitMapCanvas->GetCanvas();
+  canvas->cd();
 }
 
 void WCSimEvDisplay::NextEvent() {
@@ -650,9 +763,9 @@ void WCSimEvDisplay::ShowTruth(){
 
   if(fTruthSummary != 0x0){
 
-    if(fShowTruth == false){
+    if(fWhichPads != 1){
 
-      fShowTruth = true;
+      fWhichPads = 1;
   
       std::cout << "== Event Truth Information ==" << std::endl;
   
@@ -700,12 +813,22 @@ void WCSimEvDisplay::ShowTruth(){
 }
 
 void WCSimEvDisplay::ShowReco(){
-  if(fShowTruth == true){
-    fShowTruth = false;
+  if(fWhichPads != 0){
+    fWhichPads = 0;
     this->ResizePads();
   }
   else{
     std::cerr << "Already displaying reco view." << std::endl;
+  }
+}
+
+void WCSimEvDisplay::ShowTruthOverlay(){
+  if(fWhichPads != 2){
+    fWhichPads = 2;
+    this->ResizePads();
+  }
+  else{
+    std::cerr << "Already displaying truth overlays" << std::endl;
   }
 }
 
@@ -760,6 +883,15 @@ void WCSimEvDisplay::UpdateTruthPave(){
   }
 
   int nTruthRings = 0;
+  // Create the TLegend for the truth overlays
+  if(fTruthLegend != 0x0){
+    delete fTruthLegend;
+    fTruthLegend = 0x0;
+  }
+  fTruthLegend = new TLegend(0.2,0.2,0.8,0.8);
+  fTruthLegend->SetFillColor(kWhite);
+  fTruthLegend->SetBorderSize(0);
+  
   // The primary particles list
   if(fTruthSummary->IsNeutrinoEvent()){
     fTruthTextPrimaries->AddText("List of Primary Particles (*** above Cherenkov threshold)");
@@ -770,8 +902,9 @@ void WCSimEvDisplay::UpdateTruthPave(){
       if(this->IsAboveCherenkovThreshold(pdg,energy)){
         mod = "***";
         // Add a true ring to the display
-        ++nTruthRings;
-        this->DrawTruthRing(n,this->GetTruthRingColour(nTruthRings));
+        ++nTruthRings; 
+        int ringColour = this->GetTruthRingColour(nTruthRings);
+        this->DrawTruthRing(n,ringColour);
       }
       dir = fTruthSummary->GetPrimaryDir(n);
       tmpS.str("");
@@ -782,6 +915,14 @@ void WCSimEvDisplay::UpdateTruthPave(){
       tmpS << " " << mod;
       fTruthTextPrimaries->AddText(tmpS.str().c_str());
     } 
+  }
+  else{
+    // Draw the truth ring for the particle gun
+    int pdg = fTruthSummary->GetBeamPDG();
+    double energy = fTruthSummary->GetBeamEnergy();
+    if(this->IsAboveCherenkovThreshold(pdg,energy)){
+      this->DrawTruthRing(9999,this->GetTruthRingColour(1)); // Dummy value to flag it isn't a primary particle
+    }
   }
 }
 
@@ -1013,8 +1154,13 @@ void WCSimEvDisplay::DrawTruthRing(unsigned int particleNo, int colour){
   // Get the track vertex and direction
   TVector3 trkVtx = fTruthSummary->GetVertex();
   trkVtx = trkVtx * 0.1; // Convert to cm
-  TVector3 trkDir = fTruthSummary->GetPrimaryDir(particleNo);
-
+  TVector3 trkDir;
+  if(particleNo==9999){
+    trkDir = fTruthSummary->GetBeamDir();
+  }
+  else{
+    trkDir = fTruthSummary->GetPrimaryDir(particleNo);
+  }
   // Get the projection of the track vertex onto the wall
   TVector3 trkVtxProj; // Point where the track would hit the wall, filled by ProjectToWall
   unsigned int detRegion; // Region of the detector, filled by ProjectToWall 
@@ -1029,8 +1175,17 @@ void WCSimEvDisplay::DrawTruthRing(unsigned int particleNo, int colour){
   if(fDatabasePDG == 0x0){
     fDatabasePDG = new TDatabasePDG();
   }
-  double mass = 1000*fDatabasePDG->GetParticle(fTruthSummary->GetPrimaryPDG(particleNo))->Mass();
-  double en = fTruthSummary->GetPrimaryEnergy(particleNo);
+  int pdgCode;
+  double en;
+  if(particleNo==9999){
+    pdgCode = fTruthSummary->GetBeamPDG();
+    en = fTruthSummary->GetBeamEnergy();
+  }
+  else{
+    pdgCode = fTruthSummary->GetPrimaryPDG(particleNo);
+    en = fTruthSummary->GetPrimaryEnergy(particleNo);
+  }
+  double mass = 1000*fDatabasePDG->GetParticle(pdgCode)->Mass();
   double beta = sqrt(en*en - mass*mass) / en; // beta = p / E
   double refrac = 1.33; // Refractive index of water
   double thetaC = (180.0 / TMath::Pi()) * TMath::ACos(1./(refrac*beta)); // Cherenkov angle
@@ -1071,7 +1226,13 @@ void WCSimEvDisplay::DrawTruthRing(unsigned int particleNo, int colour){
   }
 
   // Now we have the vectors of coordinates that we need for each region. Now to make the TPolyMarkers
-  std::cout << "= Making markers for particle " << particleNo << std::endl;
+  // and add an entry to the legend
+  std::stringstream legendText;
+  legendText << "PDG code = " << pdgCode << " and total energy = " << en << " MeV";
+  TLine* line = new TLine();
+  line->SetLineColor(colour);
+  fTruthLines.push_back(line);
+  fTruthLegend->AddEntry(fTruthLines[fTruthLines.size()-1],legendText.str().c_str(),"l");
   if(topPos1.size() != 0){
     this->MakePolyMarker(topPos1,topPos2,fTruthMarkersTop,colour);
   }
@@ -1081,7 +1242,7 @@ void WCSimEvDisplay::DrawTruthRing(unsigned int particleNo, int colour){
   if(bottomPos1.size() != 0){
     this->MakePolyMarker(bottomPos1,bottomPos2,fTruthMarkersBottom,colour);
   }
-
+  
 }
 
 // Project the position and direction onto the detector wall, returning proj vector
@@ -1091,16 +1252,6 @@ void WCSimEvDisplay::ProjectToWall(TVector3 vtx, TVector3 dir, TVector3& proj, u
   // Defaults
   proj = TVector3(-99999.9,-99999.9,-99999.9);
   region = 999;
-
-//  Double_t xNear = -99999.9;
-//  Double_t yNear = -99999.9;
-//  Double_t zNear = -99999.9;
-//  Int_t regionNear = WCSimGeometry::kUnknown;
-
-//  Double_t xFar = -99999.9;
-//  Double_t yFar = -99999.9;
-//  Double_t zFar = -99999.9;
-//  Int_t regionFar = WCSimGeometry::kUnknown;
 
   // Get the geometry information
   Double_t r = fWCRadius;
@@ -1122,11 +1273,8 @@ void WCSimEvDisplay::ProjectToWall(TVector3 vtx, TVector3 dir, TVector3& proj, u
   Int_t region2 = -1;
 
   Double_t rSq = r*r;
-//  Double_t r0r0 = x0*x0 + y0*y0;
   Double_t r0r0 = vtx.X()*vtx.X() + vtx.Y()*vtx.Y();
-//  Double_t r0p = x0*px + y0*py;
   Double_t r0p = vtx.X()*dir.X() + vtx.Y()*dir.Y();
-//  Double_t pSq = px*px+py*py;
   Double_t pSq = dir.X()*dir.X() + dir.Y()*dir.Y();
   
   // calculate intersection in XY
@@ -1210,35 +1358,11 @@ void WCSimEvDisplay::ProjectToWall(TVector3 vtx, TVector3 dir, TVector3& proj, u
     x2 = vtx.X() + t2*dir.X();
     y2 = vtx.Y() + t2*dir.Y();
 
-    // near/far projection
-//    if( t1>=0 ){
-//      xNear = x1;
-//      yNear = y1;
-//      zNear = z1;
-//      regionNear = region1;
-
-//      xFar = x2;
-//      yFar = y2;
-//      zFar = z2;
-//      regionFar = region2;
-//    }
-//    else if( t2>0 ){
-//      xNear = x2;
-//      yNear = y2;
-//      zNear = z2;
-//      regionNear = region2;
-
-//      xFar = x2;
-//      yFar = y2;
-//      zFar = z2;
-//      regionFar = region2;
-//    }
     // If we always want the far one... always want region 2?
     proj = TVector3(x2,y2,z2);
     region = region2;
   }
  
-//  }
 }
 
 // Find the point on the circle with position circPos and direction circDir given the vector projected
@@ -1267,11 +1391,6 @@ void WCSimEvDisplay::FindCircle(TVector3 proj, TVector3 vtx, double thetaC, doub
   unit.Rotate(angle,orthDir);
   unit.Rotate(omega,initDir);
  
-  // Outputs
-//  rx = x0 + ds*myDir.x(); 
-//  ry = y0 + ds*myDir.y();   
-//  rz = z0 + ds*myDir.z();   
-
   // This is making a cone around the pmt hit starting at the vertex
   // whose cone angle is "angle" 
   // We increment omega to step round the edge of the cone
@@ -1279,12 +1398,6 @@ void WCSimEvDisplay::FindCircle(TVector3 proj, TVector3 vtx, double thetaC, doub
   // and the direction
   circPos = vtx + v2p.Mag() * unit;
   circDir = unit;
-
-//  nx = myDir.x();   
-//  ny = myDir.y();       // circDir is the unit vector from the vertex to the rim of the cone
-//  nz = myDir.z();
-
-//  r = ds*sin(angle);      // the radius from the PMT hit to the edge of the cone
 
   return;
 }
@@ -1295,7 +1408,6 @@ void WCSimEvDisplay::MakePolyMarker(std::vector<double> coord1, std::vector<doub
   double *x = new double[coord1.size()];
   double *y = new double[coord1.size()];
 
-  std::cout << "New ring info: " << std::endl;
   for(unsigned int e = 0; e < coord1.size(); ++e){
     x[e] = coord1[e];
     y[e] = coord2[e];
@@ -1317,6 +1429,12 @@ void WCSimEvDisplay::ClearTruthMarkerVectors(){
   this->DeleteAndClearElements(fTruthMarkersTop);
   this->DeleteAndClearElements(fTruthMarkersBarrel);
   this->DeleteAndClearElements(fTruthMarkersBottom);
+  // Also delete the vector of lines
+  for(unsigned int l = 0; l < fTruthLines.size(); ++l){
+    delete (TLine*)fTruthLines[l];
+    fTruthLines[l] = 0x0;
+  }
+  fTruthLines.clear();
 }
 
 void WCSimEvDisplay::DeleteAndClearElements(std::vector<TPolyMarker*>& vec){

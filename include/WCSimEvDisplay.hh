@@ -18,6 +18,8 @@ class TGNumberEntry;
 class TPaveText;
 class TDatabasePDG;
 class TPolyMarker;
+class TLine;
+class TLegend;
 class WCSimTruthSummary;
 
 class WCSimEvDisplay : public TGMainFrame {
@@ -32,8 +34,14 @@ private:
 	TPad *fChargePad;
   // Add a truth information pad
   TPad *fTruthPad;
-  // Boolean to flag whether we are showing truth or not
-  bool fShowTruth;
+  // Truth overlay pad containing the legend
+  TPad *fTruthOverlayPad;
+  TLegend *fTruthLegend;
+  // Which pad do we want to see?
+  // 0 = Reco
+  // 1 = Truth
+  // 2 = Reco with Truth Overlay
+  unsigned int fWhichPads;
   TDatabasePDG* fDatabasePDG;
 
 	// The three 2D histograms that show the hits
@@ -88,6 +96,7 @@ private:
   std::vector<TPolyMarker*> fTruthMarkersTop;
   std::vector<TPolyMarker*> fTruthMarkersBarrel;
   std::vector<TPolyMarker*> fTruthMarkersBottom;
+  std::vector<TLine*> fTruthLines; // One line per truth ring to fill the legend
 
   // Charge cut and corresponding entry box
   TGNumberEntry *fPEInput;
@@ -117,6 +126,12 @@ private:
 	void MatchPlotZAxes();
 	// Update the canvases after updating the plots.
 	void UpdateCanvases();
+  // Draw the reco plots to their pads, but don't show yet.
+  void UpdateRecoPads();
+  // Draw the truth information to its pad, but don't show yet.
+  void UpdateTruthPad();
+  // Draw the truth overlay rings to their pads
+  void UpdateTruthOverlayPad();
 
 	// Set up the style for the plots
 	void SetStyle();
@@ -143,6 +158,8 @@ private:
   void ClearTruthMarkerVectors();
   void DeleteAndClearElements(std::vector<TPolyMarker*>& vec);
   int GetTruthRingColour(int ring) const;
+  void DrawTruthOverlays();
+  void HideTruthOverlays();
 
 public:
   WCSimEvDisplay(const TGWindow *p,UInt_t w,UInt_t h);
@@ -182,6 +199,7 @@ public:
   // Button to show truth or reco
   void ShowTruth();
   void ShowReco();
+  void ShowTruthOverlay();
 
   // Update the truth TPaveText panel
   void UpdateTruthPave();
