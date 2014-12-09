@@ -944,6 +944,12 @@ bool WCSimEvDisplay::IsAboveCherenkovThreshold(int pdg, double energy){
     if(pdg == 22){
       threshold = 20 * 0.511;
     }
+    // The case for pi-zeroes is harder...
+    // For now, just make it "quite" energtic. Should probably actually look
+    // for the photons.
+    if(pdg == 111){
+      threshold = 2 * mass;
+    }
   }
 
   if(energy > threshold){
