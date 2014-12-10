@@ -5,8 +5,8 @@
 /hits/verbose 0
 
 ### select the geometry
-#/WCSim/WCgeom CHIPS_25kton_10inch_HQE_10perCent
-#
+/WCSim/WCgeom CHIPS_10kton_10inch_HQE_10perCent
+
 ## uncomment to use Leigh's pmt simulation
 ##/WCSim/PMTSim chips
 #
