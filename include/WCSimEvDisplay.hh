@@ -20,6 +20,8 @@ class TDatabasePDG;
 class TPolyMarker;
 class TLine;
 class TLegend;
+class TClonesArray;
+class TGraph;
 class WCSimTruthSummary;
 
 class WCSimEvDisplay : public TGMainFrame {
@@ -51,6 +53,26 @@ private:
 	// Single 1D histogram to show either charge or time
 	TH1D *fChargeHist;
 	TH1D *fTimeHist;
+
+  // As the PMTs are not uniform, use TGraphs to display the points
+  // Store a vector of 10 graphs for each of the 3 regions, with each
+  // graph storing a range of charges.
+  std::vector<TGraph*> fTopGraphs;
+  std::vector<TGraph*> fBarrelGraphs;
+  std::vector<TGraph*> fBottomGraphs;
+  std::vector<double> fChargeBins; // Lower edges
+  std::vector<double> fTimeBins; // Lower edges
+  double fQMin;
+  double fQMax;
+  double fTMin;
+  double fTMax;
+  Int_t fColours[10];
+  void CalculateChargeAndTimeBins();
+  unsigned int GetChargeBin(double charge) const;
+  unsigned int GetTimeBin(double time) const;
+  void MakeGraphColours();
+  void ResetGraphs();
+  void DrawHitGraphs(std::vector<TGraph*> vec);
 
   // The truth display is all contained within TPaveText objects
   TPaveText *fTruthTextMain;
@@ -122,8 +144,8 @@ private:
 	void MakePlotsPretty(TH1* h);
 	// Function to find what the colour axis minimum should be
 	void GetMinColourAxis(TH2D* h);
-	// Match the colour axes for the 2D plots
-	void MatchPlotZAxes();
+	// Set the colour axes for the 2D plots
+	void SetPlotZAxes();
 	// Update the canvases after updating the plots.
 	void UpdateCanvases();
   // Draw the reco plots to their pads, but don't show yet.
@@ -135,9 +157,6 @@ private:
 
 	// Set up the style for the plots
 	void SetStyle();
-
-	// Get the first and last photon events
-	void GetMinMaxPhotonEvents();
 
 	// The actual behind the scenes code that opens the files.	
 	void OpenNtupleFile(std::string name);

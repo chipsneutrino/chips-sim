@@ -25,6 +25,9 @@
 #include <TPolyMarker.h>
 #include <TLine.h>
 #include <TLegend.h>
+#include <TClonesArray.h>
+#include <TGraph.h>
+#include <TColor.h>
 //#include <TRootEmbeddedCanvas.h>
 //#include <RQ_OBJECT.h>
 #include "WCSimEvDisplay.hh"
@@ -63,6 +66,23 @@ WCSimEvDisplay::WCSimEvDisplay(const TGWindow *p,UInt_t w,UInt_t h) : TGMainFram
   fPEInput = 0x0;
   fChargeCut = 0;
 
+  // Create the TGraph vectors with default TGraphs
+  this->MakeGraphColours();
+  gStyle->SetPalette(10,fColours);
+  for(unsigned int g = 0; g < 10; ++g){
+    fTopGraphs.push_back(new TGraph());
+    fBarrelGraphs.push_back(new TGraph());
+    fBottomGraphs.push_back(new TGraph());
+    // Set the colors
+    fTopGraphs[g]->SetMarkerColor(fColours[g]);
+    fBarrelGraphs[g]->SetMarkerColor(fColours[g]);
+    fBottomGraphs[g]->SetMarkerColor(fColours[g]);
+    // and the style
+    fTopGraphs[g]->SetMarkerStyle(7);
+    fBarrelGraphs[g]->SetMarkerStyle(7);
+    fBottomGraphs[g]->SetMarkerStyle(7);
+  }
+
 	// Set up some plot style
 	this->SetStyle();
 
@@ -96,9 +116,6 @@ WCSimEvDisplay::WCSimEvDisplay(const TGWindow *p,UInt_t w,UInt_t h) : TGMainFram
 	// These build from top to bottom, so add them in the correct order.
 	this->CreateSubButtonBar();
 	this->CreateMainButtonBar();
-
-	// Initialise the histograms and display them.
-//	this->ResizePlotsFromNtuple();
 
   // Set a name to the main frame
   this->SetWindowName("CHIPS Event Display");
@@ -218,6 +235,27 @@ void WCSimEvDisplay::FillPlotsFromWCSimEvent(){
   int nDigiHits = wcSimTrigger->GetNcherenkovdigihits();
 	std::cout << "Number of PMTs hit: " << nDigiHits << std::endl;
 
+  // Need to loop through the hits once to find the charge and time ranges
+  fQMin = 1e10;
+  fQMax = -1e10;
+  fTMin = 1e10;
+  fTMax = -1e10;
+  for(int i = 0; i < nDigiHits; ++i){
+		TObject *element = (wcSimTrigger->GetCherenkovDigiHits())->At(i);
+		WCSimRootCherenkovDigiHit *hit = dynamic_cast<WCSimRootCherenkovDigiHit*>(element);
+    double q = hit->GetQ();
+    double t = hit->GetT();
+    if(q < fQMin) fQMin = q;
+    if(q > fQMax) fQMax = q;
+    if(t < fTMin) fTMin = t;
+    if(t > fTMax) fTMax = t;
+  }
+  // For now, always want charge to start at 0.
+  fQMin = 0;
+  this->CalculateChargeAndTimeBins();
+  this->ResetGraphs();
+
+  // Now loop through again and fill things
 	for (int i=0;i<nDigiHits;i++)
 	{
 		// Loop through elements in the TClonesArray of WCSimRootCherenkovDigHits
@@ -238,18 +276,30 @@ void WCSimEvDisplay::FillPlotsFromWCSimEvent(){
 
     // Make sure we pass the charge cut
     if(pmtQ > fChargeCut){
+    unsigned int bin;
+    if(fViewType == 0) bin = this->GetChargeBin(pmtQ);
+    else bin = this->GetTimeBin(pmtT);
 
+    // Set the underflow bin of the histograms to make sure the colour axis shows
+    fTopHist->SetBinContent(0,1);
+    fBarrelHist->SetBinContent(0,1);
+    fBottomHist->SetBinContent(0,1);
+    
 	  	// Top cap
   		if(pmt.GetCylLoc() == 0){
-  			fTopHist->Fill(pmtY,pmtX,colourAxis);
+//  			fTopHist->Fill(pmtY,pmtX,colourAxis);
+          fTopGraphs[bin]->SetPoint(fTopGraphs[bin]->GetN(),pmtY,pmtX);
   		}
   		// Bottom cap
   		else if(pmt.GetCylLoc() == 2){
-  			fBottomHist->Fill(pmtY,pmtX,colourAxis);
+//  			fBottomHist->Fill(pmtY,pmtX,colourAxis);
+          fBottomGraphs[bin]->SetPoint(fBottomGraphs[bin]->GetN(),pmtY,pmtX);
+      
   		}
   		// Barrel
   		else{
-  			fBarrelHist->Fill(pmtPhi,pmtZ,colourAxis);
+//  			fBarrelHist->Fill(pmtPhi,pmtZ,colourAxis);
+          fBarrelGraphs[bin]->SetPoint(fBarrelGraphs[bin]->GetN(),pmtPhi,pmtZ);
   		}
 
 		  // Now fill the 1D histograms
@@ -269,6 +319,75 @@ void WCSimEvDisplay::FillPlotsFromWCSimEvent(){
   this->UpdateTruthOverlayPad();
   // Now draw whichever pad we need
 	this->UpdateCanvases();
+}
+
+// Series of functions to take care of the TGraphs
+void WCSimEvDisplay::CalculateChargeAndTimeBins(){
+  // Firstly, clear the existing vectors
+  fChargeBins.clear();
+  fTimeBins.clear();
+  
+  double deltaQ = (fQMax - fQMin) / 10.;
+  double deltaT = (fTMax - fTMin) / 10.;
+
+  for(int i = 0; i < 10; ++i){
+    fChargeBins.push_back(fQMin+i*deltaQ);
+    fTimeBins.push_back(fTMin+i*deltaT);
+  }
+}
+
+unsigned int WCSimEvDisplay::GetChargeBin(double charge) const{
+  unsigned int bin = 9;
+  for(unsigned int i = 1; i < fChargeBins.size(); ++i){
+    if(charge < fChargeBins[i]){
+      bin = i - 1;
+      break;
+    }
+  }
+  return bin;
+}
+
+unsigned int WCSimEvDisplay::GetTimeBin(double time) const{
+  unsigned int bin = 9;
+  for(unsigned int i = 0; i < fTimeBins.size(); ++i){
+    if(time < fTimeBins[i]){
+      bin = i - 1;
+      break;
+    }
+  }
+  return bin;
+}
+
+void WCSimEvDisplay::MakeGraphColours(){
+
+  // Make a palette
+  fColours[0] = TColor::GetColor("#330000");
+  fColours[1] = TColor::GetColor("#660000");
+  fColours[2] = TColor::GetColor("#990000");
+  fColours[3] = TColor::GetColor("#CC0000");
+  fColours[4] = TColor::GetColor("#FF0000");
+  fColours[5] = TColor::GetColor("#FF3300");
+  fColours[6] = TColor::GetColor("#FF6600");
+  fColours[7] = TColor::GetColor("#FF8800");
+  fColours[8] = TColor::GetColor("#FFAA00");
+  fColours[9] = TColor::GetColor("#FFCC00");
+  
+}
+
+void WCSimEvDisplay::ResetGraphs(){
+  for(unsigned int i = 0; i < fTopGraphs.size(); ++i){
+    fTopGraphs[i]->Set(0);
+    fBottomGraphs[i]->Set(0);
+    fBarrelGraphs[i]->Set(0);
+  }
+}
+
+void WCSimEvDisplay::DrawHitGraphs(std::vector<TGraph*> vec){
+  for(unsigned int i = 0; i < vec.size(); ++i){
+    if(vec[i]->GetN() > 0){
+      vec[i]->Draw("P");
+    }
+  }
 }
 
 // Switch the z-axis scale to show charge.
@@ -356,38 +475,24 @@ void WCSimEvDisplay::GetMinColourAxis(TH2D* h){
 	}
 }
 
-void WCSimEvDisplay::MatchPlotZAxes(){
+void WCSimEvDisplay::SetPlotZAxes(){
+
+  double min = fQMin;
+  double max = fQMax;
+
+  if(fViewType == 1){
+    min = fTMin;
+    max = fTMax;
+  }
 
 	// Make sure the histogram max / min are correct
-	fBarrelHist->SetMaximum(fBarrelHist->GetBinContent(fBarrelHist->GetMaximumBin()));
-	fBarrelHist->SetMinimum(fBarrelHist->GetBinContent(fBarrelHist->GetMinimumBin()));
-	fTopHist->SetMaximum(fTopHist->GetBinContent(fTopHist->GetMaximumBin()));
-	fTopHist->SetMinimum(fTopHist->GetBinContent(fTopHist->GetMinimumBin()));
-	fBottomHist->SetMaximum(fBottomHist->GetBinContent(fBottomHist->GetMaximumBin()));
-	fBottomHist->SetMinimum(fBottomHist->GetBinContent(fBottomHist->GetMinimumBin()));
-
-	// Sort out the minimum z-values for the colour plots
-	this->GetMinColourAxis(fBarrelHist);
-	this->GetMinColourAxis(fTopHist);
-	this->GetMinColourAxis(fBottomHist);
-
-	// Initialise the min and max z-values from the barrel plot
-	double min = fBarrelHist->GetMinimum();
-	double max = fBarrelHist->GetMaximum();
-
-	// Check if the top or bottom chaneg these min and max values
-	if(fTopHist->GetMinimum() < min){min = fTopHist->GetMinimum();}
-	if(fBottomHist->GetMinimum() < min){min = fBottomHist->GetMinimum();}
-	if(fTopHist->GetMaximum() > max){max = fTopHist->GetMaximum();}
-	if(fBottomHist->GetMaximum() > max){max = fBottomHist->GetMaximum();}
-
-	// Set the minumum and maximum for all plots
-	fBarrelHist->SetMinimum(min);
 	fBarrelHist->SetMaximum(max);
-	fTopHist->SetMinimum(min);
+	fBarrelHist->SetMinimum(min);
 	fTopHist->SetMaximum(max);
-	fBottomHist->SetMinimum(min);
+	fTopHist->SetMinimum(min);
 	fBottomHist->SetMaximum(max);
+	fBottomHist->SetMinimum(min);
+
 }
 
 // Resize the pads when hiding / showing the 1D plots
@@ -474,7 +579,7 @@ void WCSimEvDisplay::UpdateCanvases(){
 // Draw the reco plots to the reco pads
 void WCSimEvDisplay::UpdateRecoPads(){
 
-	this->MatchPlotZAxes();
+	this->SetPlotZAxes();
   // Set the styles how we want them
   this->MakePlotsPretty(fBarrelHist);
   this->MakePlotsPretty(fTopHist);
@@ -485,16 +590,19 @@ void WCSimEvDisplay::UpdateRecoPads(){
   // Take the plots one by one and draw them.
   fBarrelPad->cd();
   fBarrelHist->Draw("colz");
+  this->DrawHitGraphs(fBarrelGraphs);
   fBarrelPad->Modified();
   fBarrelPad->Update();
 
   fTopPad->cd();
   fTopHist->Draw("colz");
+  this->DrawHitGraphs(fTopGraphs);
   fTopPad->Modified();
   fTopPad->Update();
 
   fBottomPad->cd();
   fBottomHist->Draw("colz");
+  this->DrawHitGraphs(fBottomGraphs);
   fBottomPad->Modified();
   fBottomPad->Update();
 
@@ -541,6 +649,7 @@ void WCSimEvDisplay::DrawTruthOverlays(){
   	// Take the plots one by one and draw them.
     fBarrelPad->cd();
   	fBarrelHist->Draw("colz");
+    this->DrawHitGraphs(fBarrelGraphs);
     // Draw the truth rings
     for(unsigned int r = 0; r < fTruthMarkersBarrel.size(); ++r){
       fTruthMarkersBarrel[r]->Draw("C");      
@@ -550,6 +659,7 @@ void WCSimEvDisplay::DrawTruthOverlays(){
 
   	fTopPad->cd();
   	fTopHist->Draw("colz");
+    this->DrawHitGraphs(fTopGraphs);
     // Draw the truth rings
     for(unsigned int r = 0; r < fTruthMarkersTop.size(); ++r){
       fTruthMarkersTop[r]->Draw("C");
@@ -559,6 +669,7 @@ void WCSimEvDisplay::DrawTruthOverlays(){
 
   	fBottomPad->cd();
   	fBottomHist->Draw("colz");
+    this->DrawHitGraphs(fBottomGraphs);
     // Draw the truth rings
     for(unsigned int r = 0; r < fTruthMarkersBottom.size(); ++r){
       fTruthMarkersBottom[r]->Draw("C");
