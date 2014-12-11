@@ -4,32 +4,11 @@
 /tracking/verbose 0
 /hits/verbose 0
 
-### select the geometry
-/WCSim/WCgeom CHIPS_10kton_10inch_HQE_10perCent
 
-## uncomment to use Leigh's pmt simulation
-##/WCSim/PMTSim chips
-#
-##Added for the PMT QE option 08/17/10 (XQ)
-## 1. Stacking only mean when the photon is generated
-## the QE is applied to reduce the total number of photons
-## 2. Stacking and sensitivity detector
-## In the stacking part, the maximum QE is applied to reduce 
-## the total number of photons
-## On the detector side, the rest of QE are applied according to QE/QE_max
-## distribution. This option is in particular important for the WLS
-## 3. The last option means all the QE are applied at the detector
-## Good for the low energy running. 
-##/WCSim/PMTQEMethod     Stacking_Only 
-#/WCSim/PMTQEMethod     Stacking_And_SensitiveDetector
-##/WCSim/PMTQEMethod     SensitiveDetector_Only
-#
-#/WCSim/Construct
+## The geometry and pmt simulation setup is now in geoSetup.mac
 
-# command to choose save or not save the pi0 info 07/03/10 (XQ)
-#/WCSim/SavePi0 true
 
-## select the input nuance-formatted vector file
+## Select the input nuance-formatted vector file
 ## you can of course use your own
 #/mygen/vecfile ../genieFluxes/nue.vec
 
@@ -41,32 +20,36 @@
 #/gps/particle e-
 /gps/particle mu-
 
-# can use some vtx position distribution
+# Can use some vtx position distribution
 # or just a point source
 /gps/pos/type Point
 /gps/pos/centre 0 0 0 cm 
 
 /gps/energy 1500 MeV
 
-# use direction distribution or fixed values
+# Use direction distribution or fixed values
 /gps/ang/type iso
 #/gps/direction 0 0 1 
 
 /gps/time 0
 
 
-## change the name of the output root file, default = wcsim.root
+## Change the name of the output root file, default = wcsim.root
 #/WCSimIO/RootFile ~/some/absolute/path/file.root
 /WCSimIO/RootFile localfile.root
 
 ## Whether to save an ntuple with all the optical photon tracks, default = false
+# Saving of photon trajectories in the main output is still
+# controlled by the variable percentageOfCherenkovPhotonsToDraw 
+# in src/WCSimTrackingAction.cc !!!
 /WCSimIO/SavePhotonNtuple false
 
 ## Set the name of the photon ntuple root file, default = localfile_photons.root
 #/WCSimIO/PhotonNtuple ~/some/absolute/path/file.root
 
-# seed the random generator with two integers
+# Seed the random generator with two integers
 /random/setSeeds 100 10
 
+# Number of events to generate
 /run/beamOn 1
 #exit
