@@ -343,7 +343,8 @@ void WCSimEventAction::FillRootEvent(G4int event_id,
       start, // Starting point
       0, // Neutrino has no parent
       0.0, // Time doesn't appear to be set
-      0);                         
+      0, // No track id as not tracked
+      0); // No parent information                        
 
   // Second track is special and contains target information
   G4double targetEnergy = truthSum.GetTargetEnergy();
@@ -396,7 +397,8 @@ void WCSimEventAction::FillRootEvent(G4int event_id,
       start, // Starting point
       0, // Target has no parent
       0.0, // Time doesn't appear to be set
-      0);
+      0, // No track id as not tracked
+      0); // No parent information
   }
 
   // the rest of the tracks come from WCSimTrajectory
@@ -465,7 +467,7 @@ void WCSimEventAction::FillRootEvent(G4int event_id,
       G4double ttime = trj->GetGlobalTime(); 
 
       G4int parentType;
-
+      G4int parentID = trj->GetParentID();
 
       // Right now only secondaries whose parents are pi0's are stored
       // This may change later
@@ -530,7 +532,9 @@ void WCSimEventAction::FillRootEvent(G4int event_id,
             stop,
             start,
             parentType,
-            ttime,id); 
+            ttime,
+            id,
+            parentID); 
       }
 
 

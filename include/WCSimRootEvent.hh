@@ -42,7 +42,8 @@ private:
   Float_t fStart[3];    // starting point
   Int_t fParenttype;    // ID of parent (0 if primary)
   Float_t fTime;        // creation time
-  Int_t fId;            // ???
+  Int_t fId;            // Track G4 track ID
+  Int_t fParentId;      // Parent G4 track ID
 
 public:
   WCSimRootTrack() {}
@@ -58,7 +59,9 @@ public:
 		  Float_t stop[3], 
 		  Float_t start[3], 
 		  Int_t parenttype,
-		 Float_t time,Int_t id);
+		  Float_t time,
+      Int_t id,
+      Int_t parentId);
   
   virtual ~WCSimRootTrack() { }
 
@@ -76,8 +79,9 @@ public:
   Int_t     GetParenttype() {return fParenttype;} // Removed i from GetParentType(Int_t i=0)
   Float_t   GetTime() { return fTime;}
   Int_t     GetId(){return fId;}
+  Int_t     GetParentId(){return fParentId;}
 
-  ClassDef(WCSimRootTrack,1)  
+  ClassDef(WCSimRootTrack,2)  
 };
 
 
@@ -292,7 +296,9 @@ public:
 				    Float_t stop[3],
 				    Float_t start[3],
 				    Int_t parenttype,
-				   Float_t time,Int_t id);
+				    Float_t time,
+            Int_t id,
+            Int_t parentId);
 
   TClonesArray        *GetTracks() const {return fTracks;}
 
