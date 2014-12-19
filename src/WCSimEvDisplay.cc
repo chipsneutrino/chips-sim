@@ -63,6 +63,7 @@ WCSimEvDisplay::WCSimEvDisplay(const TGWindow *p,UInt_t w,UInt_t h) : TGMainFram
   fDatabasePDG = 0x0;
 
   // Initialise the TGNumberEntry
+  fEventInput = 0x0;
   fPEInput = 0x0;
   fChargeCut = 0;
 
@@ -73,14 +74,10 @@ WCSimEvDisplay::WCSimEvDisplay(const TGWindow *p,UInt_t w,UInt_t h) : TGMainFram
     fTopGraphs.push_back(new TGraph());
     fBarrelGraphs.push_back(new TGraph());
     fBottomGraphs.push_back(new TGraph());
-    // Set the colors
-    fTopGraphs[g]->SetMarkerColor(fColours[g]);
-    fBarrelGraphs[g]->SetMarkerColor(fColours[g]);
-    fBottomGraphs[g]->SetMarkerColor(fColours[g]);
-    // and the style
-    fTopGraphs[g]->SetMarkerStyle(7);
-    fBarrelGraphs[g]->SetMarkerStyle(7);
-    fBottomGraphs[g]->SetMarkerStyle(7);
+    // Initialise the graphs
+    this->InitialiseGraph(fTopGraphs[g],g);
+    this->InitialiseGraph(fBarrelGraphs[g],g);
+    this->InitialiseGraph(fBottomGraphs[g],g);
   }
 
 	// Set up some plot style
@@ -152,6 +149,17 @@ void WCSimEvDisplay::CreateMainButtonBar(){
   TGTextButton *next = new TGTextButton(hframe,"&Next");
   next->Connect("Clicked()","WCSimEvDisplay",this,"NextEvent()");
   hframe->AddFrame(next, new TGLayoutHints(kLHintsCenterX,5,5,3,4));
+
+  // Numeric entry field for choosing events
+  fEventInput = new TGNumberEntry(hframe,0,9,999,TGNumberFormat::kNESInteger,
+                               TGNumberFormat::kNEANonNegative);
+  fEventInput->Connect("ValueSet(Long_t)","WCSimEvDisplay",this,"SetEvent()");
+  (fEventInput->GetNumberEntry())->Connect("ReturnPressed()","WCSimEvDisplay",this,"SetEvent()");
+  // Make a label to go along side it
+  TGLabel *eventLabel = new TGLabel(hframe,"Event:");
+	hframe->AddFrame(eventLabel, new TGLayoutHints(kLHintsCenterX&&kLHintsCenterY,5,5,3,4));
+	hframe->AddFrame(fEventInput, new TGLayoutHints(kLHintsCenterX,5,5,3,4));  
+
   TGTextButton *save = new TGTextButton(hframe,"&Save");
   save->Connect("Clicked()","WCSimEvDisplay",this,"SaveEvent()");
   hframe->AddFrame(save, new TGLayoutHints(kLHintsCenterX,5,5,3,4));
@@ -229,6 +237,16 @@ void WCSimEvDisplay::FillPlotsFromWCSimEvent(){
     fTruthSummary = 0x0;
   }
   fTruthSummary = new WCSimTruthSummary(wcSimEvt->GetTruthSummary());
+  this->ClearPi0Vector();
+
+  // Quick check for pi zeroes and their decay photons
+  if(fTruthSummary->IsPrimaryPiZero()){
+    std::vector<double> pi0EnVec = fTruthSummary->GetPiZeroEnergies();
+    for(unsigned int p = 0; p < pi0EnVec.size(); ++p){
+      this->SearchForPi0Photons(pi0EnVec[p],wcSimTrigger->GetTracks());
+    }
+  }
+
   // Update the truth view
   this->UpdateTruthPave();
 
@@ -321,6 +339,14 @@ void WCSimEvDisplay::FillPlotsFromWCSimEvent(){
 	this->UpdateCanvases();
 }
 
+void WCSimEvDisplay::InitialiseGraph(TGraph* g, int i){
+
+  g->SetMarkerColor(fColours[i]);
+  g->SetMarkerStyle(7);
+  g->SetEditable(0);
+
+}
+
 // Series of functions to take care of the TGraphs
 void WCSimEvDisplay::CalculateChargeAndTimeBins(){
   // Firstly, clear the existing vectors
@@ -375,7 +401,24 @@ void WCSimEvDisplay::MakeGraphColours(){
 }
 
 void WCSimEvDisplay::ResetGraphs(){
+
+  TList *listTop = fTopPad->GetListOfPrimitives();
+  TList *listBarrel = fBarrelPad->GetListOfPrimitives();
+  TList *listBottom = fBottomPad->GetListOfPrimitives();
+  
   for(unsigned int i = 0; i < fTopGraphs.size(); ++i){
+    // Firstly, remove the graphs from the pads
+    if(listTop->FindObject(fTopGraphs[i])){
+      listTop->Remove(fTopGraphs[i]);
+    }
+    if(listBarrel->FindObject(fBarrelGraphs[i])){
+      listBarrel->Remove(fBarrelGraphs[i]);
+    }
+    if(listBottom->FindObject(fBottomGraphs[i])){
+      listBottom->Remove(fBottomGraphs[i]);
+    }
+
+    // Now reset the plots
     fTopGraphs[i]->Set(0);
     fBottomGraphs[i]->Set(0);
     fBarrelGraphs[i]->Set(0);
@@ -708,6 +751,7 @@ void WCSimEvDisplay::NextEvent() {
 			++fCurrentEvent;
 			std::cout << "Moving to event " << fCurrentEvent << std::endl;
 			this->FillPlotsFromWCSimEvent();
+      fEventInput->GetNumberEntry()->SetNumber(fCurrentEvent);
 		}
 		else{
 			std::cout << "Already at the final event" << std::endl;
@@ -725,10 +769,30 @@ void WCSimEvDisplay::PrevEvent(){
 			--fCurrentEvent;
 			std::cout << "Moving to event " << fCurrentEvent << std::endl;
 			this->FillPlotsFromWCSimEvent();
+      fEventInput->GetNumberEntry()->SetNumber(fCurrentEvent);
 		}
 		else{
 			std::cout << "Already at the first event" << std::endl;
 		}
+	}
+	else{
+		std::cout << "Can't change event without a file loaded!" << std::endl;
+	}
+}
+
+void WCSimEvDisplay::SetEvent(){
+	if(fChain->GetEntries() > 0){
+    int newEvt = (int)fEventInput->GetNumberEntry()->GetNumber();
+    if(newEvt == fCurrentEvent){
+      std::cout << "Already displaying event " << fCurrentEvent << std::endl;
+    }
+    else if(newEvt >= fMinEvent && newEvt <= fMaxEvent){
+      fCurrentEvent = newEvt;
+      this->FillPlotsFromWCSimEvent();
+    }
+    else{
+      std::cout << "Event number " << newEvt << " is out of range" << std::endl;
+    }
 	}
 	else{
 		std::cout << "Can't change event without a file loaded!" << std::endl;
@@ -960,8 +1024,8 @@ void WCSimEvDisplay::UpdateTruthPave(){
     fTruthTextMain->AddText("Beam Information");
   }
   tmpS.str("");
-  tmpS << fTruthSummary->GetBeamPDG();
-  fTruthTextMain->AddText(("PDG Code = "+tmpS.str()).c_str());
+  tmpS << this->GetParticleName(fTruthSummary->GetBeamPDG());
+  fTruthTextMain->AddText(tmpS.str().c_str());
   tmpS.str("");
   tmpS << fTruthSummary->GetBeamEnergy();
   fTruthTextMain->AddText(("Energy = "+tmpS.str()+" MeV").c_str());
@@ -1009,7 +1073,8 @@ void WCSimEvDisplay::UpdateTruthPave(){
       dir = fTruthSummary->GetPrimaryDir(n);
       tmpS.str("");
       tmpS << mod << " ";
-      tmpS << "Particle: " << pdg;
+//      tmpS << "Particle: " << pdg;
+      tmpS << this->GetParticleName(pdg);
       tmpS << " with energy " << energy;
       tmpS << " MeV and direction (" << dir.X() << "," << dir.Y() << "," << dir.Z() << ")";
       tmpS << " " << mod;
@@ -1055,11 +1120,10 @@ bool WCSimEvDisplay::IsAboveCherenkovThreshold(int pdg, double energy){
     if(pdg == 22){
       threshold = 20 * 0.511;
     }
-    // The case for pi-zeroes is harder...
-    // For now, just make it "quite" energtic. Should probably actually look
-    // for the photons.
+    // Don't set a threshold for pi-zeroes. We can set one on the photons later
+    // if it is deemed neccessary
     if(pdg == 111){
-      threshold = 2 * mass;
+      threshold = mass;
     }
   }
 
@@ -1118,6 +1182,26 @@ std::string WCSimEvDisplay::ConvertTrueEventType() const{
   }  
 
   return type;
+}
+
+std::string WCSimEvDisplay::GetParticleName(int pdgCode){
+
+  std::string pName = "";
+
+  // Get the database if we don't already have one
+  if(fDatabasePDG == 0x0){
+    fDatabasePDG = new TDatabasePDG();
+  }
+  
+  if(pdgCode > 9999){
+    pName = "nucleus";
+  }
+  else{
+    pName = fDatabasePDG->GetParticle(pdgCode)->GetName();
+  }
+
+  return pName;
+
 }
 
 WCSimEvDisplay::~WCSimEvDisplay() {
@@ -1296,6 +1380,7 @@ void WCSimEvDisplay::DrawTruthRing(unsigned int particleNo, int colour){
   double refrac = 1.33; // Refractive index of water
   double thetaC = (180.0 / TMath::Pi()) * TMath::ACos(1./(refrac*beta)); // Cherenkov angle
 
+
   // Also need 6 vectors to store the 2D-coordinates for the 3 regions
   std::vector<double> topPos1; // For top, this is the y coord
   std::vector<double> topPos2; // For top, this is the x coord
@@ -1303,6 +1388,23 @@ void WCSimEvDisplay::DrawTruthRing(unsigned int particleNo, int colour){
   std::vector<double> barrelPos2; // This is the z coord
   std::vector<double> bottomPos1; // This is the y coord
   std::vector<double> bottomPos2; // This is the x coord
+
+  // Special case for pi0s
+  // Need to make sure the Cherenkov angle is correct, and draw rings for both photons
+  TVector3 trkDir2;
+  TVector3 trkVtxProj2;
+  if(pdgCode == 111){
+    thetaC = (180.0 / TMath::Pi()) * TMath::ACos(1./(refrac)); // Beta = 1 for photons
+    // Find the pi0 we want
+    WCSimEvDispPi0* thisPi0 = fPi0s[GetPi0(en)];
+    // Get the projection of the first photon onto the wall
+    // Photon has the same vtx as pi0, so no need to update that.
+    trkDir = thisPi0->GetPhotonDirection(1);
+    this->ProjectToWall(trkVtx,trkDir,trkVtxProj, detRegion);
+    // Now for photon two
+    trkDir2 = thisPi0->GetPhotonDirection(2);
+    this->ProjectToWall(trkVtx,trkDir2,trkVtxProj2,detRegion);
+  }
 
   for(unsigned int n = 0; n < nMarkers; ++n){
 
@@ -1317,6 +1419,14 @@ void WCSimEvDisplay::DrawTruthRing(unsigned int particleNo, int colour){
     TVector3 finalPos;
     this->ProjectToWall(circPos,circDir,finalPos,detRegion);
 
+    // Special case for pi0s... add another ring.
+    TVector3 circPos2, circDir2, finalPos2;
+    unsigned int detRegion2;
+    if(pdgCode == 111){
+      this->FindCircle(trkVtxProj2,trkVtx,thetaC,phi,circPos2,circDir2);
+      this->ProjectToWall(circPos2,circDir2,finalPos2,detRegion2);
+    }
+
     if(detRegion == 0){
       topPos1.push_back(finalPos.Y());
       topPos2.push_back(finalPos.X());
@@ -1329,12 +1439,27 @@ void WCSimEvDisplay::DrawTruthRing(unsigned int particleNo, int colour){
       bottomPos1.push_back(finalPos.Y());
       bottomPos2.push_back(finalPos.X());
     }
+    // Special case for the pi-zero's second photon
+    if(pdgCode == 111){
+      if(detRegion2 == 0){
+        topPos1.push_back(finalPos2.Y());
+        topPos2.push_back(finalPos2.X());
+      }    
+      else if(detRegion2 == 1){
+        barrelPos1.push_back(TMath::ATan2(finalPos2.Y(),finalPos2.X()));
+        barrelPos2.push_back(finalPos2.Z());
+      }
+      else{
+        bottomPos1.push_back(finalPos2.Y());
+        bottomPos2.push_back(finalPos2.X());
+      }
+    }
   }
 
   // Now we have the vectors of coordinates that we need for each region. Now to make the TPolyMarkers
   // and add an entry to the legend
   std::stringstream legendText;
-  legendText << "PDG code = " << pdgCode << " and total energy = " << en << " MeV";
+  legendText << this->GetParticleName(pdgCode) << " with total energy = " << en << " MeV";
   TLine* line = new TLine();
   line->SetLineColor(colour);
   fTruthLines.push_back(line);
@@ -1560,4 +1685,81 @@ int WCSimEvDisplay::GetTruthRingColour(int ring) const{
   if(ring == 4) return kOrange;
   return kBlack;
 }
+
+// Using the energy as the pi0 id, look for its photons
+void WCSimEvDisplay::SearchForPi0Photons(double energy, TClonesArray* trajCont){
+  // Iterate through the TClonesArray looking for what we want...
+  bool gotPi0 = false;
+  int gotPhotons = 0;
+  int pi0ID = -1; // This is the geant4 track ID for the parent pi0
+
+  // Temporarily store the information
+  double pi0Energy = energy;
+  TVector3 pi0Vtx;
+  TVector3 pi0Dir;
+  double photonEn1, photonEn2;
+  TVector3 photonDir1, photonDir2;  
+
+  TVector3 mainVtx = fTruthSummary->GetVertex();
+  for(int e = 0; e < trajCont->GetEntries(); ++e){
+    // Get the track
+    WCSimRootTrack* trk = (WCSimRootTrack*)(*trajCont)[e];
+    
+    if(!gotPi0){
+      // Is it a pizero?
+      if(trk->GetIpnu() != 111) continue;
+      if(trk->GetE() != energy) continue;
+
+      // This is our pi0
+      gotPi0 = true;
+      pi0ID = trk->GetId();
+
+      pi0Vtx = TVector3(trk->GetStart(0),trk->GetStart(1),trk->GetStart(2));
+      pi0Dir = TVector3(trk->GetDir(0),trk->GetDir(1),trk->GetDir(2));
+
+    }
+    else{
+      // Presumably the photons are after the pi0? Let's look for them, then
+      if(trk->GetIpnu() != 22) continue; // Is it a photon?
+      if(trk->GetParenttype() != 111) continue; // Was the parent a pi0?
+      if(trk->GetParentId() != pi0ID) continue; // Pi0 stop and photon start at the same point?
+      // This is a photon that we are looking for!
+      if(gotPhotons == 0){
+        photonEn1 = trk->GetE();
+        photonDir1 = TVector3(trk->GetDir(0),trk->GetDir(1),trk->GetDir(2));
+      }
+      else{
+        photonEn2 = trk->GetE();
+        photonDir2 = TVector3(trk->GetDir(0),trk->GetDir(1),trk->GetDir(2));
+      }
+      ++gotPhotons;
+    }
+  }
+  if(gotPi0 && gotPhotons==2){
+    WCSimEvDispPi0 *newPi0 = new WCSimEvDispPi0();
+    newPi0->SetPi0Information(pi0Energy,pi0Vtx,pi0Dir);
+    newPi0->SetPhotonInformation(1,photonEn1,photonDir1);
+    newPi0->SetPhotonInformation(2,photonEn2,photonDir2);
+    newPi0->Print();
+    fPi0s.push_back(newPi0);
+  }
+}
+
+void WCSimEvDisplay::ClearPi0Vector(){
+  for(unsigned int i = 0; i < fPi0s.size(); ++i){
+    delete (WCSimEvDispPi0*)fPi0s[i];
+    fPi0s[i] = 0x0;
+  }
+  fPi0s.clear();
+}
+
+unsigned int WCSimEvDisplay::GetPi0(double en) const{
+  for(unsigned int p = 0; p < fPi0s.size(); ++p){
+    if(fPi0s[p]->GetPi0Energy() == en){
+      return p;
+    } 
+  }
+  return 9999;
+}
+
 

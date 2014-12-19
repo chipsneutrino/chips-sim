@@ -24,8 +24,73 @@ class TClonesArray;
 class TGraph;
 class WCSimTruthSummary;
 
+class WCSimEvDispPi0 {
+
+public:
+  WCSimEvDispPi0(){};
+  ~WCSimEvDispPi0(){};
+
+  void SetPi0Information(double en, TVector3 vtx, TVector3 dir) {fPi0Energy = en; fPi0Vtx = vtx; fPi0Dir = dir;};
+  void SetPhotonInformation(int id, double en, TVector3 dir){
+    if(id == 1){
+      fPhotonEnergy1 = en; fPhotonDir1 = dir; 
+    }
+    else if(id == 2){
+      fPhotonEnergy2 = en; fPhotonDir2 = dir; 
+    }
+    else std::cerr << "Photon id must be either 1 or 2" << std::endl;
+  }; 
+  
+  double GetPi0Energy() const {return fPi0Energy;};
+  TVector3 GetPi0Vertex() const {return fPi0Vtx;};
+  TVector3 GetPi0Direction() const {return fPi0Dir;};
+
+  double GetPhotonEnergy(int id) const {
+    if(id == 1) return fPhotonEnergy1;
+    else if(id == 2) return fPhotonEnergy2;
+    else{
+      std::cerr << "Photon id must be either 1 or 2" << std::endl;
+      return 0.;
+    }
+  };
+
+  TVector3 GetPhotonDirection(int id) const {
+    if(id == 1) return fPhotonDir1;
+    else if(id == 2) return fPhotonDir2;
+    else{
+      std::cerr << "Photon id must be either 1 or 2" << std::endl;
+      return TVector3(0,0,0);
+    }
+  };
+
+  void Print() const{
+    std::cout << "== WCSimEvDispPi0 ==" << std::endl;
+    std::cout << " - Energy    = " << fPi0Energy << std::endl;
+    std::cout << " - Vertex    = " << fPi0Vtx.X() << "," << fPi0Vtx.Y() << "," << fPi0Vtx.Z() << std::endl;
+    std::cout << " - Direction = " << fPi0Dir.X() << "," << fPi0Dir.Y() << "," << fPi0Dir.Z() << std::endl;
+    std::cout << " = Decay Photon: " << std::endl;
+    std::cout << "  - Energy    = " << fPhotonEnergy1 << std::endl;
+    std::cout << "  - Direction = " << fPhotonDir1.X() << "," << fPhotonDir1.Y() << "," << fPhotonDir1.Z() << std::endl;
+    std::cout << " = Decay Photon: " << std::endl;
+    std::cout << "  - Energy    = " << fPhotonEnergy2 << std::endl;
+    std::cout << "  - Direction = " << fPhotonDir2.X() << "," << fPhotonDir2.Y() << "," << fPhotonDir2.Z() << std::endl;
+  }
+
+private:
+  // Pi0 information
+  double fPi0Energy;
+  TVector3 fPi0Vtx;
+  TVector3 fPi0Dir;
+  // Decay photon information
+  double fPhotonEnergy1;    
+  double fPhotonEnergy2;    
+  TVector3 fPhotonDir1;
+  TVector3 fPhotonDir2;
+};
+
 class WCSimEvDisplay : public TGMainFrame {
 private:
+
 	// Canvas to show the hit PMTs
   TRootEmbeddedCanvas *fHitMapCanvas;
 	// This Canvas will contain 5 Pads
@@ -67,6 +132,7 @@ private:
   double fTMin;
   double fTMax;
   Int_t fColours[10];
+  void InitialiseGraph(TGraph* g, int i);
   void CalculateChargeAndTimeBins();
   unsigned int GetChargeBin(double charge) const;
   unsigned int GetTimeBin(double time) const;
@@ -96,6 +162,8 @@ private:
 	int fMinEvent;
 	// Maximum value for event counter, from file.
 	int fMaxEvent;
+  // Entry field to set the event
+  TGNumberEntry *fEventInput;
 
 	// Do we have a WCSim file loaded?
 	// -1 = not set
@@ -168,6 +236,7 @@ private:
 
   // Convert the true event type into a string
   std::string ConvertTrueEventType() const;
+  std::string GetParticleName(int pdgCode);
 
   // Few functions to draw truth rings
   void DrawTruthRing(unsigned int particleNo, int colour);
@@ -179,6 +248,12 @@ private:
   int GetTruthRingColour(int ring) const;
   void DrawTruthOverlays();
   void HideTruthOverlays();
+
+  // Treatment for pi0s
+  std::vector<WCSimEvDispPi0*> fPi0s; // Store the pi-zeros with sufficient energy and their decay photon information
+  void SearchForPi0Photons(double pi0En, TClonesArray* trajCont);
+  void ClearPi0Vector();
+  unsigned int GetPi0(double en) const;
 
 public:
   WCSimEvDisplay(const TGWindow *p,UInt_t w,UInt_t h);
@@ -197,6 +272,7 @@ public:
 	// Toggles to switch between events
   void NextEvent();
 	void PrevEvent();
+  void SetEvent();
 
 	// Save the main canvas
 	void SaveEvent();
