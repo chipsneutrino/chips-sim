@@ -121,7 +121,10 @@ public:
   std::vector<double> GetPrimaryEnergies() const; 
   std::vector<TVector3> GetPrimaryDirs() const;
   unsigned int GetNPrimaries() const;
-  
+
+  // Some pi-zero based functions
+  bool IsPrimaryPiZero() const;
+  std::vector<double> GetPiZeroEnergies() const;
 
   // Just to see what type of event we had
   bool IsParticleGunEvent() const;

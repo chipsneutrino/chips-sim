@@ -314,6 +314,25 @@ unsigned int WCSimTruthSummary::GetNPrimaries() const{
   return fPrimaryPDGs.size();
 }
 
+// Do we have a primary pi-zero?
+bool WCSimTruthSummary::IsPrimaryPiZero() const{
+  for(unsigned int d = 0; d < fPrimaryPDGs.size(); ++d){
+    if(fPrimaryPDGs[d] == 111) return true;
+  }
+  return false;
+}
+
+// Check all of the primaries and return the energies of all pi0
+std::vector<double> WCSimTruthSummary::GetPiZeroEnergies() const{
+  std::vector<double> pi0Ens;
+  for(unsigned int d = 0; d < fPrimaryPDGs.size(); ++d){
+    if(fPrimaryPDGs[d] == 111){
+      pi0Ens.push_back(fPrimaryEnergies[d]);
+    }
+  }
+  return pi0Ens;
+}
+
 // What sort of event do we have?
 bool WCSimTruthSummary::IsParticleGunEvent() const{
   if(fTargetPDG == -999 && fTargetEnergy == -999.) return true;
