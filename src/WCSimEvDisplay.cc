@@ -1007,8 +1007,6 @@ void WCSimEvDisplay::UpdateTruthPave(){
   // Stream to parse things into strings
   std::stringstream tmpS;
   TVector3 vtx = fTruthSummary->GetVertex();
-  std::cout << "Vertex = " << vtx.X() << ", " << vtx.Y() << ", " << vtx.Z() << std::endl;
-  std::cout << "Radius = " << fWCRadius << ", " << "Height = " << fWCLength << std::endl;
   tmpS << vtx.X() << "," << vtx.Y() << "," << vtx.Z();
   fTruthTextMain->AddText(("Vertex at ("+tmpS.str()+") mm").c_str());
   if(fTruthSummary->IsNeutrinoEvent()){
@@ -1740,7 +1738,6 @@ void WCSimEvDisplay::SearchForPi0Photons(double energy, TClonesArray* trajCont){
     newPi0->SetPi0Information(pi0Energy,pi0Vtx,pi0Dir);
     newPi0->SetPhotonInformation(1,photonEn1,photonDir1);
     newPi0->SetPhotonInformation(2,photonEn2,photonDir2);
-    newPi0->Print();
     fPi0s.push_back(newPi0);
   }
 }
