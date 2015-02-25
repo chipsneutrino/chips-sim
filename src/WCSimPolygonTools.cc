@@ -183,6 +183,31 @@ namespace WCSimPolygonTools {
   	return TMath::FloorNint(fmod(phi, (2. * M_PI)/nSides));
   }
 
+  double GetSliceAreaFromAngles(unsigned int nSides, double outerRadius, double startAngle, double endAngle)
+  {
+     return GetAreaFromRadius(nSides, outerRadius) * (fmod((endAngle-startAngle) / 2*TMath::Pi(), 1.0));
+
+     double area = 0.0;
+     
+     double startNorm = NormaliseAngle(startAngle);
+     double endNorm = NormaliseAngle(endAngle);
+     double delta = endNorm - startNorm;
+    
+     int startSide = IsInSliceNumber(nSides, G4TwoVector(TMath::Sin(startAngle), TMath::Cos(startAngle)));
+     int endSide = IsInSliceNumber(nSides, G4TwoVector(TMath::Sin(endAngle), TMath::Cos(endAngle)));
+
+     if( startSide == endSide )
+     {
+      // Calculate area of the triangle
+     }
+
+     else
+     {
+       // Calculate two triangle areas
+     }
+
+
+  }
 
 	double GetSliceAreaFromRadius(unsigned int nSides, double outerRadius)
 	{

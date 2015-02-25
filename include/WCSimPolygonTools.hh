@@ -59,6 +59,7 @@ namespace WCSimPolygonTools {
 
 	double GetSideFromRadius( unsigned int nSides, double outerRadius );
 	double GetRadiusFromSide( unsigned int nSides, double side);
+  double GetSliceAreaFromAngles( unsigned int nSides, double outerRadius, double startAngle, double endAngle);
 	double GetAreaFromRadius( unsigned int nSides, double outerRadius);
 	double GetAreaFromSide( unsigned int nSides, double side);
 	double GetSliceAreaFromRadius( unsigned int nSides, double outerRadius);
