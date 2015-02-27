@@ -958,9 +958,11 @@ double WCSimCherenkovBuilder::GetOptimalEndcapCellSize(WCSimGeometryEnums::Detec
   {
 	  pmtRad.push_back(fPMTManager->GetPMTByName(pmtNames.at(iPMT)).GetRadius());
   }
-
+  
+  int sinceImprovement = 0;
   for(int iIter = 0; iIter < 100; ++iIter)
   {
+    ++sinceImprovement;
     cellsInPolygon = 0;
 	  double xPos = 0.0;
 	  while( xPos < squareSide )
@@ -1007,6 +1009,7 @@ double WCSimCherenkovBuilder::GetOptimalEndcapCellSize(WCSimGeometryEnums::Detec
 //			  std::cout << "Updating best number of endcap cells in zone " << zoneNum << " to ";
 			  bestNumCells = cellsInPolygon;
 			  bestSide = cellSide;
+        sinceImprovement = 0;
         if(iIter != 100)
         {
           bestIter = iIter;
@@ -1042,19 +1045,23 @@ double WCSimCherenkovBuilder::GetOptimalEndcapCellSize(WCSimGeometryEnums::Detec
 			    bestCoverage = coverage;
 			    bestSide = cellSide;
 		      bestIter = iIter;
+          sinceImprovement = 0;
         }
       }
 		  if(coverage > 0.0)
 		  {
-			  cellSide *= sqrt(targetCoverage/coverage);
+			  // std::cout << "Coverage = " << coverage << "/" << targetCoverage << " with cellSide = " << cellSide;
+        cellSide /= sqrt(targetCoverage/coverage);
+        // std::cout << " so update to " << cellSide << std::endl;
 		  }
 		  else
 		  {
 			  cellSide *= 0.995;
 		  }
+      
 	  }
 //	  std::cout << "Iteration " << iIter << ": Finished and updated cellSide to " << cellSide << std::endl;
-
+    if(sinceImprovement > 10){ break; }
   }
 
   if( fGeoConfig->GetLimitPMTNumber() )
