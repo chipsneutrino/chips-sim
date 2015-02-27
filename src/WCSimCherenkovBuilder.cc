@@ -166,10 +166,6 @@ void WCSimCherenkovBuilder::SetCustomGeometry()
   fWallCellsZ.resize(fGeoConfig->GetNSides());
   fWallCellLength.resize(fGeoConfig->GetNSides());
   fWallCellSize.resize(fGeoConfig->GetNSides());
-  fTopCellsX.resize(fGeoConfig->GetNumZones(WCSimGeometryEnums::DetectorRegion_t::kTop));
-  fTopCellsY.resize(fGeoConfig->GetNumZones(WCSimGeometryEnums::DetectorRegion_t::kTop));
-  fBottomCellsX.resize(fGeoConfig->GetNumZones(WCSimGeometryEnums::DetectorRegion_t::kBottom));
-  fBottomCellsY.resize(fGeoConfig->GetNumZones(WCSimGeometryEnums::DetectorRegion_t::kBottom));
 
   delete manager;
 
@@ -673,9 +669,9 @@ void WCSimCherenkovBuilder::GetMeasurements()
 	  fCapRingSegmentRadiusOutside = fPrismRadiusOutside;
 	  fCapRingSegmentHeight = fCapRingHeight;
 
-	  fCapRingSegmentBSRadiusInside = fCapRingSegmentRadiusInside - fBlacksheetThickness - epsilon;
-	  fCapRingSegmentBSRadiusOutside = fCapRingSegmentRadiusInside - epsilon;
-	  fCapRingSegmentBSHeight = fCapRingSegmentHeight - fBlacksheetThickness - epsilon;
+	  fCapRingSegmentBSRadiusInside = fCapRingSegmentRadiusOutside - fBlacksheetThickness - 2*epsilon;
+	  fCapRingSegmentBSRadiusOutside = fCapRingSegmentRadiusOutside - epsilon;
+	  fCapRingSegmentBSHeight = fCapRingSegmentHeight;
 
 	  fCapPolygonRadius = fGeoConfig->GetInnerRadius() + GetMaxBarrelExposeHeight() + fBlacksheetThickness;
 	  fCapPolygonHeight = GetMaxCapExposeHeight() + fBlacksheetThickness;
@@ -841,9 +837,9 @@ void WCSimCherenkovBuilder::CalculateCellSizes() {
 	fWallCellSize.clear();
 	fTopCellSize.clear();
 	fBottomCellSize.clear();
-	fWallCellSize.resize(fGeoConfig->GetNSides(), 0.0);
-	fTopCellSize.resize(fGeoConfig->GetNSides(), 0.0);
-	fBottomCellSize.resize(fGeoConfig->GetNSides(), 0.0);
+	fWallCellSize.resize(fGeoConfig->GetNumZones(WCSimGeometryEnums::DetectorRegion_t::kWall), 0.0);
+	fTopCellSize.resize(fGeoConfig->GetNumZones(WCSimGeometryEnums::DetectorRegion_t::kTop), 0.0);
+	fBottomCellSize.resize(fGeoConfig->GetNumZones(WCSimGeometryEnums::DetectorRegion_t::kBottom), 0.0);
 
 	for(unsigned int iZone = 0; iZone < fGeoConfig->GetNumZones(WCSimGeometryEnums::DetectorRegion_t::kWall); ++iZone)
 	{
@@ -875,20 +871,14 @@ double WCSimCherenkovBuilder::GetOptimalEndcapCellSize(WCSimGeometryEnums::Detec
 
 	// Fit our n-gon inside a square:
 	WCSimUnitCell endcapCell = *(GetUnitCell(region, zoneNum));
-  std::vector<int> *endcapCellsX;
-  std::vector<int> *endcapCellsY;
   std::vector<double> *endcapCellSize;
 
   if( region == WCSimGeometryEnums::DetectorRegion_t::kTop)
   {
-    endcapCellsX   = &fTopCellsX;
-    endcapCellsY   = &fTopCellsY;
 		endcapCellSize = &fTopCellSize;
   }
   else if( region == WCSimGeometryEnums::DetectorRegion_t::kBottom )
   {
-    endcapCellsX   = &fBottomCellsX;
-    endcapCellsY   = &fBottomCellsY;
 		endcapCellSize = &fBottomCellSize;
   }
   else
@@ -1571,24 +1561,18 @@ void WCSimCherenkovBuilder::PlaceEndCapPMTs(G4int zflip){
 	  WCSimGeometryEnums::DetectorRegion_t region;
     // Top PMTs point downwards
 	  std::vector<double> * cellSizeVec = NULL;
-	  std::vector<int> * cellsXVec = NULL;
-	  std::vector<int> * cellsYVec = NULL;
 	  if( zflip == -1 )
     { 
 	    WCCapPMTRotation->rotateY(180.*deg);
       capLogic = fCapLogicTop; 
       region = WCSimGeometryEnums::DetectorRegion_t::kTop;
       cellSizeVec = &(fTopCellSize);
-      cellsXVec = &(fTopCellsX);
-      cellsYVec = &(fTopCellsY);
     }
 	  else
 	  {
 	  	capLogic = fCapLogicBottom;
 	  	region = WCSimGeometryEnums::DetectorRegion_t::kBottom;
 	  	cellSizeVec = &(fBottomCellSize);
-	  	cellsXVec = &(fBottomCellsX);
-	  	cellsYVec = &(fBottomCellsY);
 	  }
 
 
