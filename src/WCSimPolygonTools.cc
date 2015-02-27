@@ -171,7 +171,7 @@ namespace WCSimPolygonTools {
   	double phi = point.phi();
   	if(phi < 0) { phi = phi + 2*M_PI; }
   	bool contained =    (PolygonContains(nSides, outerRadius, point) && IsAngleBetween(phi, thetaStart, thetaEnd));
-//  	std::cout << "Point is... " << point.x() << " " << point.y() << " " << contained << " " << (PolygonContains(nSides, outerRadius, point)) << " " << IsAngleBetween(phi, thetaStart, thetaEnd) << std::endl;
+// 	std::cout << "Nsides = " << nSides << "  radius = " << outerRadius << "  Point is... " << point.x() << " " << point.y() << " " << contained << " " << (PolygonContains(nSides, outerRadius, point)) << " " << IsAngleBetween(phi, thetaStart, thetaEnd) << std::endl;
 
   	return contained;
   }

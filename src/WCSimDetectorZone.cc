@@ -123,7 +123,7 @@ bool WCSimDetectorZone::IsGood(WCSimGeometryEnums::DetectorRegion_t region) cons
 
 void WCSimDetectorZone::Print() const
 {
-	std::cout << "\t\t Photocathode coverage relative to other cells" << fCoverage << std::endl;
+	std::cout << "\t\t Photocathode coverage " << fCoverage << std::endl;
   std::cout << "\t\tPMT locations in the unit cell:" << std::endl;
   for(unsigned int iPMT = 0; iPMT < fCellPMTName.size(); ++iPMT)
   {

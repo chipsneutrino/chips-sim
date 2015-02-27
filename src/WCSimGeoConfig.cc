@@ -615,7 +615,7 @@ void WCSimGeoConfig::SetZoneThetaStart(
 	CreateMissingZone(region, zoneNum);
 	if( region == WCSimGeometryEnums::DetectorRegion_t::kTop || region == WCSimGeometryEnums::DetectorRegion_t::kBottom)
 	{
-		std::cout << "Setting zone map theta start = " << theta << std::endl;
+		// std::cout << "Setting zone map theta start = " << theta << std::endl;
 		fZoneMap[std::make_pair(region, zoneNum)].SetThetaStart(theta);
 	}
 	else
@@ -736,6 +736,7 @@ void WCSimGeoConfig::SetCoverageType(std::string typeName)
 void WCSimGeoConfig::SetCoverageType(
 		WCSimGeometryEnums::PhotodetectorLimit_t type)
 {
+  // std::cout << "Setting coverage type to " << type.AsString() << std::endl;
 	if(type == WCSimGeometryEnums::PhotodetectorLimit_t::kPercentCoverage){ SetUseOverallCoverage(true); }
 	else if(type == WCSimGeometryEnums::PhotodetectorLimit_t::kZonalCoverage){ SetUseZonalCoverage(true); }
 	else if(type == WCSimGeometryEnums::PhotodetectorLimit_t::kTotalNumber){ SetLimitPMTNumbers(true); }

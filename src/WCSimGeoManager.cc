@@ -101,7 +101,7 @@ void WCSimGeoManager::FillRegion(WCSimGeoConfig& geo,
 	for(rapidxml::xml_node<> *childNode = node->first_node("location"); childNode; childNode = childNode->next_sibling("location") )
 	{
 		std::string nodeVal = childNode->value();
-		std::cout << "Adding location " << nodeVal << std::endl;
+		// std::cout << "Adding location " << nodeVal << std::endl;
 		geo.AddCurrentRegion(nodeVal);
 	}
 
@@ -112,7 +112,7 @@ void WCSimGeoManager::FillRegion(WCSimGeoConfig& geo,
 			int zoneNum;
 			ss >> zoneNum;
 
-			std::cout << "Adding location " << zoneNum << std::endl;
+			// std::cout << "Adding location " << zoneNum << std::endl;
 			geo.AddCurrentZone(zoneNum);
 	}
 
@@ -133,7 +133,7 @@ void WCSimGeoManager::FillRegion(WCSimGeoConfig& geo,
 		ss >> coverage;
 		if(coverage > 1.0)
 		{
-			std::cerr << "Warning: You've asked for coverage of " << coverage << " which is greater than 1" << std::endl
+			std::cout << "Warning: You've asked for coverage of " << coverage << " which is greater than 1" << std::endl
 					      << "         I'm going to assume you meant that as a percentage and set the fractional coverage to " << coverage/100. << std::endl;
 			coverage = coverage / 100.;
 		}

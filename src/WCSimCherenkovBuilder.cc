@@ -133,7 +133,7 @@ WCSimCherenkovBuilder::~WCSimCherenkovBuilder() {
 		if( fPrismWallLogics.at(iWall) != NULL ){ delete fPrismWallLogics.at(iWall);}
 		if( fPrismWallPhysics.at(iWall) != NULL ){ delete fPrismWallPhysics.at(iWall);}
 		if( fPrismRingLogics.at(iWall) != NULL ) { delete fPrismRingLogics.at(iWall); }
-		if( fPrismRingPhysics.at(iWall) != NULL) { delete fPrismRingPhysics.at(iWall); }
+    // Get a glibc error when deleting fPrimsRingPhysics - probably something I don't understand about G4PVReplicas
 	}
 
 
@@ -166,6 +166,10 @@ void WCSimCherenkovBuilder::SetCustomGeometry()
   fWallCellsZ.resize(fGeoConfig->GetNSides());
   fWallCellLength.resize(fGeoConfig->GetNSides());
   fWallCellSize.resize(fGeoConfig->GetNSides());
+  fTopCellsX.resize(fGeoConfig->GetNumZones(WCSimGeometryEnums::DetectorRegion_t::kTop));
+  fTopCellsY.resize(fGeoConfig->GetNumZones(WCSimGeometryEnums::DetectorRegion_t::kTop));
+  fBottomCellsX.resize(fGeoConfig->GetNumZones(WCSimGeometryEnums::DetectorRegion_t::kBottom));
+  fBottomCellsY.resize(fGeoConfig->GetNumZones(WCSimGeometryEnums::DetectorRegion_t::kBottom));
 
   delete manager;
 
@@ -654,17 +658,6 @@ void WCSimCherenkovBuilder::GetMeasurements()
     fPrismRingSegmentBSRadiusInside = fPrismRingSegmentRadiusOutside - fBlacksheetThickness + epsilon;
     fPrismRingSegmentBSRadiusOutside = fPrismRingSegmentRadiusOutside+1*mm - epsilon;
     
-    // Now optimize the cell sizes to work out the prism ring heights:
-    CalculateCellSizes();
-    fPrismRingHeight.resize(fGeoConfig->GetNSides());
-    fPrismRingSegmentHeight.resize(fGeoConfig->GetNSides());
-    fPrismRingSegmentBSHeight.resize(fGeoConfig->GetNSides());
-    for(unsigned int iZone = 0; iZone < fGeoConfig->GetNumZones(WCSimGeometryEnums::DetectorRegion_t::kWall); ++iZone)
-    {
-    	fPrismRingHeight.at(iZone) = fPrismHeight / fWallCellsZ.at(iZone);
-    	fPrismRingSegmentHeight.at(iZone) = fPrismRingHeight.at(iZone) - epsilon;
-    	fPrismRingSegmentBSHeight.at(iZone) = fPrismRingSegmentHeight.at(iZone) - epsilon;
-    }
 
     // Cap measurements
 	  fCapAssemblyHeight = fBlacksheetThickness + GetMaxCapExposeHeight() + 0.5 * (fGeoConfig->GetInnerHeight() - fBarrelLengthForCells);
@@ -680,9 +673,9 @@ void WCSimCherenkovBuilder::GetMeasurements()
 	  fCapRingSegmentRadiusOutside = fPrismRadiusOutside;
 	  fCapRingSegmentHeight = fCapRingHeight;
 
-	  fCapRingSegmentBSRadiusInside = fPrismRingSegmentBSRadiusInside;
-	  fCapRingSegmentBSRadiusOutside = fPrismRingSegmentBSRadiusOutside;
-	  fCapRingSegmentBSHeight = fCapRingHeight;
+	  fCapRingSegmentBSRadiusInside = fCapRingSegmentRadiusInside - fBlacksheetThickness - epsilon;
+	  fCapRingSegmentBSRadiusOutside = fCapRingSegmentRadiusInside - epsilon;
+	  fCapRingSegmentBSHeight = fCapRingSegmentHeight - fBlacksheetThickness - epsilon;
 
 	  fCapPolygonRadius = fGeoConfig->GetInnerRadius() + GetMaxBarrelExposeHeight() + fBlacksheetThickness;
 	  fCapPolygonHeight = GetMaxCapExposeHeight() + fBlacksheetThickness;
@@ -696,6 +689,19 @@ void WCSimCherenkovBuilder::GetMeasurements()
 
 	  fCapPolygonEndBSRadius = fGeoConfig->GetInnerRadius() + GetMaxBarrelExposeHeight();
 	  fCapPolygonEndBSHeight = fBlacksheetThickness;
+
+    // Now optimize the cell sizes to work out the prism ring heights:
+    // Note that CalculateCellSizes needs fCapPolygonRadius
+    CalculateCellSizes();
+    fPrismRingHeight.resize(fGeoConfig->GetNSides());
+    fPrismRingSegmentHeight.resize(fGeoConfig->GetNSides());
+    fPrismRingSegmentBSHeight.resize(fGeoConfig->GetNSides());
+    for(unsigned int iZone = 0; iZone < fGeoConfig->GetNumZones(WCSimGeometryEnums::DetectorRegion_t::kWall); ++iZone)
+    {
+    	fPrismRingHeight.at(iZone) = fPrismHeight / fWallCellsZ.at(iZone);
+    	fPrismRingSegmentHeight.at(iZone) = fPrismRingHeight.at(iZone) - epsilon;
+    	fPrismRingSegmentBSHeight.at(iZone) = fPrismRingSegmentHeight.at(iZone) - epsilon;
+    }
 
     fGotMeasurements = true;
 }
@@ -864,41 +870,73 @@ double WCSimCherenkovBuilder::GetOptimalEndcapCellSize(WCSimGeometryEnums::Detec
 	// grid and then iterate making the cells slightly smaller or larger
 	// to get close to the desired coverage.
   // std::cout << " *** WCSimCherenkovBuilder::GetOptimalTopCellSide *** " << std::endl;
-  // std::cout << "Getting cell size for " << region.AsString() << ", zone " << zoneNum << std::endl;
+  std::cout << "Getting cell size for " << region.AsString() << ", zone " << zoneNum << std::endl;
+
 
 	// Fit our n-gon inside a square:
-	double squareSide = 2.0*(fCapPolygonCentreRadius);
+	WCSimUnitCell endcapCell = *(GetUnitCell(region, zoneNum));
+  std::vector<int> *endcapCellsX;
+  std::vector<int> *endcapCellsY;
+  std::vector<double> *endcapCellSize;
 
+  if( region == WCSimGeometryEnums::DetectorRegion_t::kTop)
+  {
+    endcapCellsX   = &fTopCellsX;
+    endcapCellsY   = &fTopCellsY;
+		endcapCellSize = &fTopCellSize;
+  }
+  else if( region == WCSimGeometryEnums::DetectorRegion_t::kBottom )
+  {
+    endcapCellsX   = &fBottomCellsX;
+    endcapCellsY   = &fBottomCellsY;
+		endcapCellSize = &fBottomCellSize;
+  }
+  else
+  {
+    std::cerr << "Error: GetOptimalEndcapCellSize mut only process kTop and kBottom regions" << std::endl;
+    assert(kFALSE);
+  }
+	
 
-	WCSimUnitCell topCell = *(GetTopUnitCell(zoneNum));
+  int maxNumCells = -1;
+  double bestCoverage = 0.0;
+  double targetCoverage = 0.0;
+  bool canHaveMorePMTs = true;
+  double defaultSide = 0.0;
+  double bestSide = 0.0;
+  int bestIter = 0;
 
-	double defaultSide = 0.0;
-	bool canHaveMorePMTs = true;
-	double targetCoverage = 0.0;
-
-  double maxNumCells = -1.0;
-
-	if(fGeoConfig->GetLimitPMTNumber())
+  if(fGeoConfig->GetLimitPMTNumber())
 	{
-		double pmtArea = topCell.GetPhotocathodeArea();
+		double pmtArea = endcapCell.GetPhotocathodeArea();
 		maxNumCells = fGeoConfig->GetMaxZoneCells(region, zoneNum);
-		double maxCoverage = pmtArea * maxNumCells
-										  / WCSimPolygonTools::GetSliceAreaFromAngles(fGeoConfig->GetNSides(), 
-                                                                  fGeoConfig->GetOuterRadius(), 
-                                                                  fGeoConfig->GetZoneThetaStart(region, zoneNum),
-                                                                  fGeoConfig->GetZoneThetaEnd(region, zoneNum));
+		double maxCoverage =   pmtArea
+							 * maxNumCells
+							 / WCSimPolygonTools::GetSliceAreaFromAngles(
+									 fGeoConfig->GetNSides(),
+									 fGeoConfig->GetOuterRadius(),
+									 fGeoConfig->GetZoneThetaStart(region, zoneNum),
+									 fGeoConfig->GetZoneThetaEnd(region, zoneNum));
     
 	  std::cout << "Maximum coverage with available PMTs for region " << region.AsString() << ", zone " << zoneNum << " = " << maxCoverage << std::endl;
-    std::cout << "Uses " << maxNumCells << " cells, where each cell is " << topCell.GetCellSizeForCoverage(maxCoverage) << " in size" << std::endl;
+      std::cout << "Uses " << maxNumCells << " cells, where each cell is " << endcapCell.GetCellSizeForCoverage(maxCoverage) << " in size" << std::endl;
 		targetCoverage = maxCoverage;
-		defaultSide = topCell.GetCellSizeForCoverage(targetCoverage);
+		defaultSide = endcapCell.GetCellSizeForCoverage(targetCoverage);
 		canHaveMorePMTs = false;
 	}
 	else
 	{
 		if(fGeoConfig->GetUseOverallCoverage() || fGeoConfig->GetUseZonalCoverage()){
 			targetCoverage = GetZoneCoverage(region, zoneNum);
-			defaultSide = topCell.GetCellSizeForCoverage(targetCoverage);
+			defaultSide =  endcapCell.GetCellSizeForCoverage(targetCoverage);
+		  // Just make sure it's a high number
+		  maxNumCells = (int)(  targetCoverage
+							  * WCSimPolygonTools::GetSliceAreaFromAngles(fGeoConfig->GetNSides(),
+																	fGeoConfig->GetOuterRadius(),
+																	fGeoConfig->GetZoneThetaStart(region, zoneNum),
+																	fGeoConfig->GetZoneThetaEnd(region, zoneNum))
+							  / endcapCell.GetPhotocathodeArea());
+
 		}
 		else{
 //			std::cerr << "Error: can't tell what coverage type fGeoConfig should use - bailing out" << std::endl;
@@ -907,140 +945,144 @@ double WCSimCherenkovBuilder::GetOptimalEndcapCellSize(WCSimGeometryEnums::Detec
 		canHaveMorePMTs = true;
 	}
 
-	std::cout << "Default side = " << defaultSide << " Coverage = " << topCell.GetPhotocathodeCoverage(defaultSide) << std::endl;
+	double squareSide = 2.0*(fCapPolygonCentreRadius);
+	double cellSide = defaultSide;
 
 
-	int cellRows = (int)(squareSide/defaultSide); // Round down
-//  std::cout << "cellRows = " << cellRows << std::endl;
-
-/*	TODO: implement this feature
-    G4TwoVector centreOffset;
-	if( (cellRows % 2) != 0){ // An odd number of cells
-		centreOffset = G4TwoVector(0.5 * defaultSide, 0.5 * defaultSide)
-		// Make sure the middle of the square contains the middle
-		// of a unit cell
-	}
-	else{ // An even number
-		centreOffset = G4TwoVector(0.,0.);
-		// Make sure the middle of the square contains a gap
-		// where four unit cells meet
-	}
-*/
-
-	// Now construct a grid containing the corners of each square cell
-	// We have a regular polygon containing squares - both are convex
-	// so it's sufficient to test if each corner of a square is inside
-	// the polygon.
-	double cellSide = squareSide / cellRows;
-  double startingSide = cellSide;
-	unsigned int nSides = fGeoConfig->GetNSides();
-
-	double bestSide = cellSide;
-	double bestCoverageDiff = -999.9;;
-	double bestCoverage = 0;
-  std::cout << "Starts at " << defaultSide << std::endl;
-
-  unsigned int cellsInPolygon = 0;
-	for( int iteration = 0; iteration < 10; ++iteration ){
-
-		// Use this to translate between coordinate systems where (0,0) is the middle of
-		// the square enclosing the polygon, and where it is the top left of that square
-    int subIter = 0;
-    do{
-      std::cout << iteration << ":" << subIter << std::endl;
-      cellsInPolygon = 0;    
-		  G4TwoVector centreToTopLeft = G4TwoVector(-0.5*squareSide, 0.5 * squareSide);
-      // std::cout << "Iteration... " << iteration << std::endl;
-		  for( int iHoriz = 0; iHoriz < cellRows; ++iHoriz ){
-		  	for( int iVert = 0; iVert < cellRows; ++iVert ){
-		  		// Unit cell corners.  Use coordinates where (0,0) is the centre of the square enclosing our polygon
-		  		// because that's what WCSimPolygonTools expects
-		  		G4TwoVector topLeft     = G4TwoVector(iHoriz * cellSide,     -iVert * cellSide) + centreToTopLeft;
-		  		G4TwoVector topRight    = G4TwoVector((iHoriz+1) * cellSide, -iVert * cellSide) + centreToTopLeft;
-		  		G4TwoVector bottomLeft  = G4TwoVector(iHoriz * cellSide,     -(iVert+1) * cellSide) + centreToTopLeft;
-		  		G4TwoVector bottomRight = G4TwoVector((iHoriz+1) * cellSide, -(iVert+1) * cellSide) + centreToTopLeft;
-
-		  		bool cellInPolygonSlice = true;
-		  		double thetaStart = fGeoConfig->GetZoneThetaStart(region, zoneNum);
-		  		double thetaEnd = fGeoConfig->GetZoneThetaEnd(region, zoneNum);
-          double capPolygonInnerRadius = WCSimPolygonTools::GetOuterRadiusFromInner(fGeoConfig->GetNSides(), fCapPolygonCentreRadius);
-          // std::cout << "iHoriz = " << iHoriz << "  " << "iVert = " << iVert << std::endl
-          //           << "(" << topLeft.x() << ", " << topLeft.y() << ") (" << topRight.x() << ", " << topRight.y()
-          //           << ") (" << bottomLeft.x() << ", " << bottomLeft.y() << ") (" << bottomRight.x() << bottomRight.y() << ")" << std::endl;
-          
-          // Angled walls mean squares don't tile very well: do this for actual PMTs in the unit cell instead
-          std::vector<Double_t> pmtX = fGeoConfig->GetCellPMTX(region, zoneNum);
-          std::vector<Double_t> pmtY = fGeoConfig->GetCellPMTY(region, zoneNum);
-          std::vector<std::string> pmtNames = fGeoConfig->GetCellPMTName(region, zoneNum);
-          std::vector<Double_t> pmtRad;
-          for( unsigned int iPMT = 0; iPMT < pmtNames.size(); ++iPMT)
-          {
-            pmtRad.push_back(fPMTManager->GetPMTByName(pmtNames.at(iPMT)).GetRadius());
-            // Coordinates the corner of a square containing the PMT itself, relative to the top-left corner of the unit cell
-            G4TwoVector pmtTopLeft(     cellSide * (pmtX.at(iPMT) - pmtRad.at(iPMT)), cellSide * (pmtY.at(iPMT) + pmtRad.at(iPMT)));
-            G4TwoVector pmtTopRight(    cellSide * (pmtX.at(iPMT) + pmtRad.at(iPMT)), cellSide * (pmtY.at(iPMT) + pmtRad.at(iPMT)));
-            G4TwoVector pmtBottomLeft(  cellSide * (pmtX.at(iPMT) - pmtRad.at(iPMT)), cellSide * (pmtY.at(iPMT) - pmtRad.at(iPMT)));
-            G4TwoVector pmtBottomRight( cellSide * (pmtX.at(iPMT) + pmtRad.at(iPMT)), cellSide * (pmtY.at(iPMT) - pmtRad.at(iPMT)));
+  int cellsInPolygon = 0; 
+  int bestNumCells = 0;
+  double thetaStart = fGeoConfig->GetZoneThetaStart(region, zoneNum);
+  double thetaEnd = fGeoConfig->GetZoneThetaEnd(region, zoneNum);
+  double capPolygonInnerRadius = WCSimPolygonTools::GetOuterRadiusFromInner(fGeoConfig->GetNSides(), fCapPolygonCentreRadius);
 
 
-  		  		if(    !(WCSimPolygonTools::PolygonSliceContains(nSides, thetaStart, thetaEnd, capPolygonInnerRadius, topLeft + pmtTopLeft))
-  		  			  || !(WCSimPolygonTools::PolygonSliceContains(nSides, thetaStart, thetaEnd, capPolygonInnerRadius, topLeft + pmtTopRight))
-  		  			  || !(WCSimPolygonTools::PolygonSliceContains(nSides, thetaStart, thetaEnd, capPolygonInnerRadius, topLeft + pmtBottomLeft))
-  		  			  || !(WCSimPolygonTools::PolygonSliceContains(nSides, thetaStart, thetaEnd, capPolygonInnerRadius, topLeft + pmtBottomRight)) ){
-		  			cellInPolygonSlice = false;
-		  		  }
-          }
-		  		cellsInPolygon += cellInPolygonSlice;
-		  	}
+
+  // Angled walls mean squares don't tile very well
+  // We'll consider their positions, but we only need to get these vectors once
+  // if they live outside the loop.;
+  std::vector<Double_t> pmtX = fGeoConfig->GetCellPMTX(region, zoneNum);
+  std::vector<Double_t> pmtY = fGeoConfig->GetCellPMTY(region, zoneNum);
+  std::vector<std::string> pmtNames = fGeoConfig->GetCellPMTName(region, zoneNum);
+  std::vector<Double_t> pmtRad;
+  for (unsigned int iPMT = 0; iPMT < pmtNames.size(); ++iPMT)
+  {
+	  pmtRad.push_back(fPMTManager->GetPMTByName(pmtNames.at(iPMT)).GetRadius());
+  }
+
+  for(int iIter = 0; iIter < 100; ++iIter)
+  {
+    cellsInPolygon = 0;
+	  double xPos = 0.0;
+	  while( xPos < squareSide )
+	  {
+		  double yPos = 0.0;
+		  while( fabs(yPos) < squareSide )
+		  {
+			  G4TwoVector centreToTopLeftSquare = G4TwoVector(-0.5*squareSide, 0.5 * squareSide);
+			  G4TwoVector topLeftCell     = G4TwoVector(xPos, -yPos) + centreToTopLeftSquare;
+			  G4TwoVector topRightCell     = G4TwoVector(xPos+cellSide, -yPos) + centreToTopLeftSquare;
+			  G4TwoVector bottomLeftCell     = G4TwoVector(xPos, -yPos-cellSide) + centreToTopLeftSquare;
+			  G4TwoVector bottomRightCell     = G4TwoVector(xPos+cellSide, -yPos-cellSide) + centreToTopLeftSquare;
+
+			  bool cellInPolygonSlice = true;
+			  for( unsigned int iPMT = 0; iPMT < pmtNames.size(); ++iPMT)
+			  {
+				// Coordinates the corner of a square containing the PMT itself, relative to the top-left corner of the unit cell
+				G4TwoVector pmtTopLeft(     cellSide * pmtX.at(iPMT)/m - pmtRad.at(iPMT), cellSide * pmtY.at(iPMT)/m + pmtRad.at(iPMT));
+				G4TwoVector pmtTopRight(    cellSide * pmtX.at(iPMT)/m + pmtRad.at(iPMT), cellSide * pmtY.at(iPMT)/m + pmtRad.at(iPMT));
+				G4TwoVector pmtBottomLeft(  cellSide * pmtX.at(iPMT)/m - pmtRad.at(iPMT), cellSide * pmtY.at(iPMT)/m - pmtRad.at(iPMT));
+				G4TwoVector pmtBottomRight( cellSide * pmtX.at(iPMT)/m + pmtRad.at(iPMT), cellSide * pmtY.at(iPMT)/m - pmtRad.at(iPMT));
+
+				//	if(    !(WCSimPolygonTools::PolygonSliceContains(fGeoConfig->GetNSides(), thetaStart, thetaEnd, capPolygonInnerRadius, topLeftCell + pmtTopLeft))
+				//		  || !(WCSimPolygonTools::PolygonSliceContains(fGeoConfig->GetNSides(), thetaStart, thetaEnd, capPolygonInnerRadius, topLeftCell + pmtTopRight))
+				//		  || !(WCSimPolygonTools::PolygonSliceContains(fGeoConfig->GetNSides(), thetaStart, thetaEnd, capPolygonInnerRadius, topLeftCell + pmtBottomLeft))
+				//		  || !(WCSimPolygonTools::PolygonSliceContains(fGeoConfig->GetNSides(), thetaStart, thetaEnd, capPolygonInnerRadius, topLeftCell + pmtBottomRight)) ){
+					if(    !(WCSimPolygonTools::PolygonSliceContains(fGeoConfig->GetNSides(), thetaStart, thetaEnd, capPolygonInnerRadius, topLeftCell))
+						  || !(WCSimPolygonTools::PolygonSliceContains(fGeoConfig->GetNSides(), thetaStart, thetaEnd, capPolygonInnerRadius, bottomLeftCell))
+						  || !(WCSimPolygonTools::PolygonSliceContains(fGeoConfig->GetNSides(), thetaStart, thetaEnd, capPolygonInnerRadius, topRightCell))
+						  || !(WCSimPolygonTools::PolygonSliceContains(fGeoConfig->GetNSides(), thetaStart, thetaEnd, capPolygonInnerRadius, bottomRightCell)) ){
+					  cellInPolygonSlice = false;
+					}
+			  }
+			  cellsInPolygon += cellInPolygonSlice;
+			  yPos = yPos + cellSide;
 		  }
-      if(cellsInPolygon > 0 && cellsInPolygon < maxNumCells )
+		  xPos = xPos + cellSide;
+	  }
+
+	  if(fGeoConfig->GetLimitPMTNumber())
+	  {
+		  if( cellsInPolygon <= maxNumCells && cellsInPolygon >= bestNumCells )
+		  {
+//			  std::cout << "Updating best number of endcap cells in zone " << zoneNum << " to ";
+			  bestNumCells = cellsInPolygon;
+			  bestSide = cellSide;
+        if(iIter != 100)
+        {
+          bestIter = iIter;
+        }
+//			  std::cout << bestNumCells << " with cell size = " << bestSide << std::endl;
+		  }
+      if( cellsInPolygon == maxNumCells && !canHaveMorePMTs)
       {
-        break; 
+        break;
       }
-      if(fGeoConfig->GetLimitPMTNumber())
-      {
-        cellSide *= 1.02;
+		  if( cellsInPolygon < maxNumCells )
+		  {
+        cellSide *= ( 1. - 1./maxNumCells - cellsInPolygon/(100.0*maxNumCells));
+		  }
+		  if( cellsInPolygon > maxNumCells)
+		  {
+			  cellSide /= (1. - 1./maxNumCells - cellsInPolygon/(200.0*maxNumCells));
+		  }
+	  }
+	  else if( !fGeoConfig->GetLimitPMTNumber() )
+	  {
+		  double pmtArea = endcapCell.GetPhotocathodeArea();
+		  double coverage =   pmtArea * cellsInPolygon
+							/ WCSimPolygonTools::GetSliceAreaFromAngles(
+							  fGeoConfig->GetNSides(),
+							  fGeoConfig->GetOuterRadius(),
+							  fGeoConfig->GetZoneThetaStart(region, zoneNum),
+							  fGeoConfig->GetZoneThetaEnd(region, zoneNum));
+		  if( fabs(targetCoverage - coverage) < fabs(targetCoverage - bestCoverage) )
+		  {
+        if(iIter != 100)
+        {
+			    bestCoverage = coverage;
+			    bestSide = cellSide;
+		      bestIter = iIter;
+        }
       }
-      ++subIter;
-    } while(subIter < 100 && fGeoConfig->GetLimitPMTNumber());
+		  if(coverage > 0.0)
+		  {
+			  cellSide *= sqrt(targetCoverage/coverage);
+		  }
+		  else
+		  {
+			  cellSide *= 0.995;
+		  }
+	  }
+//	  std::cout << "Iteration " << iIter << ": Finished and updated cellSide to " << cellSide << std::endl;
 
-		double topCoverage =   (cellsInPolygon * topCell.GetPhotocathodeCoverage(cellSide) * cellSide * cellSide)
-												 / (WCSimPolygonTools::GetSliceAreaFromRadius(nSides, fGeoConfig->GetOuterRadius()));
+  }
 
-		double coverageDiff = topCoverage - targetCoverage;
-		// std::cout << "Coverage = " << (cellsInPolygon * topCell.GetPhotocathodeCoverage(cellSide) * cellSide * cellSide)
-		// 					<< " / " << (WCSimPolygonTools::GetAreaFromRadius(nSides, fGeoConfig->GetOuterRadius()))
-    //           << " = " << topCoverage << std::endl;
-    // std::cout << "Cells in polygon = " << cellsInPolygon << std::endl;
-    // std::cout << "cellSide = " << cellSide << std::endl;
-    // std::cout << "innerRadius = " << fGeoConfig->GetOuterRadius() << std::endl;
-
-		if(    ((canHaveMorePMTs) || (!canHaveMorePMTs && cellsInPolygon < maxNumCells))
-				&& fabs(coverageDiff < bestCoverageDiff)){
-			bestCoverageDiff = fabs(coverageDiff);
-			bestCoverage = topCoverage;
-			bestSide = cellSide;
-		}
-
-		// Scale the cell by the difference and iterate again
-    // std::cout << "topCoverage = " << topCoverage << std::endl;
-		if(topCoverage > 0){
-      // std::cout << "cellSide was " << cellSide << std::endl;
-      cellSide = cellSide * sqrt(topCoverage / fGeoConfig->GetCoverageFraction() );
-      // std::cout << "now cellSide is " << cellSide << std::endl;
-    }
-	}
-
-  std::cout << "Best top size = " << bestSide << std::endl;
-  std::cout << "Coverage = " << bestCoverage << " compare to target " << targetCoverage << std::endl;
-  std::cout << "Max num cells = " << maxNumCells << " and this uses " << cellsInPolygon << std::endl;
+  if( fGeoConfig->GetLimitPMTNumber() )
+  {
+    std::cout << "bestNumCells = " << bestNumCells << " (maxNumCells = " << maxNumCells << ") - chosen on iteration " << bestIter << " side = " << bestSide << std::endl << std::endl;
+    endcapCellSize->at(zoneNum) = bestSide;
+  }
+  else
+  {
+    std::cout << "bestCoverage = " << bestCoverage << " (targetCoverage = " << targetCoverage << ") - chosen on iteration " << bestIter << " side = " << bestSide << std::endl << std::endl;
+  }
 
 	return bestSide;
 }
 
 double WCSimCherenkovBuilder::GetOptimalWallCellSize(int iZone) {
 
-
+  std::cout << "Getting optimal cell size for wall zone " << iZone << std::endl;
 	double coverage 		= -999.9; // Photocathode coverage
 	double wallHeight 	= GetBarrelLengthForCells(); // Height of walls
 	double wallSide 		= 2.0 * fPrismRingSegmentBSRadiusInside * sin(M_PI / fGeoConfig->GetNSides()); // Side length of walls
@@ -1068,6 +1110,7 @@ double WCSimCherenkovBuilder::GetOptimalWallCellSize(int iZone) {
 		if(fGeoConfig->GetUseOverallCoverage() || fGeoConfig->GetUseZonalCoverage()){
 			coverage = GetZoneCoverage(WCSimGeometryEnums::DetectorRegion_t::kWall, iZone);
 			defaultSide = wallCell->GetCellSizeForCoverage(coverage);
+      std::cout << "Target coverage = " << coverage << std::endl;
 		}
 		else{
 			std::cerr << "Error: can't tell what coverage type fGeoConfig should use - bailing out" << std::endl;
@@ -1094,7 +1137,7 @@ double WCSimCherenkovBuilder::GetOptimalWallCellSize(int iZone) {
 		{
 			for(int iY = 1; iY <= (int)ceil((wallHeight/minSize)); ++iY)
 			{
-        std::cout << "Testing " << iX << " x " << iY << " cells( = " << iX * iY << "/" << maxNumCells << std::endl;
+//        std::cout << "Testing " << iX << " x " << iY << " cells( = " << iX * iY << "/" << maxNumCells << std::endl;
 				int nCells = iX * iY;
 				if(nCells > maxNumCells){ break; }
 				if(nCells > bestX * bestY){
@@ -1180,7 +1223,7 @@ double WCSimCherenkovBuilder::GetOptimalWallCellSize(int iZone) {
 			}
 		}
 		std::cout << "Best wall coverage is " << bestCoverage << " (c.f. " << coverage << ")" << std::endl;
-    std::cout << "Used " << fWallCellsX.at(iZone) * fWallCellsZ.at(iZone) << " cells" << std::endl;
+    std::cout << "Used " << fWallCellsX.at(iZone) * fWallCellsZ.at(iZone) << " cells" << std::endl << std::endl;;
 	}
 	return bestLength;
 }
@@ -1528,19 +1571,26 @@ void WCSimCherenkovBuilder::PlaceEndCapPMTs(G4int zflip){
 	  WCSimGeometryEnums::DetectorRegion_t region;
     // Top PMTs point downwards
 	  std::vector<double> * cellSizeVec = NULL;
+	  std::vector<int> * cellsXVec = NULL;
+	  std::vector<int> * cellsYVec = NULL;
 	  if( zflip == -1 )
     { 
 	    WCCapPMTRotation->rotateY(180.*deg);
       capLogic = fCapLogicTop; 
       region = WCSimGeometryEnums::DetectorRegion_t::kTop;
       cellSizeVec = &(fTopCellSize);
+      cellsXVec = &(fTopCellsX);
+      cellsYVec = &(fTopCellsY);
     }
 	  else
 	  {
 	  	capLogic = fCapLogicBottom;
 	  	region = WCSimGeometryEnums::DetectorRegion_t::kBottom;
 	  	cellSizeVec = &(fBottomCellSize);
+	  	cellsXVec = &(fBottomCellsX);
+	  	cellsYVec = &(fBottomCellsY);
 	  }
+
 
 //    G4cout << "G4cout capLogic again" << capLogic << std::endl;
 //    G4cout << "capLogic top = " << fCapLogicTop << "  and bottom ... " << fCapLogicBottom << std::endl;
@@ -1550,72 +1600,120 @@ void WCSimCherenkovBuilder::PlaceEndCapPMTs(G4int zflip){
 	  // -----------------------------------------------------
     std::cout << " *** PlaceEndCapPMTs ***    zflip = " << zflip << std::endl;
 
-    for(unsigned int iZone = 0; iZone < fGeoConfig->GetNumZones(region); ++iZone)
+    std::vector<Int_t> placedTop;
+
+    for( unsigned int iZone = 0; iZone < fGeoConfig->GetNumZones(region); ++iZone)
     {
-    	// loop over the cap
- 		  // Build a square that contains the cap:
-    	G4double squareEdge = 2.0*(WCSimPolygonTools::GetOuterRadiusFromInner(fGeoConfig->GetNSides(), fCapPolygonCentreRadius));
-    	squareEdge = squareEdge + fmod(squareEdge, 2*cellSizeVec->at(iZone));
+      placedTop.push_back(0);
 
-			G4double xpos = -0.5 * squareEdge;
-			G4double ypos = -0.5 * squareEdge;
-			std::cout << "Starting loop!" << std::endl;
-			std::cout << "The unit cell on the " << region.AsString() << " region, zone " << iZone
-					      << " has " << GetUnitCell(region, iZone)->GetNumPMTs() << " PMTs in it"  << std::endl;
+		// Angled walls mean squares don't tile very well
+		// We'll consider their positions, but we only need to get these vectors once
+		// if they live outside the loop.;
+		std::vector<Double_t> pmtX = fGeoConfig->GetCellPMTX(region, iZone);
+		std::vector<Double_t> pmtY = fGeoConfig->GetCellPMTY(region, iZone);
+		std::vector<std::string> pmtNames = fGeoConfig->GetCellPMTName(region,iZone);
+		std::vector<Double_t> pmtRad;
+		for (unsigned int iPMT = 0; iPMT < pmtNames.size(); ++iPMT) {
+			pmtRad.push_back(fPMTManager->GetPMTByName(pmtNames.at(iPMT)).GetRadius());
+		}
 
-			while( fabs(ypos) <= 0.5 * squareEdge  ){
-				xpos = -0.5 * squareEdge;
-				while(fabs(xpos) <= 0.5 * squareEdge){
-					G4ThreeVector cellpos = G4ThreeVector(xpos, ypos, 0.0); // Coordinates of the bottom left corner of the unit cell
-					double thetaStart = fGeoConfig->GetZoneThetaStart(region, iZone);
-					double thetaEnd = fGeoConfig->GetZoneThetaEnd(region, iZone);
+		G4double squareSide = 2.0 * fCapPolygonCentreRadius;
+		G4double cellSide = cellSizeVec->at(iZone);
+  	    double capPolygonInnerRadius = WCSimPolygonTools::GetOuterRadiusFromInner(fGeoConfig->GetNSides(), fCapPolygonCentreRadius);
+  	    double thetaStart = fGeoConfig->GetZoneThetaStart(region, iZone);
+  	    double thetaEnd = fGeoConfig->GetZoneThetaEnd(region, iZone);
 
+		double xPos = 0.0;
+		while (xPos < squareSide) {
+			double yPos = 0.0;
+			while (fabs(yPos) < squareSide) {
+				G4TwoVector centreToTopLeftSquare = G4TwoVector(-0.5 * squareSide, 0.5 * squareSide);
+				G4TwoVector topLeftCell = G4TwoVector(xPos, -yPos) + centreToTopLeftSquare;
+			  G4TwoVector topRightCell     = G4TwoVector(xPos+cellSide, -yPos) + centreToTopLeftSquare;
+			  G4TwoVector bottomLeftCell     = G4TwoVector(xPos, -yPos-cellSide) + centreToTopLeftSquare;
+			  G4TwoVector bottomRightCell     = G4TwoVector(xPos+cellSide, -yPos-cellSide) + centreToTopLeftSquare;
+//			std::cout << "centreToTopLeftSquare = " << centreToTopLeftSquare << std::endl;
+//						  << "topLeftCell = " << topLeftCell << std::endl;
 
+				bool cellInPolygonSlice = true;
+				for (unsigned int iPMT = 0; iPMT < pmtNames.size(); ++iPMT) {
+					// Coordinates the corner of a square containing the PMT itself,
+					// relative to the top-left corner of the unit cell
+//					std::cout << "PMT " << iPMT << " at " << pmtX.at(iPMT)/m << ", " << pmtY.at(iPMT)/m << " (r = " << pmtRad.at(iPMT) << ")" << std::endl;
+					G4TwoVector pmtTopLeft(cellSide * (pmtX.at(iPMT)/m) - pmtRad.at(iPMT),
+							cellSide * (pmtY.at(iPMT)/m) + pmtRad.at(iPMT));
+//					std::cout << "pmtTopLeft = " << pmtTopLeft << std::endl;
+					G4TwoVector pmtTopRight(cellSide * pmtX.at(iPMT)/m + pmtRad.at(iPMT),
+							cellSide * pmtY.at(iPMT)/m + pmtRad.at(iPMT));
+					G4TwoVector pmtBottomLeft(cellSide * pmtX.at(iPMT)/m - pmtRad.at(iPMT),
+							cellSide * pmtY.at(iPMT)/m - pmtRad.at(iPMT));
+					G4TwoVector pmtBottomRight(cellSide * pmtX.at(iPMT)/m + pmtRad.at(iPMT),
+							cellSide * pmtY.at(iPMT)/m - pmtRad.at(iPMT));
+
+					// if (!(WCSimPolygonTools::PolygonSliceContains(fGeoConfig->GetNSides(), thetaStart, thetaEnd,
+					// 		capPolygonInnerRadius, topLeftCell + pmtTopLeft))
+					// 		|| !(WCSimPolygonTools::PolygonSliceContains(fGeoConfig->GetNSides(), thetaStart, thetaEnd,
+					// 				capPolygonInnerRadius, topLeftCell + pmtTopRight))
+					// 		|| !(WCSimPolygonTools::PolygonSliceContains(fGeoConfig->GetNSides(), thetaStart, thetaEnd,
+					// 				capPolygonInnerRadius, topLeftCell + pmtBottomLeft))
+					// 		|| !(WCSimPolygonTools::PolygonSliceContains(fGeoConfig->GetNSides(), thetaStart, thetaEnd,
+					// 				capPolygonInnerRadius, topLeftCell + pmtBottomRight))) {
+					if (!(WCSimPolygonTools::PolygonSliceContains(fGeoConfig->GetNSides(), thetaStart, thetaEnd,
+							capPolygonInnerRadius, topLeftCell))
+							|| !(WCSimPolygonTools::PolygonSliceContains(fGeoConfig->GetNSides(), thetaStart, thetaEnd,
+									capPolygonInnerRadius, topRightCell))
+							|| !(WCSimPolygonTools::PolygonSliceContains(fGeoConfig->GetNSides(), thetaStart, thetaEnd,
+									capPolygonInnerRadius, bottomLeftCell))
+							|| !(WCSimPolygonTools::PolygonSliceContains(fGeoConfig->GetNSides(), thetaStart, thetaEnd,
+									capPolygonInnerRadius, bottomRightCell))) {
+						cellInPolygonSlice = false;
+					}
 					WCSimUnitCell * unitCell = GetUnitCell(region, iZone);
-					double capRadius = WCSimPolygonTools::GetOuterRadiusFromInner(fGeoConfig->GetNSides(), fCapPolygonCentreRadius);
-					if( WCSimPolygonTools::PolygonSliceContainsSquare(fGeoConfig->GetNSides(), thetaStart, thetaEnd, capRadius,
-																													  G4TwoVector(cellpos.x(), cellpos.y()), cellSizeVec->at(iZone))){
-//						std::cout << "Placing cap PMT at (" << cellpos.x() << ", " << cellpos.y() << std::endl;
-//						std::cout << "Here, phi = " << cellpos.phi() << " and start = " << thetaStart << ", end = " << thetaEnd << std::endl;
+					if (cellInPolygonSlice) {
+						//						std::cout << "Placing cap PMT at (" << cellpos.x() << ", " << cellpos.y() << std::endl;
+						//						std::cout << "Here, phi = " << cellpos.phi() << " and start = " << thetaStart << ", end = " << thetaEnd << std::endl;
 
-						for(unsigned int nPMT = 0; nPMT < unitCell->GetNumPMTs(); ++nPMT){
+						for (unsigned int nPMT = 0; nPMT < unitCell->GetNumPMTs(); ++nPMT) {
 							G4TwoVector pmtCellPosition = unitCell->GetPMTPos(nPMT, cellSizeVec->at(iZone)); // PMT position in cell, relative to top left of cell
-							G4ThreeVector PMTPosition = cellpos   // bottom left of unit cell
-																					+ G4ThreeVector(pmtCellPosition.x(),
-																													cellSizeVec->at(iZone) - pmtCellPosition.y(),
-																													0.0); // top left of cell to PMT
+							G4ThreeVector PMTPosition(topLeftCell.x() + pmtCellPosition.x(),
+									topLeftCell.y() - pmtCellPosition.y(), 0.0);
 							WCSimPMTConfig config = unitCell->GetPMTPlacement(nPMT).GetPMTConfig();
 							// G4VPhysicalVolume* physiCapPMT =
-						  new G4PVPlacement(WCCapPMTRotation,     // its rotation
-						  									PMTPosition,
-						  									fPMTBuilder.GetPMTLogicalVolume(config),        // its logical volume
-						  									"WCPMT",           // its name
-						  									capLogic,      // its mother volume
-						  									false,             // no boolean operations
-						  									fNumPMTs);
+							new G4PVPlacement(WCCapPMTRotation,     // its rotation
+									PMTPosition, fPMTBuilder.GetPMTLogicalVolume(config),        // its logical volume
+									"WCPMT",           // its name
+									capLogic,      // its mother volume
+									false,             // no boolean operations
+									fNumPMTs);
 							//std::cout << "name of capLogic = " << capLogic->GetName() << std::endl;
-							if( fNumPMTs == 0){
-								 //std::cout << "inner radius = " << fGeoConfig->GetOuterRadius() << "   xpos = " << xpos << "   ypos = " << ypos << "  top cell size = " << cellSizeVec->at(iZone) << "   wall cell size = " << fWallCellSize << std::endl;
-								 //std::cout << "PMT position in cell = " << pmtCellPosition.x() / m << "," << pmtCellPosition.y() / m << "in m" << std::endl;
-								 //std::cout << "Cell size = " << cellSizeVec->at(iZone) << std::endl;// pmtCellPosition.x() << "," << pmtCellPosition.y() << std::endl;
-								 //std::cout << "PMT logical volume name = " << fPMTBuilder.GetPMTLogicalVolume(config)->GetName() << std::endl;
-								 //std::cout << "Placed endcap PMT!" << std::endl;
+							if (fNumPMTs == 0 || 1) {
+              // std::cout << "XXplacingXX " << xPos << topLeftCell.x() << " " << topLeftCell.y() << std::endl;
+              // std::cout << "inner radius = " << fGeoConfig->GetOuterRadius() << "   xpos = " << xPos << "   ypos = " << yPos << "  top cell size = " << cellSizeVec->at(iZone) << std::endl;
+              // std::cout << "PMT position in cell = " << pmtCellPosition.x() / m << "," << pmtCellPosition.y() / m << "in m" << std::endl;
+              // std::cout << "Cell size = " << cellSizeVec->at(iZone) << std::endl;// pmtCellPosition.x() << "," << pmtCellPosition.y() << std::endl;
+              // std::cout << "PMT logical volume name = " << fPMTBuilder.GetPMTLogicalVolume(config)->GetName() << std::endl;
+              // std::cout << "Placed endcap PMT!" << std::endl;
 							}
 							fNumPMTs++;
-					// logicWCPMT->GetDaughter(0),physiCapPMT is the glass face. If you add more
-					// daughter volumes to the PMTs (e.g. a acryl cover) you have to check, if
-					// this is still the case.
+              placedTop.at(iZone)++;
+							// logicWCPMT->GetDaughter(0),physiCapPMT is the glass face. If you add more
+							// daughter volumes to the PMTs (e.g. a acryl cover) you have to check, if
+							// this is still the case.
 						}
 					}
-					else
-					{
-					}
-					xpos += cellSizeVec->at(iZone);
 				}
-				ypos += cellSizeVec->at(iZone);
-			}
-    }
 
+				yPos = yPos + cellSide;
+			}
+			xPos = xPos + cellSide;
+		}
+
+    }
+      
+    for (unsigned int i = 0; i < placedTop.size(); ++i)
+    {
+      std::cout << region.AsString() << ": placed " << placedTop.at(i) << " pmts in zone " << i << std::endl;
+    }
 }
 
 void WCSimCherenkovBuilder::ConstructEndCapPhysicalVolumes(){
