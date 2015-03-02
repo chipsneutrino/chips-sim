@@ -761,7 +761,7 @@ rapidxml::xml_node<>* WCSimGeometryHelper::GetUnitCellNode()
 
 rapidxml::xml_node<> * WCSimGeometryHelper::GetPMTLimitNode(const std::string &name)
 {
-	std::cout << "How many PMTs of type " << name << " are allowed in this zone?";
+	std::cout << "How many PMTs of type " << name << " are allowed in this zone?" << std::endl;
 	int limit = AskPositiveInteger();
 	std::stringstream ss;
 	ss << limit;
