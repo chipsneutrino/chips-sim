@@ -12,6 +12,8 @@
 #include <iostream>
 #include <sstream>
 #include <math.h>
+#include <fstream>
+#include <TString.h>
 
 WCSimGeometryHelper::WCSimGeometryHelper()
 {
@@ -490,6 +492,54 @@ void WCSimGeometryHelper::SetWallZones(rapidxml::xml_node<> * parentNode)
 
 void WCSimGeometryHelper::SaveGeometry()
 {
+  std::ofstream file;
+  std::cout << "Would you like to save this geometry to an xml file?" << std::endl;
+  bool saveIt = AskYesNo();
+  bool overwrite = false;
+  if(saveIt)
+  {
+    bool goodFile = false;
+    TString filename("");
+    do
+    {
+      std::cout << "Enter name of file where the geometry should be saved (without the .xml):" << std::endl;
+      filename = TString(AskString().c_str());
+      filename.ReplaceAll(".xml","");
+      filename.Append(".xml");
+      ifstream infile(filename.Data());
+      if(!infile.good())
+      {
+        goodFile = true;
+      }
+      else
+      {
+        std::cout << "File exists.  Write anyway? " << std::endl;
+        goodFile = AskYesNo();
+        if(goodFile)
+        {
+          std::cout << "Would you like to overwrite or append to it?" << std::endl;
+          std::vector<std::string> options;
+          options.push_back(std::string("Overwrite it"));
+          options.push_back(std::string("Append to it"));
+          std::string choice = AskOptionString(options);
+          if(choice == "Overwrite it"){ overwrite = true; }
+          else{ overwrite = false; }
+
+        }
+      }
+    }while( !goodFile);
+    
+    std::cout << "Saving geometry to " << filename << std::endl;
+
+    if(overwrite){ file.open(filename.Data()); }
+    else{ file.open(filename.Data(), std::ios::app); }
+
+    if( file.is_open() )
+    {
+      file << fDoc;
+      file.close();
+    }
+  }
 }
 
 std::string WCSimGeometryHelper::GetName()
