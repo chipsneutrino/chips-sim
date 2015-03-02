@@ -316,12 +316,12 @@ void WCSimGeometryHelper::SetCapZones(bool isTop, rapidxml::xml_node<> * parentN
 		{
 			std::vector<std::string> uniquePMTs;
 			rapidxml::xml_node<> * unitCellNode = GetUnitCellNode(uniquePMTs);
+			regionNode->append_node(unitCellNode);
 			for(unsigned int i = 0; i < uniquePMTs.size(); ++i)
 			{
 				rapidxml::xml_node<> * pmtLimitNode = GetPMTLimitNode(uniquePMTs.at(i));
-				unitCellNode->append_node(pmtLimitNode);
+				regionNode->append_node(pmtLimitNode);
 			}
-			regionNode->append_node(unitCellNode);
 
 		}
 		else
@@ -468,12 +468,12 @@ void WCSimGeometryHelper::SetWallZones(rapidxml::xml_node<> * parentNode)
 	  {
 	  	std::vector<std::string> uniquePMTs;
 	  	rapidxml::xml_node<> * unitCellNode = GetUnitCellNode(uniquePMTs);
+	  	regionNode->append_node(unitCellNode);
 	  	for(unsigned int i = 0; i < uniquePMTs.size(); ++i)
 	  	{
 	  		rapidxml::xml_node<> * pmtLimitNode = GetPMTLimitNode(uniquePMTs.at(i));
-	  		unitCellNode->append_node(pmtLimitNode);
+	  		regionNode->append_node(pmtLimitNode);
 	  	}
-	  	regionNode->append_node(unitCellNode);
 
 	  }
 	  else
@@ -765,9 +765,10 @@ rapidxml::xml_node<> * WCSimGeometryHelper::GetPMTLimitNode(const std::string &n
 	int limit = AskPositiveInteger();
 	std::stringstream ss;
 	ss << limit;
+  std::string * limitStr = new std::string(ss.str());
 	rapidxml::xml_node<> * pmtLimitNode = fDoc.allocate_node(rapidxml::node_element, "pmtLimit");
 	rapidxml::xml_node<> * nameNode = fDoc.allocate_node(rapidxml::node_element, "name", name.c_str());
-	rapidxml::xml_node<> * limitNode = fDoc.allocate_node(rapidxml::node_element, "limit", ss.str().c_str());
+	rapidxml::xml_node<> * limitNode = fDoc.allocate_node(rapidxml::node_element, "limit", limitStr->c_str());
 
 	pmtLimitNode->append_node(nameNode);
 	pmtLimitNode->append_node(limitNode);

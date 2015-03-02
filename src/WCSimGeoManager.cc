@@ -305,7 +305,7 @@ void WCSimGeoManager::FillPMTLimit(WCSimGeoConfig& geo,
 		rapidxml::xml_node<>* node)
 {
 	rapidxml::xml_node<> *nameNode = node->first_node("name");
-	rapidxml::xml_node<> *limitNode = node->first_node("zoneLimit");
+	rapidxml::xml_node<> *limitNode = node->first_node("limit");
 	assert(nameNode != NULL && limitNode != NULL);
 
 	if(nameNode && limitNode)
