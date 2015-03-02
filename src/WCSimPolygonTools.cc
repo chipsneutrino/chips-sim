@@ -202,7 +202,13 @@ namespace WCSimPolygonTools {
 
   double GetSliceAreaFromAngles(unsigned int nSides, double outerRadius, double startAngle, double endAngle)
   {
-     return GetAreaFromRadius(nSides, outerRadius) * (fmod((endAngle-startAngle) / 2*TMath::Pi(), 1.0));
+     double diff = (endAngle - startAngle);
+     if( (startAngle - endAngle) > (2*TMath::Pi()) ) 
+     {
+       diff = fmod(diff, 2*TMath::Pi());
+     }
+
+     return GetAreaFromRadius(nSides, outerRadius) * diff / (2*TMath::Pi());
 
      double area = 0.0;
      

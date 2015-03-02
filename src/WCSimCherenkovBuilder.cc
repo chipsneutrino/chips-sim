@@ -696,8 +696,7 @@ void WCSimCherenkovBuilder::GetMeasurements()
     fPrismRingSegmentBSHeight.resize(fGeoConfig->GetNSides());
     for(unsigned int iZone = 0; iZone < fGeoConfig->GetNumZones(WCSimGeometryEnums::DetectorRegion_t::kWall); ++iZone)
     {
-      std::cout << "ATTENTION: Setting fPrismRingHeight for wall zone " << iZone << std::endl;
-      std::cout << "I think there are " << fWallCellsZ.at(iZone) << " wall cells in zone " << iZone << std::endl;
+      // std::cout << "I think there are " << fWallCellsZ.at(iZone) * fWallCellsX.at(iZone) << " wall cells in zone " << iZone << std::endl;
     	fPrismRingHeight.at(iZone) = fPrismHeight / fWallCellsZ.at(iZone);
     	fPrismRingSegmentHeight.at(iZone) = fPrismRingHeight.at(iZone) - epsilon;
     	fPrismRingSegmentBSHeight.at(iZone) = fPrismRingSegmentHeight.at(iZone) - epsilon;
@@ -887,7 +886,7 @@ double WCSimCherenkovBuilder::GetOptimalEndcapCellSize(WCSimGeometryEnums::Detec
   }
   else
   {
-    std::cerr << "Error: GetOptimalEndcapCellSize mut only process kTop and kBottom regions" << std::endl;
+    std::cerr << "Error: GetOptimalEndcapCellSize must only process kTop and kBottom regions" << std::endl;
     assert(kFALSE);
   }
 	
@@ -930,6 +929,13 @@ double WCSimCherenkovBuilder::GetOptimalEndcapCellSize(WCSimGeometryEnums::Detec
 																	fGeoConfig->GetZoneThetaStart(region, zoneNum),
 																	fGeoConfig->GetZoneThetaEnd(region, zoneNum))
 							  / endcapCell.GetPhotocathodeArea());
+	    std::cout << "Finding coverage for region " << region.AsString() << ", zone " << zoneNum << " = " << targetCoverage << std::endl;
+      std::cout << "Target coverage = " << targetCoverage << " with a cell containing " << endcapCell.GetNumPMTs() << " PMTs" << std::endl;
+      std::cout << "Cell photocathode area = " << endcapCell.GetPhotocathodeArea() << " so we need " ;
+      std::cout << maxNumCells << " to cover a zone area of " << WCSimPolygonTools::GetSliceAreaFromAngles(fGeoConfig->GetNSides(),
+																	                                  fGeoConfig->GetOuterRadius(),
+																	                                  fGeoConfig->GetZoneThetaStart(region, zoneNum),
+																	                                  fGeoConfig->GetZoneThetaEnd(region, zoneNum)) << std::endl;
 
 		}
 		else{
@@ -1064,10 +1070,12 @@ double WCSimCherenkovBuilder::GetOptimalEndcapCellSize(WCSimGeometryEnums::Detec
     if(sinceImprovement > 10){ break; }
   }
 
+
+  std::cout << "Setting endcapCellSize->at(" << zoneNum << ") = " << bestSide << std::endl;
+  endcapCellSize->at(zoneNum) = bestSide;
   if( fGeoConfig->GetLimitPMTNumber() )
   {
     std::cout << "bestNumCells = " << bestNumCells << " (maxNumCells = " << maxNumCells << ") - chosen on iteration " << bestIter << " side = " << bestSide << std::endl << std::endl;
-    endcapCellSize->at(zoneNum) = bestSide;
   }
   else
   {
@@ -1582,6 +1590,12 @@ void WCSimCherenkovBuilder::PlaceEndCapPMTs(G4int zflip){
 	  	cellSizeVec = &(fBottomCellSize);
 	  }
 
+    std::cout << "Cell sizes for region " << region.AsString() << std::endl;
+    for(unsigned int i = 0; i < cellSizeVec->size(); ++i)
+    {
+      std::cout << "zone " << i << " size = " << cellSizeVec->at(i) << std::endl;
+    }
+
 
 //    G4cout << "G4cout capLogic again" << capLogic << std::endl;
 //    G4cout << "capLogic top = " << fCapLogicTop << "  and bottom ... " << fCapLogicBottom << std::endl;
@@ -1595,6 +1609,7 @@ void WCSimCherenkovBuilder::PlaceEndCapPMTs(G4int zflip){
 
     for( unsigned int iZone = 0; iZone < fGeoConfig->GetNumZones(region); ++iZone)
     {
+      std::cout << "Placing zone " << iZone << std::endl;
       placedTop.push_back(0);
 
 		// Angled walls mean squares don't tile very well
@@ -1612,19 +1627,23 @@ void WCSimCherenkovBuilder::PlaceEndCapPMTs(G4int zflip){
   	    double thetaStart = fGeoConfig->GetZoneThetaStart(region, iZone);
   	    double thetaEnd = fGeoConfig->GetZoneThetaEnd(region, iZone);
 		    G4double squareSide = 2.0 * capPolygonOuterRadius;
+        assert(cellSizeVec->at(iZone) > 0);
 		    G4double cellSide = cellSizeVec->at(iZone);
+        assert(cellSide > 1.0);
 
 		double xPos = 0.0;
 		while (xPos < squareSide) {
 			double yPos = 0.0;
 			while (fabs(yPos) < squareSide) {
+
+        // std::cout << "xPos = " << xPos << "  yPos = " << yPos << "   cellSide = " << cellSide << std::endl;
 				G4TwoVector centreToTopLeftSquare = G4TwoVector(-0.5 * squareSide, 0.5 * squareSide);
 				G4TwoVector topLeftCell = G4TwoVector(xPos, -yPos) + centreToTopLeftSquare;
 			  G4TwoVector topRightCell     = G4TwoVector(xPos+cellSide, -yPos) + centreToTopLeftSquare;
 			  G4TwoVector bottomLeftCell     = G4TwoVector(xPos, -yPos-cellSide) + centreToTopLeftSquare;
 			  G4TwoVector bottomRightCell     = G4TwoVector(xPos+cellSide, -yPos-cellSide) + centreToTopLeftSquare;
-//			std::cout << "centreToTopLeftSquare = " << centreToTopLeftSquare << std::endl;
-//						  << "topLeftCell = " << topLeftCell << std::endl;
+			  // std::cout << "centreToTopLeftSquare = " << centreToTopLeftSquare << std::endl;
+				// << "topLeftCell = " << topLeftCell << std::endl;
 
 				bool cellInPolygonSlice = true;
 				for (unsigned int iPMT = 0; iPMT < pmtNames.size(); ++iPMT) {
@@ -1683,7 +1702,7 @@ void WCSimCherenkovBuilder::PlaceEndCapPMTs(G4int zflip){
               // std::cout << "PMT position in cell = " << pmtCellPosition.x() / m << "," << pmtCellPosition.y() / m << "in m" << std::endl;
               // std::cout << "Cell size = " << cellSizeVec->at(iZone) << std::endl;// pmtCellPosition.x() << "," << pmtCellPosition.y() << std::endl;
               // std::cout << "PMT logical volume name = " << fPMTBuilder.GetPMTLogicalVolume(config)->GetName() << std::endl;
-              // std::cout << "Placed endcap PMT!" << std::endl;
+              //  std::cout << "Placed endcap PMT!  Have now placed " << fNumPMTs+1 << std::endl;
 							}
 							fNumPMTs++;
               placedTop.at(iZone)++;
