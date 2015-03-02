@@ -88,6 +88,19 @@ void WCSimGeoManager::FillGeoAttribute(WCSimGeoConfig &geo, rapidxml::xml_attrib
   else if(name == "coverageType"){
     geo.SetCoverageType(ss.str());
   }
+  else if(name == "coverage"){
+		double coverage = 0.0;
+		ss >> coverage;
+		if(coverage > 1.0)
+		{
+			std::cout << "Warning: You've asked for coverage of " << coverage << " which is greater than 1" << std::endl
+					      << "         I'm going to assume you meant that as a percentage and set the fractional coverage to " << coverage/100. << std::endl;
+			coverage = coverage / 100.;
+    }
+    std::cout << "Setting overall coverage in this geometry to " << coverage * 100.0 << " percent" << std::endl;
+    geo.SetOverallCoverage(coverage * 100.0);
+  }
+
 	else{
 		std::cerr << "WCSimGeoManager::FillGeoAttribute: Unexpected parameter " << attr->name() << ", " << attr->value() << std::endl;
 	}
@@ -162,70 +175,72 @@ void WCSimGeoManager::FillRegion(WCSimGeoConfig& geo,
 
 void WCSimGeoManager::FillCell(WCSimGeoConfig& geo, rapidxml::xml_node<>* node)
 {
-	rapidxml::xml_node<> *nameNode = node->first_node("name");
-	rapidxml::xml_node<> *xPosNode = node->first_node("posX");
-	rapidxml::xml_node<> *yPosNode = node->first_node("posY");
-	rapidxml::xml_node<> *faceNode = node->first_node("face");
+	for(rapidxml::xml_node<> *childNode = node->first_node("PMT"); childNode; childNode = childNode->next_sibling("PMT") ){
+	  rapidxml::xml_node<> *nameNode = childNode->first_node("name");
+	  rapidxml::xml_node<> *xPosNode = childNode->first_node("posX");
+	  rapidxml::xml_node<> *yPosNode = childNode->first_node("posY");
+	  rapidxml::xml_node<> *faceNode = childNode->first_node("face");
 
-	assert(nameNode != NULL && xPosNode != NULL && yPosNode != NULL && faceNode != NULL);
+	  assert(nameNode != NULL && xPosNode != NULL && yPosNode != NULL && faceNode != NULL);
 
-	if(nameNode)
-	{
-		std::string nodeVal = nameNode->value();
-		geo.AddCellPMTName(nodeVal);
-	}
+	  if(nameNode)
+	  {
+	  	std::string nodeVal = nameNode->value();
+	  	geo.AddCellPMTName(nodeVal);
+	  }
 
-	if(xPosNode)
-	{
-		std::stringstream ss;
-		ss << xPosNode->value();
-		double posX = 0.0;
-		ss >> posX;
-		geo.AddCellPMTX(posX*m);
-	}
+	  if(xPosNode)
+	  {
+	  	std::stringstream ss;
+	  	ss << xPosNode->value();
+	  	double posX = 0.0;
+	  	ss >> posX;
+	  	geo.AddCellPMTX(posX*m);
+	  }
 
-	if( yPosNode )
-	{
-		std::stringstream ss;
-		ss << yPosNode->value();
-		ss << yPosNode->value();
-		double posY = 0.0;
-		ss >> posY;
-		geo.AddCellPMTY(posY*m);
-	}
+	  if( yPosNode )
+	  {
+	  	std::stringstream ss;
+	  	ss << yPosNode->value();
+	  	ss << yPosNode->value();
+	  	double posY = 0.0;
+	  	ss >> posY;
+	  	geo.AddCellPMTY(posY*m);
+	  }
 
-	if( faceNode )
-	{
-		rapidxml::xml_node<> *typeNode = faceNode->first_node("type");
-		rapidxml::xml_node<> *thetaNode = faceNode->first_node("theta");
-		rapidxml::xml_node<> *phiNode = faceNode->first_node("phi");
-		assert( (typeNode != NULL) );
-		assert( (thetaNode != NULL && phiNode != NULL) || geo.CanBuildWithoutAngles(std::string(typeNode->value())) );
+	  if( faceNode )
+	  {
+	  	rapidxml::xml_node<> *typeNode = faceNode->first_node("type");
+	  	rapidxml::xml_node<> *thetaNode = faceNode->first_node("theta");
+	  	rapidxml::xml_node<> *phiNode = faceNode->first_node("phi");
+	  	assert( (typeNode != NULL) );
+	  	assert( (thetaNode != NULL && phiNode != NULL) || geo.CanBuildWithoutAngles(std::string(typeNode->value())) );
 
-		if( typeNode )
-		{
-			std::string faceType = typeNode->value();
-			geo.AddCellPMTFaceType(faceType);
+	  	if( typeNode )
+	  	{
+	  		std::string faceType = typeNode->value();
+	  		geo.AddCellPMTFaceType(faceType);
 
-			double faceTh = -999.9;
-			double facePhi = -999.9;
-			if( thetaNode != NULL && phiNode != NULL )
-			{
-				{
-					std::stringstream ss;
-					ss << thetaNode->value();
-					ss >> faceTh;
+	  		double faceTh = -999.9;
+	  		double facePhi = -999.9;
+	  		if( thetaNode != NULL && phiNode != NULL )
+	  		{
+	  			{
+	  				std::stringstream ss;
+	  				ss << thetaNode->value();
+	  				ss >> faceTh;
 
-					ss.clear();
-					ss.str( std::string() );
-					ss << phiNode->value();
-					ss >> facePhi;
-				}
-			}
-			geo.AddCellPMTFaceTheta(faceTh);
-			geo.AddCellPMTFacePhi(facePhi);
-		}
-	}
+	  				ss.clear();
+	  				ss.str( std::string() );
+	  				ss << phiNode->value();
+	  				ss >> facePhi;
+	  			}
+	  		}
+	  		geo.AddCellPMTFaceTheta(faceTh);
+	  		geo.AddCellPMTFacePhi(facePhi);
+	  	}
+	  }
+  }
 }
 
 
