@@ -697,6 +697,7 @@ void WCSimCherenkovBuilder::GetMeasurements()
     for(unsigned int iZone = 0; iZone < fGeoConfig->GetNumZones(WCSimGeometryEnums::DetectorRegion_t::kWall); ++iZone)
     {
       // std::cout << "I think there are " << fWallCellsZ.at(iZone) * fWallCellsX.at(iZone) << " wall cells in zone " << iZone << std::endl;
+      std::cout << "I think there are " << fWallCellsZ.at(iZone) << " wall cells in zone " << iZone << std::endl;
     	fPrismRingHeight.at(iZone) = fPrismHeight / fWallCellsZ.at(iZone);
     	fPrismRingSegmentHeight.at(iZone) = fPrismRingHeight.at(iZone) - epsilon;
     	fPrismRingSegmentBSHeight.at(iZone) = fPrismRingSegmentHeight.at(iZone) - epsilon;
