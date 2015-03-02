@@ -18,6 +18,9 @@ namespace WCSimPolygonTools {
   bool PolygonContains(unsigned int nSides, double outerRadius, G4TwoVector point) {
     // We have a regular polygon which means we don't need to do raytracing or winding numbers
     assert(CheckPolygon( nSides, outerRadius )); 
+    point.rotate(-M_PI/nSides); // Coordinates in Geant start the polygon with the middle of a 
+                                // side at phi = 0 but this algorithm assumes there's a corner
+                                // there - need to rotate by half a side
     
     double innerRadius = outerRadius * cos(M_PI/nSides);
 //     if( point.x() * point.x() + point.y() * point.y() <= innerRadius * innerRadius ) { return true; } // Point is inside the circle described by middle of the sides
@@ -36,9 +39,9 @@ namespace WCSimPolygonTools {
 
     // std::cout << "Point = (" << point.x() << "," << point.y() << std::endl;
     double angleToPoint = point.phi();
-    angleToPoint = (angleToPoint > 0.0) ? angleToPoint : angleToPoint + 2 * M_PI;
+    angleToPoint = (angleToPoint > 0 / nSides) ? angleToPoint : angleToPoint + 2 * M_PI;
     // std::cout << std::endl << "angleToPoint = " << angleToPoint << std::endl;
-    int whichSide = (int)floor(angleToPoint * nSides / (2 * M_PI)) % nSides; // The appropriate side joins whichSide and whichSide+1
+    int whichSide = (int)floor((angleToPoint) * nSides / (2 * M_PI)) % nSides; // The appropriate side joins whichSide and whichSide+1
     // std::cout << "whichSide = " << whichSide << std::endl;
 
     // Line containing our point and the origin: y = mPoint * x + cPoint, cPoint = 0
@@ -51,6 +54,20 @@ namespace WCSimPolygonTools {
     // Intersect where these two functions for y are the same:
     double intersectX = cSide / (mPoint - mSide);
     double intersectY = mPoint * intersectX;
+
+    /* 
+     * bool contained = ((intersectX * intersectX + intersectY * intersectY) >= (point.x() * point.x() + point.y() * point.y())); // Is the point before the intersection?
+     * if( contained && point.r() > outerRadius)
+     * {
+     * 	std::cout << "Point is (" << tmpPoint.x() << "," << tmpPoint.y() << ") which rotates to (" << point.x() << "," << point.y() << ")" << std::endl;
+     * 	std::cout << "angleToPoint = " << angleToPoint << " so whichSide = " << whichSide << " and mSide = " << mSide << ", cSide = " << cSide << std::endl;
+     * 	std::cout << "side " << whichSide << " goes from " << vertX.at(whichSide) << "," << vertY.at(whichSide) << ") to (" << vertX.at((whichSide+1) % nSides) << "," << vertY.at((whichSide+1) % nSides) << ")" << std::endl;
+     * 	std::cout << "mPoint = " << mPoint << std::endl;
+     * 	std::cout << "So intersects at (" << intersectX << ", " << intersectY << ") - radius here = " << sqrt((intersectX * intersectX + intersectY * intersectY)) << std::endl << std::endl;
+
+     * }
+     */
+
 
     return ((intersectX * intersectX + intersectY * intersectY) >= (point.x() * point.x() + point.y() * point.y())); // Is the point before the intersection?
   }
