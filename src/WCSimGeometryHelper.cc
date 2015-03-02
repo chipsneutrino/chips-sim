@@ -12,8 +12,6 @@
 #include <iostream>
 #include <sstream>
 #include <math.h>
-#include <fstream>
-#include <TString.h>
 
 WCSimGeometryHelper::WCSimGeometryHelper()
 {
@@ -34,24 +32,23 @@ void WCSimGeometryHelper::Run()
 
 	while(MakeGeometry())
 	{
-    fDoc.clear();
 		rapidxml::xml_node<> *detector = fDoc.allocate_node(rapidxml::node_element, "geoDef", "");
 
-		const char * nameStr = fDoc.allocate_string((GetName()).c_str());
-		rapidxml::xml_attribute<> *nameAttr = fDoc.allocate_attribute("name", nameStr);
+		std::string * name = new std::string(GetName());
+		rapidxml::xml_attribute<> *nameAttr = fDoc.allocate_attribute("name", name->c_str());
 
-		const char * innerRadius = fDoc.allocate_string((GetInnerRadius()).c_str());
-		rapidxml::xml_attribute<> *innerRadiusAttr = fDoc.allocate_attribute("innerRadius", innerRadius);
+		std::string * innerRadius = new std::string(GetInnerRadius());
+		rapidxml::xml_attribute<> *innerRadiusAttr = fDoc.allocate_attribute("innerRadius", innerRadius->c_str());
 
-		const char * innerHeight = fDoc.allocate_string((GetInnerHeight()).c_str());
+		std::string * innerHeight = new std::string(GetInnerHeight());
 
-		rapidxml::xml_attribute<> *innerHeightAttr = fDoc.allocate_attribute("innerHeight", innerHeight);
+		rapidxml::xml_attribute<> *innerHeightAttr = fDoc.allocate_attribute("innerHeight", innerHeight->c_str());
 
-		const char * nSides = fDoc.allocate_string((GetNSides()).c_str());
-		rapidxml::xml_attribute<> *nSidesAttr = fDoc.allocate_attribute("nSides", nSides);
+		std::string * nSides = new std::string(GetNSides());
+		rapidxml::xml_attribute<> *nSidesAttr = fDoc.allocate_attribute("nSides", nSides->c_str());
 
-		const char * coverageType = fDoc.allocate_string((GetCoverageType()).c_str());
-		rapidxml::xml_attribute<> *coverageTypeAttr = fDoc.allocate_attribute("coverageType", coverageType);
+		std::string * coverageType = new std::string(GetCoverageType());
+		rapidxml::xml_attribute<> *coverageTypeAttr = fDoc.allocate_attribute("coverageType", coverageType->c_str());
 
 		detector->append_attribute(nameAttr);
 		detector->append_attribute(innerRadiusAttr);
@@ -59,10 +56,10 @@ void WCSimGeometryHelper::Run()
 		detector->append_attribute(nSidesAttr);
 		detector->append_attribute(coverageTypeAttr);
 
-		if( std::string(coverageType) == WCSimGeometryEnums::PhotodetectorLimit_t::AsString(WCSimGeometryEnums::PhotodetectorLimit_t::kPercentCoverage))
+		if( *coverageType == WCSimGeometryEnums::PhotodetectorLimit_t::AsString(WCSimGeometryEnums::PhotodetectorLimit_t::kPercentCoverage))
 		{
-			const char * coverage = fDoc.allocate_string((GetCoverage()).c_str());
-			rapidxml::xml_attribute<> *coverageAttr = fDoc.allocate_attribute("coverage", coverage);
+			std::string * coverage = new std::string(GetCoverage());
+			rapidxml::xml_attribute<> *coverageAttr = fDoc.allocate_attribute("coverage", coverage->c_str());
 			detector->append_attribute(coverageAttr);
 		}
 
@@ -273,40 +270,40 @@ void WCSimGeometryHelper::SetCapZones(bool isTop, rapidxml::xml_node<> * parentN
 		}
 		else if( fCoverageType == WCSimGeometryEnums::PhotodetectorLimit_t::kZonalCoverage)
 		{
-			const char * coverage = fDoc.allocate_string((GetCoverage()).c_str());
-			rapidxml::xml_node<> * coverageNode = fDoc.allocate_node(rapidxml::node_element, "coverage", coverage);
+			std::string * coverage = new std::string(GetCoverage());
+			rapidxml::xml_node<> * coverageNode = fDoc.allocate_node(rapidxml::node_element, "coverage", coverage->c_str());
 			regionNode->append_node(coverageNode);
 		}
     else if( fCoverageType == WCSimGeometryEnums::PhotodetectorLimit_t::kPercentCoverage)
     {
       std::stringstream ss;
       ss << fPercentCoverage;
-	  	const char * coverage = fDoc.allocate_string((ss.str()).c_str());
-	  	rapidxml::xml_node<> * coverageNode = fDoc.allocate_node(rapidxml::node_element, "coverage", coverage);
+	  	std::string * coverage = new std::string(ss.str());
+	  	rapidxml::xml_node<> * coverageNode = fDoc.allocate_node(rapidxml::node_element, "coverage", coverage->c_str());
 	  	regionNode->append_node(coverageNode);
     }
     
     std::stringstream ssRegion;
     ssRegion << region;
-    const char * regionStr = fDoc.allocate_string((ssRegion.str()).c_str());
-		rapidxml::xml_node<> * locationNode = fDoc.allocate_node(rapidxml::node_element, "location",regionStr);
+    std::string * regionStr = new std::string(ssRegion.str());
+		rapidxml::xml_node<> * locationNode = fDoc.allocate_node(rapidxml::node_element, "location",regionStr->c_str());
 		regionNode->append_node(locationNode);
 
 		std::stringstream ss;
 		ss << i;
-		const char * zoneStr = fDoc.allocate_string((ss.str()).c_str());
-    rapidxml::xml_node<>  * zoneNode = fDoc.allocate_node(rapidxml::node_element,"zone", zoneStr);
+		std::string * zoneStr = new std::string(ss.str());
+    rapidxml::xml_node<>  * zoneNode = fDoc.allocate_node(rapidxml::node_element,"zone", zoneStr->c_str());
 
 
 		std::stringstream ssStart;
     ssStart << boundaries.at(i).first;
-		const char * startStr = fDoc.allocate_string((ssStart.str()).c_str());
-		rapidxml::xml_node<> * startNode = fDoc.allocate_node(rapidxml::node_element,"startAngle", startStr);
+		std::string * startStr = new std::string(ssStart.str());
+		rapidxml::xml_node<> * startNode = fDoc.allocate_node(rapidxml::node_element,"startAngle", startStr->c_str());
 
 		std::stringstream ssEnd;
 		ssEnd << boundaries.at(i).second;
-		const char * endStr = fDoc.allocate_string((ssEnd.str()).c_str());
-		rapidxml::xml_node<> * endNode = fDoc.allocate_node(rapidxml::node_element,"endAngle", endStr);
+		std::string * endStr = new std::string(ssEnd.str());
+		rapidxml::xml_node<> * endNode = fDoc.allocate_node(rapidxml::node_element,"endAngle", endStr->c_str());
 
 		regionNode->append_node(zoneNode);
 		regionNode->append_node(startNode);
@@ -317,12 +314,12 @@ void WCSimGeometryHelper::SetCapZones(bool isTop, rapidxml::xml_node<> * parentN
 		{
 			std::vector<std::string> uniquePMTs;
 			rapidxml::xml_node<> * unitCellNode = GetUnitCellNode(uniquePMTs);
-			regionNode->append_node(unitCellNode);
 			for(unsigned int i = 0; i < uniquePMTs.size(); ++i)
 			{
 				rapidxml::xml_node<> * pmtLimitNode = GetPMTLimitNode(uniquePMTs.at(i));
-				regionNode->append_node(pmtLimitNode);
+				unitCellNode->append_node(pmtLimitNode);
 			}
+			regionNode->append_node(unitCellNode);
 
 		}
 		else
@@ -437,31 +434,31 @@ void WCSimGeometryHelper::SetWallZones(rapidxml::xml_node<> * parentNode)
 	  }
 	  else if( fCoverageType == WCSimGeometryEnums::PhotodetectorLimit_t::kZonalCoverage)
 	  {
-	  	const char * coverage = fDoc.allocate_string((GetCoverage()).c_str());
-	  	rapidxml::xml_node<> * coverageNode = fDoc.allocate_node(rapidxml::node_element, "coverage", coverage);
+	  	std::string * coverage = new std::string(GetCoverage());
+	  	rapidxml::xml_node<> * coverageNode = fDoc.allocate_node(rapidxml::node_element, "coverage", coverage->c_str());
 	  	regionNode->append_node(coverageNode);
 	  }
     else if( fCoverageType == WCSimGeometryEnums::PhotodetectorLimit_t::kPercentCoverage)
     {
       std::stringstream ss;
       ss << fPercentCoverage;
-	  	const char * coverage = fDoc.allocate_string((ss.str()).c_str());
-	  	rapidxml::xml_node<> * coverageNode = fDoc.allocate_node(rapidxml::node_element, "coverage", coverage);
+	  	std::string * coverage = new std::string(ss.str());
+	  	rapidxml::xml_node<> * coverageNode = fDoc.allocate_node(rapidxml::node_element, "coverage", coverage->c_str());
 	  	regionNode->append_node(coverageNode);
     }
     
     std::stringstream ssRegion;
     ssRegion << region;
-    const char * regionStr = fDoc.allocate_string((ssRegion.str()).c_str());
-	  rapidxml::xml_node<> * locationNode = fDoc.allocate_node(rapidxml::node_element, "location",regionStr);
+    std::string * regionStr = new std::string(ssRegion.str());
+	  rapidxml::xml_node<> * locationNode = fDoc.allocate_node(rapidxml::node_element, "location",regionStr->c_str());
 	  regionNode->append_node(locationNode);
 
 	  for(unsigned int kZone = 0; kZone < zonesToSet.size(); ++kZone)
     {
       std::stringstream ss;
 	    ss << zonesToSet.at(kZone);
-	    const char * zoneStr = fDoc.allocate_string((ss.str()).c_str());
-      rapidxml::xml_node<>  * zoneNode = fDoc.allocate_node(rapidxml::node_element,"zone", zoneStr);
+	    std::string * zoneStr = new std::string(ss.str());
+      rapidxml::xml_node<>  * zoneNode = fDoc.allocate_node(rapidxml::node_element,"zone", zoneStr->c_str());
 	    regionNode->append_node(zoneNode);
     }
 
@@ -469,12 +466,12 @@ void WCSimGeometryHelper::SetWallZones(rapidxml::xml_node<> * parentNode)
 	  {
 	  	std::vector<std::string> uniquePMTs;
 	  	rapidxml::xml_node<> * unitCellNode = GetUnitCellNode(uniquePMTs);
-	  	regionNode->append_node(unitCellNode);
 	  	for(unsigned int i = 0; i < uniquePMTs.size(); ++i)
 	  	{
 	  		rapidxml::xml_node<> * pmtLimitNode = GetPMTLimitNode(uniquePMTs.at(i));
-	  		regionNode->append_node(pmtLimitNode);
+	  		unitCellNode->append_node(pmtLimitNode);
 	  	}
+	  	regionNode->append_node(unitCellNode);
 
 	  }
 	  else
@@ -493,54 +490,6 @@ void WCSimGeometryHelper::SetWallZones(rapidxml::xml_node<> * parentNode)
 
 void WCSimGeometryHelper::SaveGeometry()
 {
-  std::ofstream file;
-  std::cout << "Would you like to save this geometry to an xml file?" << std::endl;
-  bool saveIt = AskYesNo();
-  bool overwrite = false;
-  if(saveIt)
-  {
-    bool goodFile = false;
-    TString filename("");
-    do
-    {
-      std::cout << "Enter name of file where the geometry should be saved (without the .xml):" << std::endl;
-      filename = TString(AskString().c_str());
-      filename.ReplaceAll(".xml","");
-      filename.Append(".xml");
-      ifstream infile(filename.Data());
-      if(!infile.good())
-      {
-        goodFile = true;
-      }
-      else
-      {
-        std::cout << "File exists.  Write anyway? " << std::endl;
-        goodFile = AskYesNo();
-        if(goodFile)
-        {
-          std::cout << "Would you like to overwrite or append to it?" << std::endl;
-          std::vector<std::string> options;
-          options.push_back(std::string("Overwrite it"));
-          options.push_back(std::string("Append to it"));
-          std::string choice = AskOptionString(options);
-          if(choice == "Overwrite it"){ overwrite = true; }
-          else{ overwrite = false; }
-
-        }
-      }
-    }while( !goodFile);
-    
-    std::cout << "Saving geometry to " << filename << std::endl;
-
-    if(overwrite){ file.open(filename.Data()); }
-    else{ file.open(filename.Data(), std::ios::app); }
-
-    if( file.is_open() )
-    {
-      file << fDoc;
-      file.close();
-    }
-  }
 }
 
 std::string WCSimGeometryHelper::GetName()
@@ -718,28 +667,28 @@ rapidxml::xml_node<>* WCSimGeometryHelper::GetUnitCellNode(
     rapidxml::xml_node<> * pmtNode = fDoc.allocate_node(rapidxml::node_element,"PMT");
 
 		std::cout << "Enter the name of PMT number " << i << std::endl;
-		const char * name = fDoc.allocate_string((AskString()).c_str());
-		rapidxml::xml_node<> * nameNode = fDoc.allocate_node(rapidxml::node_element,"name", name);
+		std::string * name = new std::string(AskString());
+		rapidxml::xml_node<> * nameNode = fDoc.allocate_node(rapidxml::node_element,"name", name->c_str());
 
-		if( std::find(uniquePMTs.begin(), uniquePMTs.end(), std::string(name)) == uniquePMTs.end())
+		if( std::find(uniquePMTs.begin(), uniquePMTs.end(), *name) == uniquePMTs.end())
 		{
-			uniquePMTs.push_back(std::string(name));
+			uniquePMTs.push_back(*name);
 		}
 
 		std::cout << "Enter the PMT x-coordinate within the cell" << std::endl;
-		const char * pmtX = fDoc.allocate_string((AskDoubleStr(0,1.0)).c_str());
-		rapidxml::xml_node<> * xNode = fDoc.allocate_node(rapidxml::node_element,"posX", pmtX);
+		std::string * pmtX = new std::string(AskDoubleStr(0,1.0));
+		rapidxml::xml_node<> * xNode = fDoc.allocate_node(rapidxml::node_element,"posX", pmtX->c_str());
 
 		std::cout << "Enter the PMT y-coordinate within the cell" << std::endl;
-		const char * pmtY = fDoc.allocate_string((AskDoubleStr(0,1.0)).c_str());
-		rapidxml::xml_node<> * yNode = fDoc.allocate_node(rapidxml::node_element,"posY", pmtY);
+		std::string * pmtY = new std::string(AskDoubleStr(0,1.0));
+		rapidxml::xml_node<> * yNode = fDoc.allocate_node(rapidxml::node_element,"posY", pmtY->c_str());
 
 
 		std::cout << "In what direction would you like this PMT to face?" << std::endl;
 		std::vector<std::string> options = WCSimGeometryEnums::PMTDirection_t::GetAllTypeNames();
-		const char * faceType = fDoc.allocate_string((AskOptionString(options)).c_str());
+		std::string * faceType = new std::string(AskOptionString(options));
 		rapidxml::xml_node<> * faceNode = fDoc.allocate_node(rapidxml::node_element,"face");
-		rapidxml::xml_node<> * faceTypeNode = fDoc.allocate_node(rapidxml::node_element,"type", faceType);
+		rapidxml::xml_node<> * faceTypeNode = fDoc.allocate_node(rapidxml::node_element,"type", faceType->c_str());
 
 
 		pmtNode->append_node(nameNode);
@@ -762,14 +711,13 @@ rapidxml::xml_node<>* WCSimGeometryHelper::GetUnitCellNode()
 
 rapidxml::xml_node<> * WCSimGeometryHelper::GetPMTLimitNode(const std::string &name)
 {
-	std::cout << "How many PMTs of type " << name << " are allowed in this zone?" << std::endl;
+	std::cout << "How many PMTs of type " << name << " are allowed in this zone?";
 	int limit = AskPositiveInteger();
 	std::stringstream ss;
 	ss << limit;
-  const char * limitStr = fDoc.allocate_string((ss.str()).c_str());
 	rapidxml::xml_node<> * pmtLimitNode = fDoc.allocate_node(rapidxml::node_element, "pmtLimit");
 	rapidxml::xml_node<> * nameNode = fDoc.allocate_node(rapidxml::node_element, "name", name.c_str());
-	rapidxml::xml_node<> * limitNode = fDoc.allocate_node(rapidxml::node_element, "limit", limitStr);
+	rapidxml::xml_node<> * limitNode = fDoc.allocate_node(rapidxml::node_element, "limit", ss.str().c_str());
 
 	pmtLimitNode->append_node(nameNode);
 	pmtLimitNode->append_node(limitNode);
