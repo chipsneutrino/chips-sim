@@ -103,7 +103,7 @@ void WCSimUnitCell::Print() const{
 }
 
 void WCSimUnitCell::AddPMT(const WCSimPMTConfig &pmt, double x, double y) {
-  std::cout << "x = " << x << " y = " << y << " 1m = " << 1*m  << std::endl;
+//  std::cout << "x = " << x << " y = " << y << " 1m = " << 1*m  << std::endl;
 	assert(0.0 * m < x && "x position must be greater than 0 (and < 1)");
 	assert(1.0 * m > x && "x position must be less than 1 (and > 0)");
 	assert(0.0 * m < y && "y position must be greater than 0 (and < 1)");
@@ -113,17 +113,13 @@ void WCSimUnitCell::AddPMT(const WCSimPMTConfig &pmt, double x, double y) {
 
 double WCSimUnitCell::GetPhotocathodeCoverage(double side) const {
 	double cellarea = side * side;
-	double cathodearea = 0.0;
-	for (std::vector<WCSimPMTPlacement>::const_iterator itr = fPMTs.begin();
-			itr != fPMTs.end(); ++itr) {
-		cathodearea += (*itr).GetPMTConfig().GetArea();
-	}
+	double cathodearea = this->GetPhotocathodeArea();
 	return cathodearea / cellarea;
 }
 
 double WCSimUnitCell::GetMinimumCellSize() const {
 	// Need the closest two PMTs to be separated by exactly the sum of their radii
-  std::cout << "fPMTs.size() = " << fPMTs.size() << std::endl;
+//  std::cout << "fPMTs.size() = " << fPMTs.size() << std::endl;
 	uint toCompare = fPMTs.size() / 2 + fPMTs.size() % 2;
 	// Need to compare each pair of PMTs so n/2 for even size, n/2 + 1 for odd
 
@@ -138,7 +134,7 @@ double WCSimUnitCell::GetMinimumCellSize() const {
 		WCSimPMTPlacement first = fPMTs.at(i);
 		for (uint j = i + 1; (j < fPMTs.size() && j != i); ++j) {
 			WCSimPMTPlacement second = fPMTs.at(j);
-      std::cout << "First radius = " << first.GetPMTRadius() << "  Second = " << second.GetPMTRadius() << std::endl;
+//      std::cout << "First radius = " << first.GetPMTRadius() << "  Second = " << second.GetPMTRadius() << std::endl;
 			// Is the distance between the PMTs less than the sum of their radii?
 			double distance = first.GetDistanceTo(&second);
 			double sumRadii = first.GetPMTRadius() + second.GetPMTRadius();
@@ -175,9 +171,16 @@ double WCSimUnitCell::GetMinimumCellSize() const {
 double WCSimUnitCell::GetCellSizeForCoverage(double coverage) const {
 	double minSize     = GetMinimumCellSize();
 	double maxCoverage = GetPhotocathodeCoverage(minSize);
-  std::cout << "minSize = " << minSize << std::endl;
-  std::cout << "maxCoverage = " << maxCoverage << std::endl;
-	assert( maxCoverage > coverage && std::cout << "Desired coverage is too large for unit cell - PMTs would overlap");
+	if( maxCoverage < coverage)
+	{
+		std::cerr << "Error: desired coverage is too large for unit cell - PMTs would overlap" << std::endl;
+		std::cerr << "\tDesired = " << coverage << "  Max = " << maxCoverage << std::endl;
+		assert( maxCoverage >= coverage);
+	}
+//	std::cout << "MinSize = " << minSize << std::endl;
+//	std::cout << "maxCoverage = " << maxCoverage << std::endl;
+//	std::cout << "desired coverage = " << coverage << std::endl;
+//	std::cout << "returning " << sqrt(maxCoverage / coverage) * minSize << std::endl;
 	return sqrt(maxCoverage / coverage) * minSize;
 }
 
@@ -214,4 +217,13 @@ double WCSimUnitCell::GetCellExposeHeight() const {
 		if( expose > maxExpose) { maxExpose = expose; }
 	}
 	return maxExpose;
+}
+
+double WCSimUnitCell::GetPhotocathodeArea() const
+{
+	double area = 0.0;
+	for(std::vector<WCSimPMTPlacement>::const_iterator pmtItr = fPMTs.begin(); pmtItr != fPMTs.end(); ++pmtItr){
+		area += pmtItr->GetPMTConfig().GetArea();
+	}
+	return area;
 }

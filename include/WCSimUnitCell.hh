@@ -84,6 +84,8 @@ public:
      */
     double GetPhotocathodeCoverage(double side) const;  // What fraction of a side x side square is PMT?
 
+    double GetPhotocathodeArea() const;
+
     /**
      * \brief Get the smalled possible square side length so that no PMTs 
      * overlap with each other or the edge of the cell

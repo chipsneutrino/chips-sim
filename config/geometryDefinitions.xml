@@ -1,84 +1,369 @@
-<?xml version="1.0" encoding="utf-8"?>
-
-<!--
-This is the config file that defines the different CHIPS geometries
-
-Parameters and descriptions:
-===========
-Main Detector (required)
-
-innerRadius
-  - Radius of the inner part of the detector in m
-innerHeight
-  - Height of the inner part of the detector in m
-nSides
-  - Number of sides of the regular polygon that makes up the cross-sectional
-    area of the detector
-
-PMT (required)
-
-pmtName1
-  - Name of the PMT (as named in pmtDefinitions.xml) to be used in the unit 
-    cells
-perCentCoverage
-  - The required percentage of the inner detector area to be covered with 
-    PMT photocathode.
-
-PMT (optional)
-
-pmtName2
-  - Name of an optional second PMT to be used in the unit cells
-pmtRatio
-  - Ratio of number of PMT1 to PMT2 per unit cell such that PMT1 is always
-    the most numerous PMT
--->
-
-<!-- CHIPS 25kt with 10% coverage of 10" HQE PMTs -->
+<!-- CHIPS pancake shape for staging,  with 10" HQE PMTs, fixed PMT numbers -->
 <geoDef
-	name="CHIPS_25kton_10inch_HQE_10perCent"
-	innerRadius="20"
-	innerHeight="20"
+	name="CHIPS_pancake_10inch_HQE_fixed"
+	innerRadius="15.0"
+	innerHeight="5.0"
 	nSides="20"
-	perCentCoverage="10">
-  <cellPMTDef
-   cellPMTName="10inch_HQE"
-   cellPMTX="0.5"
-   cellPMTY="0.5"
-  />
+  coverageType="kTotalNumber"
+	>
+  <region>
+		<coverage>100</coverage>
+		<location>kTop</location>
+		<location>kBottom</location>
+		<zone>0</zone>
+    <startAngle>-0.785398</startAngle>
+    <endAngle>0.785398</endAngle>
+		<cellPMTDef>
+   		<name>10inch_HQE</name>
+   		<posX>0.5</posX>
+   		<posY>0.5</posY>
+   		<face>
+				<type>kInwards</type>
+			</face>
+		</cellPMTDef>
+		<pmtLimit>
+			<name>10inch_HQE</name>
+			<zoneLimit>100</zoneLimit>
+		</pmtLimit>
+	</region>
+  <region>
+		<coverage>100</coverage>
+		<location>kTop</location>
+		<location>kBottom</location>
+		<zone>1</zone>
+    <startAngle>0.785399</startAngle>
+    <endAngle>2.356194</endAngle>
+		<cellPMTDef>
+   		<name>10inch_HQE</name>
+   		<posX>0.5</posX>
+   		<posY>0.5</posY>
+   		<face>
+				<type>kInwards</type>
+			</face>
+		</cellPMTDef>
+		<pmtLimit>
+			<name>10inch_HQE</name>
+			<zoneLimit>100</zoneLimit>
+		</pmtLimit>
+	</region>
+  <region>
+		<coverage>100</coverage>
+		<location>kTop</location>
+		<location>kBottom</location>
+		<zone>2</zone>
+    <startAngle>2.356195</startAngle>
+    <endAngle>3.9269908</endAngle>
+		<cellPMTDef>
+   		<name>10inch_HQE</name>
+   		<posX>0.5</posX>
+   		<posY>0.5</posY>
+   		<face>
+				<type>kInwards</type>
+			</face>
+		</cellPMTDef>
+		<pmtLimit>
+			<name>10inch_HQE</name>
+			<zoneLimit>100</zoneLimit>
+		</pmtLimit>
+	</region>
+  <region>
+		<coverage>100</coverage>
+		<location>kTop</location>
+		<location>kBottom</location>
+		<zone>3</zone>
+    <startAngle>3.9269909</startAngle>
+    <endAngle>5.497787143</endAngle>
+		<cellPMTDef>
+   		<name>10inch_HQE</name>
+   		<posX>0.5</posX>
+   		<posY>0.5</posY>
+   		<face>
+				<type>kInwards</type>
+			</face>
+		</cellPMTDef>
+		<pmtLimit>
+			<name>10inch_HQE</name>
+			<zoneLimit>100</zoneLimit>
+		</pmtLimit>
+	</region>
+  <region>
+		<coverage>100</coverage>
+		<location>kWall</location>
+		<zone>0</zone>
+		<zone>1</zone>
+		<zone>2</zone>
+		<zone>3</zone>
+		<zone>4</zone>
+		<zone>15</zone>
+		<zone>16</zone>
+		<zone>17</zone>
+		<zone>18</zone>
+		<zone>19</zone>
+		<cellPMTDef>
+   		<name>10inch_HQE</name>
+   		<posX>0.5</posX>
+   		<posY>0.5</posY>
+   		<face>
+				<type>kInwards</type>
+			</face>
+		</cellPMTDef>
+		<pmtLimit>
+			<name>10inch_HQE</name>
+			<zoneLimit>100</zoneLimit>
+		</pmtLimit>
+	</region>
+  <region>
+		<coverage>100</coverage>
+		<location>kWall</location>
+		<zone>5</zone>
+		<zone>6</zone>
+		<zone>7</zone>
+		<zone>8</zone>
+		<zone>9</zone>
+		<zone>10</zone>
+		<zone>11</zone>
+		<zone>12</zone>
+		<zone>13</zone>
+		<zone>14</zone>
+		<cellPMTDef>
+   		<name>10inch_HQE</name>
+   		<posX>0.5</posX>
+   		<posY>0.3</posY>
+   		<face>
+				<type>kInwards</type>
+			</face>
+		</cellPMTDef>
+		<cellPMTDef>
+   		<name>10inch_HQE</name>
+   		<posX>0.5</posX>
+   		<posY>0.7</posY>
+   		<face>
+				<type>kInwards</type>
+			</face>
+		</cellPMTDef>
+		<pmtLimit>
+			<name>10inch_HQE</name>
+			<zoneLimit>100</zoneLimit>
+		</pmtLimit>
+	</region>
 </geoDef>
 
-<!-- CHIPS 10kt with 10% coverage of 10" HQE PMTs - and a more complex PMT layout -->
+<!-- CHIPS pancake shape for staging,  with 10" HQE PMTs, varying PMT coverage -->
 <geoDef
-	name="CHIPS_10kton_2pmt"
-	innerRadius="12.5"
-	innerHeight="20"
+	name="CHIPS_pancake_10inch_HQE_varying"
+	innerRadius="15.0"
+	innerHeight="5.0"
 	nSides="20"
-	perCentCoverage="10">
-  <cellPMTDef
-   cellPMTName="10inch_HQE"
-   cellPMTX="0.2928932188"
-   cellPMTY="0.2928932188"
-  />
-  <cellPMTDef
-   cellPMTName="10inch_HQE"
-   cellPMTX="0.7071067812"
-   cellPMTY="0.7071067812"
-  />
+  coverageType="kZonalCoverage"
+	>
+  <region>
+		<coverage>10</coverage>
+		<location>kTop</location>
+		<location>kBottom</location>
+		<zone>0</zone>
+    <startAngle>-0.785398</startAngle>
+    <endAngle>0.785398</endAngle>
+		<cellPMTDef>
+   		<name>10inch_HQE</name>
+   		<posX>0.5</posX>
+   		<posY>0.5</posY>
+   		<face>
+				<type>kInwards</type>
+			</face>
+		</cellPMTDef>
+	</region>
+  <region>
+		<coverage>15</coverage>
+		<location>kTop</location>
+		<location>kBottom</location>
+		<zone>1</zone>
+    <startAngle>0.785399</startAngle>
+    <endAngle>2.35619</endAngle>
+		<cellPMTDef>
+   		<name>10inch_HQE</name>
+   		<posX>0.5</posX>
+   		<posY>0.5</posY>
+   		<face>
+				<type>kInwards</type>
+			</face>
+		</cellPMTDef>
+	</region>
+  <region>
+		<coverage>20</coverage>
+		<location>kTop</location>
+		<location>kBottom</location>
+		<zone>2</zone>
+    <startAngle>2.35620</startAngle>
+    <endAngle>3.9269908</endAngle>
+		<cellPMTDef>
+   		<name>10inch_HQE</name>
+   		<posX>0.5</posX>
+   		<posY>0.5</posY>
+   		<face>
+				<type>kInwards</type>
+			</face>
+		</cellPMTDef>
+	</region>
+  <region>
+		<coverage>15</coverage>
+		<location>kTop</location>
+		<location>kBottom</location>
+		<zone>3</zone>
+    <startAngle>3.9269909</startAngle>
+    <endAngle>5.497787143</endAngle>
+		<cellPMTDef>
+   		<name>10inch_HQE</name>
+   		<posX>0.5</posX>
+   		<posY>0.5</posY>
+   		<face>
+				<type>kInwards</type>
+			</face>
+		</cellPMTDef>
+	</region>
+  <region>
+		<coverage>10</coverage>
+		<location>kWall</location>
+		<zone>0</zone>
+		<zone>1</zone>
+		<zone>2</zone>
+		<zone>3</zone>
+		<zone>4</zone>
+		<zone>15</zone>
+		<zone>16</zone>
+		<zone>17</zone>
+		<zone>18</zone>
+		<zone>19</zone>
+		<cellPMTDef>
+   		<name>10inch_HQE</name>
+   		<posX>0.5</posX>
+   		<posY>0.5</posY>
+   		<face>
+				<type>kInwards</type>
+			</face>
+		</cellPMTDef>
+	</region>
+  <region>
+		<coverage>20</coverage>
+		<location>kWall</location>
+		<zone>5</zone>
+		<zone>6</zone>
+		<zone>7</zone>
+		<zone>8</zone>
+		<zone>9</zone>
+		<zone>10</zone>
+		<zone>11</zone>
+		<zone>12</zone>
+		<zone>13</zone>
+		<zone>14</zone>
+		<cellPMTDef>
+   		<name>10inch_HQE</name>
+   		<posX>0.5</posX>
+   		<posY>0.3</posY>
+   		<face>
+				<type>kInwards</type>
+			</face>
+		</cellPMTDef>
+		<cellPMTDef>
+   		<name>10inch_HQE</name>
+   		<posX>0.5</posX>
+   		<posY>0.7</posY>
+   		<face>
+				<type>kInwards</type>
+			</face>
+		</cellPMTDef>
+	</region>
 </geoDef>
 
-
-<!-- CHIPS 10kt with 10% coverage of 10" HQE PMTs -->
+<!-- CHIPS pancake shape for staging,  with 10" HQE PMTs, varying PMT coverage -->
 <geoDef
-	name="CHIPS_10kton_10inch_HQE_10perCent"
-	innerRadius="12.5"
-	innerHeight="20"
+	name="CHIPS_pancake_10inch_HQE_varying2"
+	innerRadius="15.0"
+	innerHeight="5.0"
 	nSides="20"
-	perCentCoverage="10">
-  <cellPMTDef
-   cellPMTName="10inch_HQE"
-   cellPMTX="0.5"
-   cellPMTY="0.5"
-  />
+  coverageType="kZonalCoverage"
+	>
+  <region>
+		<coverage>10</coverage>
+		<location>kTop</location>
+		<location>kBottom</location>
+		<zone>0</zone>
+    <startAngle>0</startAngle>
+    <endAngle>3.14159</endAngle>
+		<cellPMTDef>
+   		<name>10inch_HQE</name>
+   		<posX>0.5</posX>
+   		<posY>0.5</posY>
+   		<face>
+				<type>kInwards</type>
+			</face>
+		</cellPMTDef>
+	</region>
+  <region>
+		<coverage>20</coverage>
+		<location>kTop</location>
+		<location>kBottom</location>
+		<zone>1</zone>
+    <startAngle>3.14159</startAngle>
+    <endAngle>6.283185</endAngle>
+		<cellPMTDef>
+   		<name>10inch_HQE</name>
+   		<posX>0.5</posX>
+   		<posY>0.5</posY>
+   		<face>
+				<type>kInwards</type>
+			</face>
+		</cellPMTDef>
+	</region>
+  <region>
+		<coverage>10</coverage>
+		<location>kWall</location>
+		<zone>0</zone>
+		<zone>1</zone>
+		<zone>2</zone>
+		<zone>3</zone>
+		<zone>4</zone>
+		<zone>15</zone>
+		<zone>16</zone>
+		<zone>17</zone>
+		<zone>18</zone>
+		<zone>19</zone>
+		<cellPMTDef>
+   		<name>10inch_HQE</name>
+   		<posX>0.5</posX>
+   		<posY>0.5</posY>
+   		<face>
+				<type>kInwards</type>
+			</face>
+		</cellPMTDef>
+	</region>
+  <region>
+		<coverage>20</coverage>
+		<location>kWall</location>
+		<zone>5</zone>
+		<zone>6</zone>
+		<zone>7</zone>
+		<zone>8</zone>
+		<zone>9</zone>
+		<zone>10</zone>
+		<zone>11</zone>
+		<zone>12</zone>
+		<zone>13</zone>
+		<zone>14</zone>
+		<cellPMTDef>
+   		<name>10inch_HQE</name>
+   		<posX>0.5</posX>
+   		<posY>0.3</posY>
+   		<face>
+				<type>kInwards</type>
+			</face>
+		</cellPMTDef>
+		<cellPMTDef>
+   		<name>10inch_HQE</name>
+   		<posX>0.5</posX>
+   		<posY>0.7</posY>
+   		<face>
+				<type>kInwards</type>
+			</face>
+		</cellPMTDef>
+	</region>
 </geoDef>
-
-
