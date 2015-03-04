@@ -41,7 +41,7 @@ EXTRALIBS += $(ROOTLIBS)
 EXTRA_LINK_DEPENDENCIES := 
 
 .PHONY: all
-all: rootcint lib bin shared libWCSim.a evDisp
+all: rootcint lib bin shared libWCSim.a evDisp geoHelp
 
 # Note dependencies not yet set up right yet
 
@@ -67,4 +67,8 @@ rootcint: ./src/WCSimRootDict.cc
 evDisp : 
 	g++ `root-config --cflags --glibs` -I./include -L./ -o evDisplay evDisplay.cc src/WCSimRootDict.cc -lWCSim -lEG
 
+geoHelp :
+	g++ $(CPPFLAGS) $(ROOTLIBS) $(ROOTCFLAGS) -I./include -L./ -o geometryHelper geometryHelper.cc src/WCSimGeometryHelper.cc
+
 include $(G4INSTALL)/config/binmake.gmk
+
