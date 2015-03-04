@@ -28,8 +28,6 @@ public:
 
 	void Run();
 private:
-  void ClearStrings(); //< We have to declare a lot of pointers to new TStrings to stop rapidxml objects 
-                       //< being overwritten when strings go out of scope - tidy them up here
 
 	void Usage();
 
