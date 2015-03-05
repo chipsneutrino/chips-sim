@@ -361,6 +361,7 @@ void WCSimGeometryHelper::SetWallZones(rapidxml::xml_node<> * parentNode)
 	  std::cout << "Now specify the PMT layout for the " << region << " region of the detector" << std::endl;
 
     std::cout << "To save time you can provide an identical layout for multiple zones at once" << std::endl;
+    std::cout << "Note: zone 0 is the furthest downstream wall relative to the beam" << std::endl;
     std::cout << "Unset zones are: ";
     std::vector<int> zonesToSet;
     for(unsigned int i = 0; i < fSetWallZones.size(); ++i )
@@ -677,6 +678,7 @@ std::vector<std::pair<double, double> > WCSimGeometryHelper::GetZoneBoundaries()
 	else
 	{
 		std::cout << "How would you like to specify the angles?" << std::endl;
+    std::cout << "Note: 0 degrees/radians is the downstream end of the detector, relative to the beam" << std::endl;
 		std::vector<std::string> options;
 		options.push_back("degrees");
 		options.push_back("radians");
