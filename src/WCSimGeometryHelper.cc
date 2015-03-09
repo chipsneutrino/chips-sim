@@ -59,7 +59,7 @@ void WCSimGeometryHelper::Run()
 		detector->append_attribute(nSidesAttr);
 		detector->append_attribute(coverageTypeAttr);
 
-		if( *coverageType == WCSimGeometryEnums::PhotodetectorLimit_t::AsString(WCSimGeometryEnums::PhotodetectorLimit_t::kPercentCoverage))
+		if( coverageType == WCSimGeometryEnums::PhotodetectorLimit_t::AsString(WCSimGeometryEnums::PhotodetectorLimit_t::kPercentCoverage))
 		{
 			const char * coverage = fDoc.allocate_string(GetCoverage().c_str());
 			rapidxml::xml_attribute<> *coverageAttr = fDoc.allocate_attribute("coverage", coverage);
@@ -723,7 +723,7 @@ rapidxml::xml_node<>* WCSimGeometryHelper::GetUnitCellNode(
 		const char * name = fDoc.allocate_string(AskString().c_str());
 		rapidxml::xml_node<> * nameNode = fDoc.allocate_node(rapidxml::node_element,"name", name);
 
-		if( std::find(uniquePMTs.begin(), uniquePMTs.end(), name) == uniquePMTs.end())
+		if( std::find(uniquePMTs.begin(), uniquePMTs.end(), std::string(name)) == uniquePMTs.end())
 		{
 			uniquePMTs.push_back(name);
 		}
