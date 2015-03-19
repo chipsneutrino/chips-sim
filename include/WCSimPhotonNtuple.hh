@@ -23,11 +23,11 @@ class WCSimPhotonNtuple
   static void Close();
   static void Fill(Int_t eventID,
                    Int_t pdgCode, Int_t trackID, Int_t parentID, Int_t processID,
-                   Double_t energy, Double_t lambda,
+                   Float_t energy, Float_t lambda,
                    Bool_t opticalPhoton,  Bool_t scatteredPhoton,
-                   Double_t vtxX, Double_t vtxY, Double_t vtxZ, Double_t vtxTime,
-                   Double_t endX, Double_t endY, Double_t endZ, Double_t endTime,
-                   Double_t vtxdirX, Double_t vtxdirY, Double_t vtxdirZ 
+                   Float_t vtxX, Float_t vtxY, Float_t vtxZ, Float_t vtxTime,
+                   Float_t endX, Float_t endY, Float_t endZ, Float_t endTime,
+                   Float_t vtxdirX, Float_t vtxdirY, Float_t vtxdirZ 
 );
   static void FileName(const char* filename);
 
@@ -37,13 +37,13 @@ class WCSimPhotonNtuple
 
   void WriteEvent( Int_t eventID,
                    Int_t pdgCode, Int_t trackID, Int_t parentID, Int_t processID,
-                   Double_t energy, Double_t lambda,
+                   Float_t energy, Float_t lambda,
                    Bool_t opticalPhoton,  Bool_t scatteredPhoton,
-                   Double_t vtxX, Double_t vtxY, Double_t vtxZ, Double_t vtxTime,
-                   Double_t endX, Double_t endY, Double_t endZ, Double_t endTime,
-                   Double_t vtxdirX, Double_t vtxdirY, Double_t vtxdirZ );
+                   Float_t vtxX, Float_t vtxY, Float_t vtxZ, Float_t vtxTime,
+                   Float_t endX, Float_t endY, Float_t endZ, Float_t endTime,
+                   Float_t vtxdirX, Float_t vtxdirY, Float_t vtxdirZ );
 
-  void SetGeometry( Double_t halfWidthXY, Double_t halfWidthZ ) {
+  void SetGeometry( Float_t halfWidthXY, Float_t halfWidthZ ) {
     fHalfWidthXY = halfWidthXY; fHalfWidthZ = halfWidthZ;
   }
 
@@ -62,28 +62,28 @@ class WCSimPhotonNtuple
   Int_t fTrackID;
   Int_t fParentID;
   Int_t fProcessID;
-  Double_t fEnergy; 
-  Double_t fLambda;
+  Float_t fEnergy; 
+  Float_t fLambda;
   Int_t fOpticalPhoton;
   Int_t fScatteredPhoton;
-  Double_t fVtxX;
-  Double_t fVtxY;
-  Double_t fVtxZ;
-  Double_t fVtxTime;
-  Double_t fVtxDirX; 
-  Double_t fVtxDirY; 
-  Double_t fVtxDirZ;  
-  Double_t fEndX;
-  Double_t fEndY;
-  Double_t fEndZ;
-  Double_t fEndTime;
+  Float_t fVtxX;
+  Float_t fVtxY;
+  Float_t fVtxZ;
+  Float_t fVtxTime;
+  Float_t fVtxDirX; 
+  Float_t fVtxDirY; 
+  Float_t fVtxDirZ;  
+  Float_t fEndX;
+  Float_t fEndY;
+  Float_t fEndZ;
+  Float_t fEndTime;
   
   Int_t fIsDetected;
-  Double_t fEndU;
-  Double_t fEndV;
+  Float_t fEndU;
+  Float_t fEndV;
 
-  Double_t fHalfWidthXY;
-  Double_t fHalfWidthZ;
+  Float_t fHalfWidthXY;
+  Float_t fHalfWidthZ;
          
 } ;
 
