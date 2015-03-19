@@ -38,7 +38,7 @@ WCSimRootPMT::WCSimRootPMT()
 }
 
 //______________________________________________________________________________
-WCSimRootPMT::WCSimRootPMT(Int_t tubeNo, Int_t cylLoc, Float_t orientation[3], Float_t position[3])
+WCSimRootPMT::WCSimRootPMT(Int_t tubeNo, Int_t cylLoc, Float_t orientation[3], Float_t position[3], Float_t rad, TString pmtName)
 {
 	fTubeNo = tubeNo;
 	fCylLoc = cylLoc;
@@ -47,6 +47,8 @@ WCSimRootPMT::WCSimRootPMT(Int_t tubeNo, Int_t cylLoc, Float_t orientation[3], F
 		fOrientation[j] = orientation[j];
 		fPosition[j] = position[j];
 	}
+  fRadius = rad;
+  fPMTName = pmtName;
 	// fOrientation = *(orientation);
 	// fPositoin = *(position);
   // Create a WCSimRootPMT object.
@@ -54,13 +56,13 @@ WCSimRootPMT::WCSimRootPMT(Int_t tubeNo, Int_t cylLoc, Float_t orientation[3], F
 
 //______________________________________________________________________________
 void WCSimRootGeom::SetPMT(Int_t i, Int_t tubeno, Int_t cyl_loc, 
-			    Float_t rot[3], Float_t pos[3], bool expand)
+			    Float_t rot[3], Float_t pos[3], Float_t rad, TString pmtName, bool expand)
 {
    if(expand) (*(fPMTArray)).ExpandCreate(i+2);
 
   // Set PMT values
 TClonesArray &pmtArray = *fPMTArray;
-    WCSimRootPMT *jPMT = new(pmtArray[i]) WCSimRootPMT(tubeno, cyl_loc, rot, pos);
+    WCSimRootPMT *jPMT = new(pmtArray[i]) WCSimRootPMT(tubeno, cyl_loc, rot, pos, rad, pmtName);
     //WCSimRootPMT jPMT = *(WCSimRootPMT*)(*fPMTArray)[i];
     // jPMT.SetTubeNo(tubeno);
     // jPMT.SetCylLoc(cyl_loc);

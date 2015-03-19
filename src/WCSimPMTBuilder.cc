@@ -114,11 +114,15 @@ void WCSimPMTBuilder::ConstructPMT(WCSimPMTConfig config) {
 	G4double PMTHolderR[2] = {tmpRadius, tmpRadius};
 	G4double PMTHolderr[2] = {0,0};
 
-	G4Polycone* solidWCPMT = new G4Polycone("WCPMT", 0.0*deg, 360.0*deg, 2,
+  // Use the PMT name to modify the standard geometry name such that we can
+  // tell the difference between different types of PMT later on.
+  std::string pmtName = config.GetPMTName();
+
+	G4Polycone* solidWCPMT = new G4Polycone(("WCPMT_"+pmtName).c_str(), 0.0*deg, 360.0*deg, 2,
 		  	  	  	  	  	  	  	  	    PMTHolderZ, PMTHolderR, PMTHolderr);
 
 	G4Material * water = WCSimMaterialsBuilder::Instance()->GetMaterial("Water");
-	G4LogicalVolume* logicWCPMT = new G4LogicalVolume(solidWCPMT, water, "WCPMT", 0,0,0);
+	G4LogicalVolume* logicWCPMT = new G4LogicalVolume(solidWCPMT, water, ("WCPMT_"+pmtName).c_str(), 0,0,0);
 
 	G4VisAttributes* WCPMTVisAtt = new G4VisAttributes(G4Colour(0.2,0.2,0.2));
 	WCPMTVisAtt->SetForceWireframe(true);

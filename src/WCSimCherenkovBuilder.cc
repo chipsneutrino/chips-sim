@@ -609,7 +609,7 @@ void WCSimCherenkovBuilder::PlaceBarrelPMTs()
 				new G4PVPlacement(WCPMTRotation,     // its rotation
 													PMTPosition,
 													fPMTBuilder.GetPMTLogicalVolume(config),        // its logical volume //
-													"WCPMT",           // its name
+													("WCPMT_"+config.GetPMTName()).c_str(),           // its name
 													fSegmentLogics.at(iZone),      // its mother volume
 													false,             // no boolean operations
 													fNumPMTs, true);
@@ -1701,7 +1701,7 @@ void WCSimCherenkovBuilder::PlaceEndCapPMTs(G4int zflip){
 							// G4VPhysicalVolume* physiCapPMT =
 							new G4PVPlacement(WCCapPMTRotation,     // its rotation
 									PMTPosition, fPMTBuilder.GetPMTLogicalVolume(config),        // its logical volume
-									"WCPMT",           // its name
+									("WCPMT_"+config.GetPMTName()).c_str(),           // its name
 									capLogic,      // its mother volume
 									false,             // no boolean operations
 									fNumPMTs);

@@ -18,6 +18,8 @@
 #include "WCSimRootGeom.hh"
 #include "WCSimPmtInfo.hh"
 #include "WCSimPhotonNtuple.hh"
+#include "WCSimPMTManager.hh"
+#include "WCSimPMTConfig.hh"
 
 #include <vector>
 
@@ -170,6 +172,8 @@ void WCSimRunAction::FillGeoTree(){
   offset[2] = offset1[2];
   wcsimrootgeom-> SetWCOffset(offset[0],offset[1],offset[2]);
   
+  WCSimPMTManager *pmtManager = wcsimdetector->GetPMTManager();
+
   std::vector<WCSimPmtInfo*> *fpmts = wcsimdetector->Get_Pmts();
   WCSimPmtInfo *pmt;
   for (int i=0;i!=fpmts->size();i++){
@@ -182,7 +186,11 @@ void WCSimRunAction::FillGeoTree(){
     rot[2] = pmt->Get_orienz();
     tubeNo = pmt->Get_tubeid();
     cylLoc = pmt->Get_cylocation();
-    wcsimrootgeom-> SetPMT(i,tubeNo,cylLoc,rot,pos);
+    std::string pmtName = pmt->Get_name();
+    WCSimPMTConfig config = pmtManager->GetPMTByName(pmtName);
+    double pmtRadius = config.GetRadius();
+//    std::cout << "About to add PMT with name " << pmtName << " and radius " << pmtRadius << std::endl;
+    wcsimrootgeom-> SetPMT(i,tubeNo,cylLoc,rot,pos,pmtRadius,pmtName);
   }
   if (fpmts->size() != numpmt) {
     G4cout << "Mismatch between number of pmts and pmt list in geofile.txt!!"<<G4endl;

@@ -21,6 +21,7 @@
 #include <map>
 
 std::map<int, G4Transform3D> WCSimDetectorConstruction::tubeIDMap;
+std::map<int, std::string> WCSimDetectorConstruction::tubeNameMap;
 //std::map<int, cyl_location>  WCSimDetectorConstruction::tubeCylLocation;
 hash_map<std::string, int, hash<std::string> > 
 WCSimDetectorConstruction::tubeLocationMap;
@@ -65,6 +66,7 @@ WCSimDetectorConstruction::WCSimDetectorConstruction(G4int DetConfig) : fPMTBuil
   //-----------------------------------------------------
 
   WCSimDetectorConstruction::tubeIDMap.clear();
+  WCSimDetectorConstruction::tubeNameMap.clear();
   //WCSimDetectorConstruction::tubeCylLocation.clear();// (JF) Removed
   WCSimDetectorConstruction::tubeLocationMap.clear();
   totalNumPMTs = 0;
