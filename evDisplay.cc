@@ -3,7 +3,7 @@
 #include "TEnv.h"
 #include "TApplication.h"
 #include "WCSimEvDisplay.hh"
-
+#include <cstring>
 void PrintHelp();
 
 int main(int argc,char* argv[])

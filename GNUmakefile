@@ -65,6 +65,7 @@ libWCSim.a : $(ROOTOBJS)
 rootcint: ./src/WCSimRootDict.cc
 
 evDisp : 
-	g++ `root-config --cflags --glibs` -I./include -L./ -o evDisplay evDisplay.cc src/WCSimRootDict.cc -lWCSim -lEG
+	g++ `root-config --cflags --glibs` -I./include -L./ -o evDisplay evDisplay.cc src/WCSimRootDict.cc -lWCSim -lEG `root-config --cflags --glibs`
+
 
 include $(G4INSTALL)/config/binmake.gmk
