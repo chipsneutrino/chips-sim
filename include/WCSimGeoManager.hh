@@ -39,6 +39,8 @@ class WCSimGeoManager {
 		bool MeansYes(std::string str);
 		bool MeansNo(std::string str);
 
+    double ConvertAngle(const WCSimGeoConfig &geo, const double &angle);
+
 		// Vector to store the requested geometry types
 		std::vector<WCSimGeoConfig> fGeoVector;
 
