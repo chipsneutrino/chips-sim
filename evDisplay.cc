@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <cstring>
 #include "TEnv.h"
 #include "TApplication.h"
 #include "WCSimEvDisplay.hh"

@@ -27,8 +27,17 @@ class WCSimGeoManager {
 		// Fill geometry object attribute from xml file
 		void FillGeoAttribute(WCSimGeoConfig &geo, rapidxml::xml_attribute<> *attr);
 
+		// Fill geometry object attribute for a subregion of the detector from the xml file
+		void FillRegion(WCSimGeoConfig &geo, rapidxml::xml_node<> *node);
+
     // Fill unit cell object attribute from xml file
-    void FillCellAttribute(WCSimGeoConfig &geo, rapidxml::xml_attribute<> *attr);
+		void FillCell(WCSimGeoConfig &geo, rapidxml::xml_node<> *node);
+
+		// Fill geometry object corresponding to a limit on available PMTs
+		void FillPMTLimit(WCSimGeoConfig &geo, rapidxml::xml_node<> *node);
+
+		bool MeansYes(std::string str);
+		bool MeansNo(std::string str);
 
 		// Vector to store the requested geometry types
 		std::vector<WCSimGeoConfig> fGeoVector;

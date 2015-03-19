@@ -1,3 +1,6 @@
+#ifndef WCSIMEVDISPLAY_HH
+#define WCSIMEVDISPLAY_HH
+
 #include <string>
 
 #include <TGClient.h>
@@ -306,3 +309,4 @@ public:
 	ClassDef(WCSimEvDisplay,0)
 };
 
+#endif
