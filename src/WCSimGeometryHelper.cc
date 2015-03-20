@@ -60,7 +60,7 @@ void WCSimGeometryHelper::Run()
 		detector->append_attribute(nSidesAttr);
 		detector->append_attribute(coverageTypeAttr);
 
-		if( *coverageType == WCSimGeometryEnums::PhotodetectorLimit_t::AsString(WCSimGeometryEnums::PhotodetectorLimit_t::kPercentCoverage))
+		if( coverageType == WCSimGeometryEnums::PhotodetectorLimit_t::AsString(WCSimGeometryEnums::PhotodetectorLimit_t::kPercentCoverage))
 		{
 			const char * coverage = fDoc.allocate_string(GetCoverage().c_str());
 			rapidxml::xml_attribute<> *coverageAttr = fDoc.allocate_attribute("coverage", coverage);
@@ -350,10 +350,11 @@ void WCSimGeometryHelper::SetCapZones(bool isTop, rapidxml::xml_node<> * parentN
 	//Yibin's hack: mirror bottomCap to the topCap
 	if(bTBsymmetry) {
 	  const char * bottomStr = fDoc.allocate_string(WCSimGeometryEnums::DetectorRegion_t::AsString(WCSimGeometryEnums::DetectorRegion_t::kBottom).c_str());
+	  const char * topStr = fDoc.allocate_string(WCSimGeometryEnums::DetectorRegion_t::AsString(WCSimGeometryEnums::DetectorRegion_t::kTop).c_str());
 	  rapidxml::xml_node<> * regionNode=parentNode->first_node("region");
 	  while(regionNode) {
 	    std::string loc=regionNode->first_node("location")->value();
-	    if(loc.compare("kTop")!=0) {
+	    if(loc.compare(topStr)!=0) {
 	      regionNode=regionNode->next_sibling();
 	    } else {
 	      break;
@@ -361,7 +362,7 @@ void WCSimGeometryHelper::SetCapZones(bool isTop, rapidxml::xml_node<> * parentN
 	  }
 	  while(regionNode) {
 	    std::string loc=regionNode->first_node("location")->value();
-	    if(loc.compare("kTop")==0) {
+	    if(loc.compare(topStr)==0) {
 	      rapidxml::xml_node<> * newNode = fDoc.clone_node(regionNode);
 	      newNode->first_node("location")->value(bottomStr);
 	      std::cout<<"haha kBottom node:"<< *newNode;
@@ -767,7 +768,7 @@ rapidxml::xml_node<>* WCSimGeometryHelper::GetUnitCellNode(
 		const char * name = fDoc.allocate_string(AskString().c_str());
 		rapidxml::xml_node<> * nameNode = fDoc.allocate_node(rapidxml::node_element,"name", name);
 
-		if( std::find(uniquePMTs.begin(), uniquePMTs.end(), name) == uniquePMTs.end())
+		if( std::find(uniquePMTs.begin(), uniquePMTs.end(), std::string(name)) == uniquePMTs.end())
 		{
 			uniquePMTs.push_back(name);
 		}

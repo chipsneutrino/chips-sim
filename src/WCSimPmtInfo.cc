@@ -7,7 +7,7 @@ ClassImp(WCSimPmtInfo)
   WCSimPmtInfo:: WCSimPmtInfo(){
 }
 
-WCSimPmtInfo::WCSimPmtInfo(Int_t i, Double_t t1, Double_t t2, Double_t t3, Double_t o1, Double_t o2, Double_t o3, Int_t tubeid){
+WCSimPmtInfo::WCSimPmtInfo(Int_t i, Double_t t1, Double_t t2, Double_t t3, Double_t o1, Double_t o2, Double_t o3, Int_t tubeid, std::string name){
   cylocation = i;
   trans_x = t1;
   trans_y = t2;
@@ -18,6 +18,7 @@ WCSimPmtInfo::WCSimPmtInfo(Int_t i, Double_t t1, Double_t t2, Double_t t3, Doubl
   orien_z = o3;
   
   tube = tubeid;
+  pmtName = name;
 }
 
 WCSimPmtInfo::~WCSimPmtInfo(){

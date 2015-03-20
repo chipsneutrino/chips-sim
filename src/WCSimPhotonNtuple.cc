@@ -72,7 +72,7 @@ void WCSimPhotonNtuple::FileName(const char* filename)
   WCSimPhotonNtuple::Instance()->SetFileName(filename);
 }
 
-void WCSimPhotonNtuple::Fill( Int_t eventID, Int_t pdgCode, Int_t trackID, Int_t parentID, Int_t processID, Double_t energy, Double_t lambda, Bool_t opticalPhoton,  Bool_t scatteredPhoton, Double_t vtxX, Double_t vtxY, Double_t vtxZ, Double_t vtxTime, Double_t endX, Double_t endY, Double_t endZ, Double_t endTime, Double_t vtxdirX, Double_t vtxdirY, Double_t vtxdirZ ) 
+void WCSimPhotonNtuple::Fill( Int_t eventID, Int_t pdgCode, Int_t trackID, Int_t parentID, Int_t processID, Float_t energy, Float_t lambda, Bool_t opticalPhoton,  Bool_t scatteredPhoton, Float_t vtxX, Float_t vtxY, Float_t vtxZ, Float_t vtxTime, Float_t endX, Float_t endY, Float_t endZ, Float_t endTime, Float_t vtxdirX, Float_t vtxdirY, Float_t vtxdirZ )
 {
   WCSimPhotonNtuple::Instance()->WriteEvent(eventID, pdgCode, trackID, parentID, processID, 
                                             energy, lambda, 
@@ -82,7 +82,7 @@ void WCSimPhotonNtuple::Fill( Int_t eventID, Int_t pdgCode, Int_t trackID, Int_t
                                             vtxdirX, vtxdirY, vtxdirZ );
 }
 
-void WCSimPhotonNtuple::WriteEvent( Int_t eventID, Int_t pdgCode, Int_t trackID, Int_t parentID, Int_t processID, Double_t energy, Double_t lambda, Bool_t opticalPhoton,  Bool_t scatteredPhoton, Double_t vtxX, Double_t vtxY, Double_t vtxZ, Double_t vtxTime, Double_t endX, Double_t endY, Double_t endZ, Double_t endTime, Double_t vtxdirX, Double_t vtxdirY, Double_t vtxdirZ ) 
+void WCSimPhotonNtuple::WriteEvent( Int_t eventID, Int_t pdgCode, Int_t trackID, Int_t parentID, Int_t processID, Float_t energy, Float_t lambda, Bool_t opticalPhoton,  Bool_t scatteredPhoton, Float_t vtxX, Float_t vtxY, Float_t vtxZ, Float_t vtxTime, Float_t endX, Float_t endY, Float_t endZ, Float_t endTime, Float_t vtxdirX, Float_t vtxdirY, Float_t vtxdirZ )
 {
   fEventID = eventID;
   fPdgCode = pdgCode;
@@ -108,7 +108,7 @@ void WCSimPhotonNtuple::WriteEvent( Int_t eventID, Int_t pdgCode, Int_t trackID,
   
   fIsDetected = 0;
 
-  if( fOpticalPhoton && fParentID==1 && fProcessID == 2 ){ // Added the || 1 - AJP
+  if( fOpticalPhoton && fProcessID == 2 ){ // Added the || 1 - AJP
     this->WriteEventToFile();
   }
 }

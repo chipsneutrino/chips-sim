@@ -7,6 +7,7 @@
 //
 /////////////////////////////////////////////////////////////////
 
+#include <string>
 #include "TObject.h"
 
 class TDirectory;
@@ -21,11 +22,12 @@ private:
   Double_t orien_y;
   Double_t orien_z;
   Int_t tube;
+  std::string pmtName;
   
 public: 
   WCSimPmtInfo();
   
-  WCSimPmtInfo(Int_t i, Double_t t1, Double_t t2, Double_t t3, Double_t o1, Double_t o2, Double_t o3, Int_t tubeid);
+  WCSimPmtInfo(Int_t i, Double_t t1, Double_t t2, Double_t t3, Double_t o1, Double_t o2, Double_t o3, Int_t tubeid, std::string name);
   
   virtual ~WCSimPmtInfo();
 
@@ -37,6 +39,7 @@ public:
   Double_t Get_orieny() {return orien_y;}
   Double_t Get_orienz() {return orien_z;}
   Int_t Get_tubeid(){return tube;}
+  std::string Get_name(){return pmtName;};
 
   ClassDef(WCSimPmtInfo,1);
 };

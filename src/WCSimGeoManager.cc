@@ -159,6 +159,7 @@ void WCSimGeoManager::FillRegion(WCSimGeoConfig& geo,
 		ss << childNode->value();
 		double start;
 		ss >> start;
+    start = ConvertAngle(geo, start);
 		geo.SetZoneThetaStart(start);
 	}
 
@@ -168,6 +169,7 @@ void WCSimGeoManager::FillRegion(WCSimGeoConfig& geo,
 		ss << childNode->value();
 		double end;
 		ss >> end;
+    end = ConvertAngle(geo, end);
 		geo.SetZoneThetaEnd(end);
 	}
 
@@ -318,4 +320,9 @@ void WCSimGeoManager::FillPMTLimit(WCSimGeoConfig& geo,
 		assert(limit > 0);
 		geo.SetPMTLimit(pmtName, limit);
 	}
+}
+
+double WCSimGeoManager::ConvertAngle(const WCSimGeoConfig &geo, const double &angle)
+{
+  return (angle + (M_PI / geo.GetNSides()));
 }

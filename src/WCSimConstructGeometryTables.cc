@@ -135,9 +135,15 @@ void WCSimDetectorConstruction::DescribeAndRegisterPMT
   replicaNoString[aDepth] = pvname.str() + "-" + depth.str();
 
 //aah original line->
-if ((aPV->GetName() == "GlassFaceWCPMT"))
+//if ((aPV->GetName() == "GlassFaceWCPMT"))
+  if(aPV->GetName().contains("WCPMT_")) // PMTs have the name WCPMT_<pmt_name>
 //	if ((aPV->GetName().contains("PMTGlass")))//aah I believe this works for all
   {
+
+    std::string tubeName = aPV->GetName();
+    tubeName = tubeName.substr(6);    
+//    std::cout << "== Found PMT " << totalNumPMTs << ": " << tubeName  << std::endl;
+
     // First increment the number of PMTs in the tank.
     totalNumPMTs++;  
     
@@ -158,6 +164,10 @@ if ((aPV->GetName() == "GlassFaceWCPMT"))
     for (int i=0; i <= aDepth; i++)
       tubeTag += ":" + replicaNoString[i];
 //  G4cout << tubeTag << G4endl;
+
+    // Since we get the PMT object, need to then add the geometry address
+    // of the glasss such that we can use it later in the sensitive detector.
+    tubeTag += ":GlassFaceWCPMT-0";
     tubeLocationMap[tubeTag] = totalNumPMTs;
     
     // Record where tube is in the cylinder
@@ -198,8 +208,8 @@ if (aPV->GetName() == "WCPMTGlass"){
     
     // Put the transform for this tube into the map keyed by its ID
     tubeIDMap[totalNumPMTs] = aTransform;
+    tubeNameMap[totalNumPMTs] = tubeName;
    
-    
     // G4cout <<  "depth " << depth.str() << G4endl;
 //     G4cout << "tubeLocationmap[" << tubeTag  << "]= " << tubeLocationMap[tubeTag] << "\n";
     //G4cout << "tubeCylLocation[" << totalNumPMTs  << "]= " << tubeCylLocation[totalNumPMTs] << "\n";
@@ -263,6 +273,7 @@ void WCSimDetectorConstruction::DumpGeometryTableToFile()
     G4Vector3D nullOrient = G4Vector3D(0,0,1);
     G4Vector3D pmtOrientation = newTransform * nullOrient;
     //cyl_location cylLocation = tubeCylLocation[tubeID];
+    std::string pmtName = tubeNameMap[tubeID];
 
     // Figure out if pmt is on top/bottom or barrel
     // print key: 0-top, 1-barrel, 2-bottom
@@ -293,7 +304,8 @@ void WCSimDetectorConstruction::DumpGeometryTableToFile()
 					      pmtOrientation.x(),
 					      pmtOrientation.y(),
 					      pmtOrientation.z(),
-					      tubeID);
+					      tubeID,
+                pmtName);
      
      fpmts.push_back(new_pmt);
 

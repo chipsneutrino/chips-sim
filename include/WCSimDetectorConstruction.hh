@@ -334,6 +334,7 @@ protected: // Changed this from private to let WCSimCherenkovBuilder
   // Tube map information
 
   static std::map<int, G4Transform3D> tubeIDMap;
+  static std::map<int, std::string> tubeNameMap;
 //  static std::map<int, cyl_location> tubeCylLocation;
   static hash_map<std::string, int, hash<std::string> >  tubeLocationMap; 
 

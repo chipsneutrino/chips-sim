@@ -18,7 +18,7 @@ namespace WCSimPolygonTools {
   bool PolygonContains(unsigned int nSides, double outerRadius, G4TwoVector point) {
     // We have a regular polygon which means we don't need to do raytracing or winding numbers
     assert(CheckPolygon( nSides, outerRadius )); 
-    point.rotate(-M_PI/nSides); // Coordinates in Geant start the polygon with the middle of a 
+    // point.rotate(-M_PI/nSides); // Coordinates in Geant start the polygon with the middle of a 
                                 // side at phi = 0 but this algorithm assumes there's a corner
                                 // there - need to rotate by half a side
     

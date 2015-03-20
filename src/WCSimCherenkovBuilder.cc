@@ -247,9 +247,14 @@ void WCSimCherenkovBuilder::ConstructFrame() {
 
 	G4Tubs* barrelTubs = new G4Tubs("barrelTubs", 0, fBarrelRadius, fBarrelHeight/2.0, 0. * deg, 360. * deg);
 	fBarrelLogic = new G4LogicalVolume(barrelTubs, barrelWater, "barrelTubs", 0, 0, 0);
+	G4VisAttributes* barrelColor = new G4VisAttributes(G4Colour(0.0, 0.0, 1.0));
+  fBarrelLogic->SetVisAttributes(barrelColor);
 
 	// G4VPhysicalVolume* barrelPhysic = // Gets rid of compiler warning
-	new G4PVPlacement(0, G4ThreeVector(0., 0., 0.),
+	G4RotationMatrix	* prismRotation = new G4RotationMatrix;
+  prismRotation->rotateZ(180.0 /(double)fGeoConfig->GetNSides() * deg);
+	new G4PVPlacement(prismRotation, 
+                            G4ThreeVector(0., 0., 0.),
 														fBarrelLogic, "barrelTubs",
 														fLakeLogic, false, 0);
 }
@@ -282,7 +287,6 @@ void WCSimCherenkovBuilder::CreatePrism() {
 	G4double mainAnnulusRmax[2] = { fPrismRadiusOutside, fPrismRadiusOutside };
 
 
-
 	// Now make the volumes
 	G4Polyhedra* prismSolid = new G4Polyhedra("prism",
 											  0. * deg,  // phi start
@@ -293,6 +297,8 @@ void WCSimCherenkovBuilder::CreatePrism() {
 
 	fPrismLogic = new G4LogicalVolume(prismSolid, WCSimMaterialsBuilder::Instance()->GetMaterial("Water"),
 									  "prism", 0, 0, 0);
+	G4VisAttributes* prismColor = new G4VisAttributes(G4Colour(0.0, 1.0, 1.0));
+  fPrismLogic->SetVisAttributes(prismColor);
 
 	// G4VPhysicalVolume* prismPhysic = // Fixes compiler warning
 	new G4PVPlacement(0, G4ThreeVector(0., 0., 0.),
@@ -304,6 +310,7 @@ void WCSimCherenkovBuilder::CreatePrismWalls()
 {
 	fPrismWallLogics.resize(fGeoConfig->GetNSides());
 	fPrismWallPhysics.resize(fGeoConfig->GetNSides());
+	G4VisAttributes* prismWallColor = new G4VisAttributes(G4Colour(1.0, 1.0, 0.0));
 	for(unsigned int iZone = 0; iZone < fGeoConfig->GetNumZones(WCSimGeometryEnums::DetectorRegion_t::kWall); ++iZone)
 	{
 		std::cout << "Making wall " << iZone << std::endl;
@@ -314,8 +321,8 @@ void WCSimCherenkovBuilder::CreatePrismWalls()
 		std::cout << "Wall rmin: " << prismWallRmin[0] << "  " << prismWallRmin[1] << std::endl;
 		std::cout << "Wall rmax: " << prismWallRmax[0] << "  " << prismWallRmax[1] << std::endl;
 
-		G4RotationMatrix* prismWallRotation = new G4RotationMatrix;
-		prismWallRotation->rotateZ(360.0 * (iZone/(double)fGeoConfig->GetNSides()) * deg);
+		G4RotationMatrix* prismWallRotation = new G4RotationMatrix();
+		prismWallRotation->rotateZ(360.0 * (fGeoConfig->GetNumZones(WCSimGeometryEnums::DetectorRegion_t::kWall) - iZone-0.5)/(double)fGeoConfig->GetNSides() * deg);
 
 		// Now make the volumes
 		std::stringstream ss;
@@ -329,10 +336,10 @@ void WCSimCherenkovBuilder::CreatePrismWalls()
 		if(fPrismWallLogics.at(iZone) != NULL) { delete fPrismWallLogics.at(iZone); }
 		fPrismWallLogics.at(iZone) = new G4LogicalVolume(prismWallSolid, WCSimMaterialsBuilder::Instance()->GetMaterial("Water"),
 																										 ss.str().c_str(), 0,0,0);
+    fPrismWallLogics.at(iZone)->SetVisAttributes(prismWallColor);
 		if(fPrismWallPhysics.at(iZone) != NULL) { delete fPrismWallPhysics.at(iZone); }
 		fPrismWallPhysics.at(iZone) = new G4PVPlacement(prismWallRotation, G4ThreeVector(0,0,0), fPrismWallLogics.at(iZone),
 																									  ss.str().c_str(), fPrismLogic, false, 0);
-
 	}
 
 
@@ -430,7 +437,7 @@ void WCSimCherenkovBuilder::CreateRingSegments() {
 																								0, 0, 0));
 
 		G4RotationMatrix* WCSegmentRotation = new G4RotationMatrix;
-		WCSegmentRotation->rotateY(0. * deg);
+		WCSegmentRotation->rotateY((0.5 * fGeoConfig->GetNSides() / 360.0) * deg);
 
     G4VPhysicalVolume* segmentPhysic = new G4PVPlacement(
     																											WCSegmentRotation,
@@ -445,10 +452,10 @@ void WCSimCherenkovBuilder::CreateRingSegments() {
   	if (!fDebugMode)
   		fSegmentLogics.at(iSide)->SetVisAttributes(G4VisAttributes::Invisible);
   	else {
-  		G4VisAttributes* tmpVisAtt = new G4VisAttributes(
-  				G4Colour(1., 0.5, 0.5));
-  		tmpVisAtt->SetForceWireframe(false);
-  		fSegmentLogics.at(iSide)->SetVisAttributes(tmpVisAtt);
+  		// G4VisAttributes* tmpVisAtt = new G4VisAttributes(
+  		// 		G4Colour(1., 0.5, 0.5));
+  		// tmpVisAtt->SetForceWireframe(false);
+  		// fSegmentLogics.at(iSide)->SetVisAttributes(tmpVisAtt);
   	}
 
 	}
@@ -471,10 +478,9 @@ void WCSimCherenkovBuilder::CreateRingSegments() {
 		std::stringstream ss;
 		ss << "segmentBlacksheet" << iSide;
 		const char * name = ss.str().c_str();
-
 		G4Polyhedra* segmentBlacksheetSolid = new G4Polyhedra(name,
-																-0.5 * dPhi, // phi start
-																dPhi, //total phi
+																-0.5 * fPrismRingSegmentDPhi, // phi start
+																fPrismRingSegmentDPhi, //total phi
 																1, //NPhi-gon
 																2,
 																segmentBlacksheetZ,
@@ -544,11 +550,10 @@ void WCSimCherenkovBuilder::PlaceBarrelPMTs()
 	// (we may have to leave some space between them)
 	// Then we'll place each PMT type relative to that
 
-	G4double segmentWidth = 2. * (fPrismRingSegmentBSRadiusInside) * sin(fPrismRingSegmentDPhi / 2.);
+	G4double segmentWidth = 2. * (fPrismRingSegmentBSRadiusInside) * tan(fPrismRingSegmentDPhi / 2.);
 
 	for(unsigned int iZone = 0; iZone < fGeoConfig->GetNumZones(WCSimGeometryEnums::DetectorRegion_t::kWall); ++iZone)
 	{
-
 		G4double widthPerCell = segmentWidth / fWallCellsX.at(iZone);
 		G4double heightPerCell = GetBarrelLengthForCells() / fWallCellsZ.at(iZone);
 		std::cout << "segment width = " << segmentWidth << std::endl;
@@ -604,7 +609,7 @@ void WCSimCherenkovBuilder::PlaceBarrelPMTs()
 				new G4PVPlacement(WCPMTRotation,     // its rotation
 													PMTPosition,
 													fPMTBuilder.GetPMTLogicalVolume(config),        // its logical volume //
-													"WCPMT",           // its name
+													("WCPMT_"+config.GetPMTName()).c_str(),           // its name
 													fSegmentLogics.at(iZone),      // its mother volume
 													false,             // no boolean operations
 													fNumPMTs, true);
@@ -1269,6 +1274,7 @@ void WCSimCherenkovBuilder::ConstructEndCapFrame(G4int zflip){
 }
 
 void WCSimCherenkovBuilder::ConstructEndCapRings( G4int zflip ){
+	G4VisAttributes* WCCapRingVisAtt = new G4VisAttributes(G4Colour(64./255.0, 123./255.0, 21./255.0));
 
 	G4LogicalVolume * capLogic = NULL;
 	if( zflip == -1 ) { capLogic = fCapLogicTop; }
@@ -1281,6 +1287,7 @@ void WCSimCherenkovBuilder::ConstructEndCapRings( G4int zflip ){
 	G4double borderRingRMin[2] = { fCapRingRadiusInside, fCapRingRadiusInside};
 	G4double borderRingRMax[2] = { fCapRingRadiusOutside, fCapRingRadiusOutside};
 
+  G4RotationMatrix* endCapRotation = new G4RotationMatrix();
 
     for(int i = 0; i < 2; ++i){
       std::cout << "borderRingZ  [" << i << "] = " << borderRingZ[i] << std::endl;
@@ -1302,6 +1309,8 @@ void WCSimCherenkovBuilder::ConstructEndCapRings( G4int zflip ){
 																	 "WCBarrelRing",
 																	 0,0,0);
 
+    logicEndCapRing->SetVisAttributes(WCCapRingVisAtt);
+
 	  if( zflip == -1 ){ fCapLogicTopRing = logicEndCapRing; }
 	  else{ fCapLogicBottomRing = logicEndCapRing; }
 
@@ -1311,7 +1320,7 @@ void WCSimCherenkovBuilder::ConstructEndCapRings( G4int zflip ){
  								  << " - height is " << borderRingZ[2] - borderRingZ[0]
  								  << " c.f. capAssemblyHeight = " << capAssemblyHeight << std::endl;
  	  // G4VPhysicalVolume* physiEndCapRing =
-    new G4PVPlacement(0,
+    new G4PVPlacement(endCapRotation,
     									G4ThreeVector(0.,0., (0.5 * fCapAssemblyHeight - 0.5 * fCapRingHeight) * zflip),
 											logicEndCapRing,
 											"EndCapRing",
@@ -1321,6 +1330,7 @@ void WCSimCherenkovBuilder::ConstructEndCapRings( G4int zflip ){
 
 void WCSimCherenkovBuilder::ConstructEndCapRingSegments( G4int zflip )
 {
+	G4VisAttributes* WCCapRingSegmentVisAtt = new G4VisAttributes(G4Colour(98./255.0, 250./255.0, 46./255.0));
 	// Set up constants (factorise these somewhere else later)
 	G4Material * pureWater = WCSimMaterialsBuilder::Instance()->GetMaterial("Water");
 
@@ -1328,7 +1338,6 @@ void WCSimCherenkovBuilder::ConstructEndCapRingSegments( G4int zflip )
 	G4double capRingZ[2] 			= { -0.5 * fCapRingSegmentHeight, 0.5 * fCapRingSegmentHeight};
 	G4double capRingRMin[2] = { fCapRingSegmentRadiusInside, fCapRingSegmentRadiusInside};
 	G4double capRingRMax[2] = { fCapRingSegmentRadiusOutside, fCapRingSegmentRadiusOutside };
-
 	// Now divide each ring (an n-gon prism) into n rectangular segments
 	G4Polyhedra* capSegmentSolid = new G4Polyhedra("EndCapSegment",
 												   -fCapRingSegmentDPhi/2.0, // phi start
@@ -1341,6 +1350,7 @@ void WCSimCherenkovBuilder::ConstructEndCapRingSegments( G4int zflip )
 														    pureWater,
 														    "EndCapSegment",
 														    0, 0, 0);
+  capSegmentLogic->SetVisAttributes(WCCapRingSegmentVisAtt);
 
 	G4LogicalVolume * capRingLogic = NULL;
 	if( zflip == -1 ) { capRingLogic = fCapLogicTopRing; }
@@ -1391,7 +1401,7 @@ void WCSimCherenkovBuilder::ConstructEndCapRingSegments( G4int zflip )
 														capSegmentBlacksheetPhysic,
 														WCSimMaterialsBuilder::Instance()->GetOpticalSurface("WaterBSCellSurface"));
 
-	G4VisAttributes* WCCellBlacksheetCellVisAtt = new G4VisAttributes(G4Colour(0.2, 0.9, 0.2));
+	G4VisAttributes* WCCellBlacksheetCellVisAtt = new G4VisAttributes(G4Colour(80./255.0, 51./255.0, 204./255.0));
 	if (fDebugMode ){
 		capSegmentBlacksheetLogic->SetVisAttributes(WCCellBlacksheetCellVisAtt);
 	}
@@ -1691,7 +1701,7 @@ void WCSimCherenkovBuilder::PlaceEndCapPMTs(G4int zflip){
 							// G4VPhysicalVolume* physiCapPMT =
 							new G4PVPlacement(WCCapPMTRotation,     // its rotation
 									PMTPosition, fPMTBuilder.GetPMTLogicalVolume(config),        // its logical volume
-									"WCPMT",           // its name
+									("WCPMT_"+config.GetPMTName()).c_str(),           // its name
 									capLogic,      // its mother volume
 									false,             // no boolean operations
 									fNumPMTs);

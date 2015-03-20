@@ -194,7 +194,6 @@ void WCSimGeoConfig::AddCurrentZone(int zoneNum)
 
 void WCSimGeoConfig::ResetCurrent()
 {
-	fPMTNamesUsed.clear();
 	fCurrentRegions.clear();
 	fCurrentZones.clear();
 }
