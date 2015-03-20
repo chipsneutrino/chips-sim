@@ -67,9 +67,8 @@ rootcint: ./src/WCSimRootDict.cc
 evDisp : 
 	g++ `root-config --cflags --glibs` -I./include -L./ -o evDisplay evDisplay.cc src/WCSimRootDict.cc -lWCSim -lEG `root-config --cflags --glibs`
 
-
 geoHelp :
-	g++ $(CPPFLAGS) $(ROOTLIBS) $(ROOTCFLAGS) -I./include -L./ -o geometryHelper geometryHelper.cc src/WCSimGeometryHelper.cc
+	g++ $(CPPFLAGS) $(ROOTLIBS) $(ROOTCFLAGS) -I./include -L./  -o geometryHelper geometryHelper.cc src/WCSimGeometryHelper.cc `root-config --cflags --glibs`
 
 include $(G4INSTALL)/config/binmake.gmk
 

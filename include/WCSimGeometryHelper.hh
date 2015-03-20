@@ -32,6 +32,9 @@ private:
 	void Usage();
 
 	bool MakeGeometry();
+	bool AssumeLRsymmetry();
+	bool AssumeTBsymmetry();
+
 	std::string GetName();
 	std::string GetInnerRadius();
 	std::string GetInnerHeight();
@@ -67,9 +70,10 @@ private:
 	std::string AskOptionString(std::vector<std::string> options);
   std::vector<int> fSetWallZones;
 
-	rapidxml::xml_document<> fDoc;
-	WCSimGeometryEnums::PhotodetectorLimit_t fCoverageType;
-	int fNSides;
+  rapidxml::xml_document<> fDoc;
+  WCSimGeometryEnums::PhotodetectorLimit_t fCoverageType;
+  int fNSides;
+  bool bLRsymmetry, bTBsymmetry;
   double fPercentCoverage;
 
   std::vector<std::string*> fAllNewStrings;

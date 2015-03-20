@@ -14,6 +14,7 @@
 #include <math.h>
 #include <fstream>
 #include <TString.h>
+#include <algorithm>
 
 WCSimGeometryHelper::WCSimGeometryHelper()
 {
@@ -65,10 +66,12 @@ void WCSimGeometryHelper::Run()
 			rapidxml::xml_attribute<> *coverageAttr = fDoc.allocate_attribute("coverage", coverage);
 			detector->append_attribute(coverageAttr);
 		}
-
+		
+		bLRsymmetry=AssumeLRsymmetry()?true:false;
+		bTBsymmetry=AssumeTBsymmetry()?true:false;
 		SetWallZones(detector);
 		SetTopZones(detector);
-		SetBottomZones(detector);
+		if(!bTBsymmetry)SetBottomZones(detector);
 		fDoc.append_node(detector);
 
 		std::cout << fDoc << std::endl;
@@ -252,6 +255,18 @@ bool WCSimGeometryHelper::MakeGeometry()
 	return AskYesNo();
 }
 
+bool WCSimGeometryHelper::AssumeLRsymmetry()
+{
+	std::cout << "Would you like to assume left-right symmetry in wall geometry?" << std::endl;
+	return AskYesNo();
+}
+
+bool WCSimGeometryHelper::AssumeTBsymmetry()
+{
+	std::cout << "Would you like to mirror top and bottom caps ?" << std::endl;
+	return AskYesNo();
+}
+
 void WCSimGeometryHelper::SetCapZones(bool isTop, rapidxml::xml_node<> * parentNode)
 {
 	std::string region;
@@ -332,7 +347,31 @@ void WCSimGeometryHelper::SetCapZones(bool isTop, rapidxml::xml_node<> * parentN
 		}
 		parentNode->append_node(regionNode);
 	}
-
+	//Yibin's hack: mirror bottomCap to the topCap
+	if(bTBsymmetry) {
+	  const char * bottomStr = fDoc.allocate_string(WCSimGeometryEnums::DetectorRegion_t::AsString(WCSimGeometryEnums::DetectorRegion_t::kBottom).c_str());
+	  rapidxml::xml_node<> * regionNode=parentNode->first_node("region");
+	  while(regionNode) {
+	    std::string loc=regionNode->first_node("location")->value();
+	    if(loc.compare("kTop")!=0) {
+	      regionNode=regionNode->next_sibling();
+	    } else {
+	      break;
+	    }
+	  }
+	  while(regionNode) {
+	    std::string loc=regionNode->first_node("location")->value();
+	    if(loc.compare("kTop")==0) {
+	      rapidxml::xml_node<> * newNode = fDoc.clone_node(regionNode);
+	      newNode->first_node("location")->value(bottomStr);
+	      std::cout<<"haha kBottom node:"<< *newNode;
+	      parentNode->append_node(newNode);
+	      regionNode=regionNode->next_sibling();
+	    } else {
+	      break;
+	    }
+	  }
+	}
 
 	return;
 }
@@ -395,6 +434,11 @@ void WCSimGeometryHelper::SetWallZones(rapidxml::xml_node<> * parentNode)
         {
           zonesToSet.push_back(zoneToSet);
           zonesChosen++;
+	  //Yibin hack. LR symmetry.
+	  if(bLRsymmetry&&zoneToSet!=0&&2*zoneToSet!=fNSides) {
+	    zonesToSet.push_back(fNSides-zoneToSet);
+	    zonesChosen++;
+	  }
         }
       }
       else
