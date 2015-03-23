@@ -8,6 +8,7 @@
 #include "G4LogicalVolume.hh"
 #include "G4ios.hh"
 // for sort, find, count_if
+#include <string>
 #include <algorithm>
 //for less_equal, bind2nd,...
 #include <functional>
@@ -56,6 +57,7 @@ class WCSimWCHit : public G4VHit
  public:
   
   void SetTubeID       (G4int tube)                 { tubeID = tube; };
+  void SetTubeName(std::string name){fTubeName = name;};
   void SetTrackID      (G4int track)                { trackID = track; };
   void SetEdep         (G4double de)                { edep = de; };
   void SetPos          (G4ThreeVector xyz)          { pos = xyz; };
@@ -78,6 +80,7 @@ class WCSimWCHit : public G4VHit
     time.push_back(hitTime);
   }
  
+  std::string GetTubeName(){return fTubeName;};
   G4int         GetTubeID()     { return tubeID; };
   G4int         GetTrackID()    { return trackID; };
   G4ThreeVector GetPos()        { return pos; };
@@ -162,6 +165,7 @@ class WCSimWCHit : public G4VHit
 
  private:
   
+  std::string fTubeName;
   G4int            tubeID;
   G4int            trackID;
   G4double         edep;

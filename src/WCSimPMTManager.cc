@@ -75,6 +75,11 @@ void WCSimPMTManager::FillPMTAttribute(WCSimPMTConfig &pmt, rapidxml::xml_attrib
 		ss >> tempVal;
 		pmt.SetGlassThickness(tempVal*m);
 	}
+	else if(name == "timeConstant"){
+		double tempVal;
+		ss >> tempVal;
+		pmt.SetTimeConstant(tempVal);
+	}
 	else if(name.find("qe")!=std::string::npos){
 		double tempWavelength, tempEff;
 		ss >> tempWavelength >> tempEff;

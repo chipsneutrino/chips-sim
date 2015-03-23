@@ -66,6 +66,16 @@ void WCSimPMTConfig::SetGlassThickness(double glass){
 	fGlassThickness = glass;
 }
 
+// Timing Resolution
+
+double WCSimPMTConfig::GetTimeConstant() const{
+	return fTimeConstant;
+}
+
+void WCSimPMTConfig::SetTimeConstant(double timeConst){
+	fTimeConstant = timeConst;
+}
+
 // Efficiency
 
 std::vector<std::pair<double,double> > WCSimPMTConfig::GetEfficiencyVector() const{

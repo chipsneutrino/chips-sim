@@ -1,11 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 
+<!-- The time constant is measured in nano-seconds, and related to the 
+time resolution by WCSimWCDigitizer in the following way:
+timeRes = 0.33 + sqrt(timeConstant/Q)
+This equation probably needs to be addressed at some point -->
+
 <!-- 10 inch PMT -->
 <pmtDef
 	name="10inch"
 	radius="0.127"	
 	exposeHeight="0.117"
 	glassThickness="0.0055"
+  timeConstant="2.0"
   qe0="280 0.0000"
   qe1="300 0.0375"
   qe2="320 0.1300"
@@ -34,6 +40,7 @@
 	radius="0.127"
 	exposeHeight="0.117"
 	glassThickness="0.0055"
+  timeConstant="2.0"
 	qe0="280 0.0000"
 	qe1="300 0.0502"
 	qe2="320 0.2017"
@@ -62,6 +69,7 @@
   radius="0.1524"
   exposeHeight="0.118"
   glassThickness="0.0055"
+  timeConstant="2.0"
   qe0="280 0.0000"
   qe1="300 0.0502"
   qe2="320 0.2017"
@@ -90,6 +98,7 @@
   radius="0.254"
   exposeHeight="0.18"
   glassThickness="0.004"
+  timeConstant="10.0"
   qe0="280 0.0000"
   qe1="300 0.0139"
   qe2="320 0.0854"

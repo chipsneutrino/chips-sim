@@ -30,6 +30,9 @@ public:
 	double GetGlassThickness() const;
 	void SetGlassThickness(double thick);
 
+	double GetTimeConstant() const;
+	void SetTimeConstant(double timeConst);
+
 	std::vector<std::pair<double,double> > GetEfficiencyVector() const;
 	void SetEfficiencyVector(std::vector<std::pair<double,double> > effVec);
 
@@ -49,6 +52,7 @@ private:
 	double fRadius;
 	double fExposeHeight;
 	double fGlassThickness;
+	double fTimeConstant;
 	// Efficency stored in a pair of <wavelength,efficiency>
 	std::vector<std::pair<double,double> > fEffVec;
 	double fMaxEff;

@@ -9,6 +9,8 @@
 #include "G4ios.hh"
 
 #include "WCSimDetectorConstruction.hh"
+#include "WCSimPMTManager.hh"
+#include "WCSimPMTConfig.hh"
 #include "WCSimCHIPSPMT.hh"
 
 #include <vector>
@@ -298,7 +300,7 @@ void WCSimWCDigitizer::FindNumberOfGatesFast()
 
 void WCSimWCDigitizer::DigitizeGate(WCSimWCHitsCollection* WCHC,G4int G)
 {
-
+/*
 	G4float timingConstant = 0.0;
 
 	if (round(PMTSize) == 0.254*m)      // 20 inch tube
@@ -322,7 +324,7 @@ void WCSimWCDigitizer::DigitizeGate(WCSimWCHitsCollection* WCHC,G4int G)
 			<< G4endl;
 		exit(-1);
 	}
-
+*/
 	G4double EvtG8Down = WCSimWCDigitizer::eventgatedown;
 	G4double EvtG8Up = WCSimWCDigitizer::eventgateup;  // this is a negative number...
 
@@ -334,8 +336,16 @@ void WCSimWCDigitizer::DigitizeGate(WCSimWCHitsCollection* WCHC,G4int G)
 	}
 	G4double upperbound = TriggerTimes[G]+EvtG8Up;
 
+  // Before looping over the hits, get hold of the PMTManager
+  WCSimPMTManager *pmtMan = fDet->GetPMTManager();
+
 	for (G4int i=0; i < WCHC->entries(); i++)
 	{
+
+    // What type of PMT do we have?
+    WCSimPMTConfig pmtConfig = pmtMan->GetPMTByName((*WCHC)[i]->GetTubeName());
+    G4int timingConstant = pmtConfig.GetTimeConstant(); // In ns
+
 		//G4double peCutOff = .3;
 		// MF, based on S.Mine's suggestion : global scaling factor applied to
 		// all the smeared charges.

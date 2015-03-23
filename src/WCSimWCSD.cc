@@ -139,9 +139,22 @@ G4bool WCSimWCSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 //    tubeTag << theMother->GetName() << ":";
 
 //  tubeTag << thePhysical->GetName(); 
+
+  std::string tubeType = "";
   for (G4int i = theTouchable->GetHistoryDepth()-1 ; i >= 0; i--){
     tubeTag << ":" << theTouchable->GetVolume(i)->GetName();
     tubeTag << "-" << theTouchable->GetCopyNumber(i);
+
+    std::string volName = theTouchable->GetVolume(i)->GetName();
+    if(volName.find("WCPMT_") != volName.npos){
+      tubeType = volName;
+      // These are always named WCPMT_<pmt_name>, so strip the first part.
+      tubeType = volName.substr(6); // Return the string from character 6 to the end.
+    }
+  }
+  if(tubeType == ""){
+    std::cerr << "WCSimWCSD: Tube type could not be extracted, exiting." << std::endl;
+    assert(0);
   }
   //  tubeTag << ":" << theTouchable->GetVolume(i)->GetCopyNo(); 
 
@@ -149,7 +162,6 @@ G4bool WCSimWCSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 
   // Get the tube ID from the tubeTag
   G4int replicaNumber = WCSimDetectorConstruction::GetTubeID(tubeTag.str());
-
     
   G4float collection_angle[10]={0,10,20,30,40,50,60,70,80,90};
   G4float collection_eff[10]={100,100,99,95,90,85,80,69,35,13};
@@ -190,6 +202,7 @@ G4bool WCSimWCSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
        if (PMTHitMap[replicaNumber] == 0)
 	 {
 	   WCSimWCHit* newHit = new WCSimWCHit();
+     newHit->SetTubeName(tubeType);
 	   newHit->SetTubeID(replicaNumber);
 	   newHit->SetTrackID(trackID);
 	   newHit->SetEdep(energyDeposition); 
