@@ -327,7 +327,8 @@ void WCSimCherenkovBuilder::CreatePrismWalls()
 		// Now make the volumes
 		std::stringstream ss;
 		ss << "prism" << iZone;
-		G4Polyhedra* prismWallSolid = new G4Polyhedra(ss.str().c_str(),
+    G4String elName = ss.str();
+		G4Polyhedra* prismWallSolid = new G4Polyhedra(elName,
 																								 -0.5 * 360.0 / ((double)fGeoConfig->GetNSides()) * deg,  // phi start
 																									360.0 / ((double)fGeoConfig->GetNSides()) * deg,  // phi width
 																  								1, //number of sides
@@ -422,7 +423,7 @@ void WCSimCherenkovBuilder::CreateRingSegments() {
 
 		std::stringstream ss;
 		ss << "segment" << iSide;
-		const char * name = ss.str().c_str();
+		G4String name = ss.str();
 
 		G4Polyhedra* segmentSolid = new G4Polyhedra(name,
 												-fPrismRingSegmentDPhi/2.0, // phi start
