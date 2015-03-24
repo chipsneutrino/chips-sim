@@ -1851,20 +1851,27 @@ void WCSimCherenkovBuilder::Update() {
 	}
 	fBottomUnitCells.clear();
 
+
 	for(unsigned int iWall = 0; iWall < fSegmentLogics.size(); ++iWall)
 	{
 		if( fPrismWallLogics.at(iWall) != NULL ){ delete fPrismWallLogics.at(iWall);}
 		if( fPrismWallPhysics.at(iWall) != NULL ){ delete fPrismWallPhysics.at(iWall);}
 		if( fPrismRingLogics.at(iWall) != NULL ) { delete fPrismRingLogics.at(iWall); }
-		if( fPrismRingPhysics.at(iWall) != NULL) { delete fPrismRingPhysics.at(iWall); }
+    // Can't do the same with fPrismRingPhysics... get a glibc error when clearing the vector.
+    // Maybe GEANT is doing something behind the scenes and deleting it.
 	}
-
+  fPrismWallLogics.clear();
+  fPrismWallPhysics.clear();
+  fPrismRingLogics.clear();
+  fPrismRingPhysics.clear();
 
 	for(unsigned int iSegment = 0; iSegment < fSegmentLogics.size(); ++iSegment)
 	{
 		if( fSegmentLogics.at(iSegment) != NULL ){ delete fSegmentLogics.at(iSegment);}
 		if( fSegmentPhysics.at(iSegment) != NULL ){ delete fSegmentPhysics.at(iSegment);}
 	}
+  fSegmentLogics.clear();
+  fSegmentPhysics.clear();
 
 
 	if( fGeoConfig != NULL ) { delete fGeoConfig; }
