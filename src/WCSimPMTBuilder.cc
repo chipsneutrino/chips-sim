@@ -119,7 +119,8 @@ void WCSimPMTBuilder::ConstructPMT(WCSimPMTConfig config) {
   std::string pmtName = config.GetPMTName();
 
 	G4Polycone* solidWCPMT = new G4Polycone(("WCPMT_"+pmtName).c_str(), 0.0*deg, 360.0*deg, 2,
-		  	  	  	  	  	  	  	  	    PMTHolderZ, PMTHolderR, PMTHolderr);
+		  	  	  	  	  	  	  	  	    PMTHolderZ, PMTHolderr, PMTHolderR);
+//		  	  	  	  	  	  	  	  	    PMTHolderZ, PMTHolderR, PMTHolderr);
 
 	G4Material * water = WCSimMaterialsBuilder::Instance()->GetMaterial("Water");
 	G4LogicalVolume* logicWCPMT = new G4LogicalVolume(solidWCPMT, water, ("WCPMT_"+pmtName).c_str(), 0,0,0);
