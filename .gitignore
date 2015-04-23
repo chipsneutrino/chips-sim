@@ -9,7 +9,7 @@
 *.a
 *___*
 .*
-./*.root
+*.root
 *_.cxx
 /nbproject/private/
 *~
