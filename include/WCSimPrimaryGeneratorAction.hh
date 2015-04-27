@@ -149,6 +149,7 @@ public:
 		vectorFileVec.push_back(fileName);
 		if(vectorFileVec.size() == 1)
 		{
+			vectorFileIterator = vectorFileVec.begin();
 			LoadNextVectorFile();
 		}
 		return;
