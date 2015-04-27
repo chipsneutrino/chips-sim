@@ -1694,33 +1694,31 @@ void WCSimCherenkovBuilder::PlaceEndCapPMTs(G4int zflip){
 						//						std::cout << "Placing cap PMT at (" << cellpos.x() << ", " << cellpos.y() << std::endl;
 						//						std::cout << "Here, phi = " << cellpos.phi() << " and start = " << thetaStart << ", end = " << thetaEnd << std::endl;
 
-						for (unsigned int nPMT = 0; nPMT < unitCell->GetNumPMTs(); ++nPMT) {
-							G4TwoVector pmtCellPosition = unitCell->GetPMTPos(nPMT, cellSizeVec->at(iZone)); // PMT position in cell, relative to top left of cell
-							G4ThreeVector PMTPosition(topLeftCell.x() + pmtCellPosition.x(),
-									topLeftCell.y() - pmtCellPosition.y(), 0.0);
-							WCSimPMTConfig config = unitCell->GetPMTPlacement(nPMT).GetPMTConfig();
-							// G4VPhysicalVolume* physiCapPMT =
-							new G4PVPlacement(WCCapPMTRotation,     // its rotation
-									PMTPosition, fPMTBuilder.GetPMTLogicalVolume(config),        // its logical volume
-									("WCPMT_"+config.GetPMTName()).c_str(),           // its name
-									capLogic,      // its mother volume
-									false,             // no boolean operations
-									fNumPMTs);
-							//std::cout << "name of capLogic = " << capLogic->GetName() << std::endl;
-							if (fNumPMTs == 0 || 1) {
-              // std::cout << "XXplacingXX " << xPos << topLeftCell.x() << " " << topLeftCell.y() << std::endl;
-              // std::cout << "inner radius = " << fGeoConfig->GetOuterRadius() << "   xpos = " << xPos << "   ypos = " << yPos << "  top cell size = " << cellSizeVec->at(iZone) << std::endl;
-              // std::cout << "PMT position in cell = " << pmtCellPosition.x() / m << "," << pmtCellPosition.y() / m << "in m" << std::endl;
-              // std::cout << "Cell size = " << cellSizeVec->at(iZone) << std::endl;// pmtCellPosition.x() << "," << pmtCellPosition.y() << std::endl;
-              // std::cout << "PMT logical volume name = " << fPMTBuilder.GetPMTLogicalVolume(config)->GetName() << std::endl;
-              //  std::cout << "Placed endcap PMT!  Have now placed " << fNumPMTs+1 << std::endl;
-							}
-							fNumPMTs++;
-              placedTop.at(iZone)++;
-							// logicWCPMT->GetDaughter(0),physiCapPMT is the glass face. If you add more
-							// daughter volumes to the PMTs (e.g. a acryl cover) you have to check, if
-							// this is still the case.
+						G4TwoVector pmtCellPosition = unitCell->GetPMTPos(iPMT, cellSizeVec->at(iZone)); // PMT position in cell, relative to top left of cell
+						G4ThreeVector PMTPosition(topLeftCell.x() + pmtCellPosition.x(),
+								topLeftCell.y() - pmtCellPosition.y(), 0.0);
+						WCSimPMTConfig config = unitCell->GetPMTPlacement(iPMT).GetPMTConfig();
+						// G4VPhysicalVolume* physiCapPMT =
+						new G4PVPlacement(WCCapPMTRotation,     // its rotation
+								PMTPosition, fPMTBuilder.GetPMTLogicalVolume(config),        // its logical volume
+								("WCPMT_"+config.GetPMTName()).c_str(),           // its name
+								capLogic,      // its mother volume
+								false,             // no boolean operations
+								fNumPMTs);
+						//std::cout << "name of capLogic = " << capLogic->GetName() << std::endl;
+						if (fNumPMTs == 0 || 1) {
+            // std::cout << "XXplacingXX " << xPos << topLeftCell.x() << " " << topLeftCell.y() << std::endl;
+            // std::cout << "inner radius = " << fGeoConfig->GetOuterRadius() << "   xpos = " << xPos << "   ypos = " << yPos << "  top cell size = " << cellSizeVec->at(iZone) << std::endl;
+            // std::cout << "PMT position in cell = " << pmtCellPosition.x() / m << "," << pmtCellPosition.y() / m << "in m" << std::endl;
+            // std::cout << "Cell size = " << cellSizeVec->at(iZone) << std::endl;// pmtCellPosition.x() << "," << pmtCellPosition.y() << std::endl;
+            // std::cout << "PMT logical volume name = " << fPMTBuilder.GetPMTLogicalVolume(config)->GetName() << std::endl;
+            //  std::cout << "Placed endcap PMT!  Have now placed " << fNumPMTs+1 << std::endl;
 						}
+						fNumPMTs++;
+            placedTop.at(iZone)++;
+						// logicWCPMT->GetDaughter(0),physiCapPMT is the glass face. If you add more
+						// daughter volumes to the PMTs (e.g. a acryl cover) you have to check, if
+						// this is still the case.
 					}
 				}
 
