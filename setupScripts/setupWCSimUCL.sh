@@ -9,9 +9,7 @@ while [ -h "${SOURCE}" ]; do
      # Handle cases where SOURCE is ./something
      [[ ${SOURCE} != /* ]] && SOURCE="$DIR/${SOURCE}"
 done
-DIR="$( cd -P "$( dirname "${SOURCE}" )" && pwd )"
-
-DIR=${DIR#setupScripts/}
+DIR="$( cd -P "$( dirname "${SOURCE}" )" && pwd | sed "s#setupScripts##g")"
 export WCSIMHOME=${DIR}
 
 source /unix/lartpc/software/root/setup.sh
