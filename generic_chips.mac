@@ -47,6 +47,9 @@
 ## Set the name of the photon ntuple root file, default = localfile_photons.root
 #/WCSimIO/PhotonNtuple ~/some/absolute/path/file.root
 
+## Set the percentage of Cherenkov photons to draw (0.0 - 100.0)
+/WCSimTrack/PercentCherenkovPhotonsToDraw 0.0
+
 # Seed the random generator with two integers
 /random/setSeeds 100 10
 

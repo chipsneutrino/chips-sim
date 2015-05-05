@@ -1,4 +1,5 @@
 #include "WCSimTrackingAction.hh"
+#include "WCSimTrackingActionMessenger.hh"
 #include "WCSimTrajectory.hh"
 #include "G4ParticleTypes.hh"
 #include "G4TrackingManager.hh"
@@ -20,6 +21,8 @@ WCSimTrackingAction::WCSimTrackingAction()
   ParticleList.insert(311); // kaon0
   ParticleList.insert(-311); // kaon0 bar 
   // don't put gammas there or there'll be too many
+  fMessenger = new WCSimTrackingActionMessenger(this);
+  fFractionCherenkovPhotonsToDraw = 0.0;
 }
 
 WCSimTrackingAction::~WCSimTrackingAction(){;}
@@ -29,7 +32,7 @@ void WCSimTrackingAction::PreUserTrackingAction(const G4Track* aTrack)
   G4float percentageOfCherenkovPhotonsToDraw = 100.;
 
   if ( aTrack->GetDefinition() != G4OpticalPhoton::OpticalPhotonDefinition()
-       || 100 * G4UniformRand() < percentageOfCherenkovPhotonsToDraw )
+       || G4UniformRand() < fFractionCherenkovPhotonsToDraw )
     {
       WCSimTrajectory* thisTrajectory = new WCSimTrajectory(aTrack);
       fpTrackingManager->SetTrajectory(thisTrajectory);
@@ -120,7 +123,14 @@ void WCSimTrackingAction::PostUserTrackingAction(const G4Track* aTrack)
   }
 }
 
+void WCSimTrackingAction::SetPercentCherenkovPhotonsToDraw(const double& percent)
+{
+	SetFractionCherenkovPhotonsToDraw(percent/100.0);
+}
 
-
-
-
+void WCSimTrackingAction::SetFractionCherenkovPhotonsToDraw(const double& frac)
+{
+	fFractionCherenkovPhotonsToDraw = frac;
+	if(fFractionCherenkovPhotonsToDraw > 1.0) { fFractionCherenkovPhotonsToDraw = 1.0; }
+	else if( fFractionCherenkovPhotonsToDraw < 0.0) { fFractionCherenkovPhotonsToDraw = 0.0; }
+}
