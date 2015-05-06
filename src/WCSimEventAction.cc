@@ -1,3 +1,4 @@
+#include "WCSimEmissionProfileMaker.hh"
 #include "WCSimEventAction.hh"
 #include "WCSimPhotonNtuple.hh"
 #include "WCSimTrajectory.hh"
@@ -109,15 +110,20 @@ void WCSimEventAction::EndOfEventAction(const G4Event* evt)
   WCDM->SetPMTSize(PMTSize);
 
   // Digitize the hits
-  WCDM->Digitize();
-
+  WCDM->Digitize();\
   // Get the digitized collection for the WC
   G4int WCDCID = DMman->GetDigiCollectionID("WCDigitizedCollection");
   WCSimWCDigitsCollection * WCDC = (WCSimWCDigitsCollection*) DMman->GetDigiCollection(WCDCID);
 
   // Fill photon ntuple
-  if( GetRunAction()->GetSavePhotonNtuple() )
+  if( GetRunAction()->GetSavePhotonNtuple()  || GetRunAction()->GetSaveEmissionProfile() )
   {
+      if( GetRunAction()->GetSaveEmissionProfile())
+      {
+    	  WCSimTruthSummary summ = generatorAction->GetTruthSummary();
+    	  WCSimEmissionProfileMaker::Instance()->Fill( evt->GetTrajectoryContainer(), &summ );
+      }
+
     for ( G4int i=0; i < n_trajectories; i++ ) {
       WCSimTrajectory* trj = (WCSimTrajectory*)((*(evt->GetTrajectoryContainer()))[i]);
 
@@ -142,23 +148,30 @@ void WCSimEventAction::EndOfEventAction(const G4Event* evt)
       G4double endZ = trj->GetEndZ();
       G4double endTime = trj->GetEndTime();
 
-      WCSimPhotonNtuple::Fill( event_id,
-          pdgCode, trackID, parentID, processID,
-          energy, lambda,
-          opticalPhoton, scatteredPhoton,
-          vtxX, vtxY, vtxZ, vtxTime,
-          endX, endY, endZ, endTime,
-          vtxdirX, vtxdirY, vtxdirZ );      
+      if(GetRunAction()->GetSavePhotonNtuple())
+      {
+    	  WCSimPhotonNtuple::Fill( event_id,
+    			  pdgCode, trackID, parentID, processID,
+    			  energy, lambda,
+    			  opticalPhoton, scatteredPhoton,
+    			  vtxX, vtxY, vtxZ, vtxTime,
+    			  endX, endY, endZ, endTime,
+    			  vtxdirX, vtxdirY, vtxdirZ );
+      }
+
+
     }
   }
 
-
   G4cout << " Filling Root Event " << G4endl;
 
-  FillRootEvent(event_id,
-      trajectoryContainer,
-      WCHC,
-      WCDC);
+  if(GetRunAction()->GetSaveRootFile())
+  {
+	  FillRootEvent(event_id,
+			  trajectoryContainer,
+			  WCHC,
+			  WCDC);
+  }
 
 }
 

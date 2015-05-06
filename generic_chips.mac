@@ -25,7 +25,7 @@
 /gps/pos/type Point
 /gps/pos/centre 0 0 0 cm 
 
-/gps/energy 1500 MeV
+/gps/energy 500 MeV
 
 # Use direction distribution or fixed values
 /gps/ang/type iso
@@ -36,6 +36,7 @@
 
 ## Change the name of the output root file, default = wcsim.root
 #/WCSimIO/RootFile ~/some/absolute/path/file.root
+/WCSimIO/SaveRootFile false
 /WCSimIO/RootFile localfile.root
 
 ## Whether to save an ntuple with all the optical photon tracks, default = false
@@ -44,15 +45,19 @@
 # in src/WCSimTrackingAction.cc !!!
 /WCSimIO/SavePhotonNtuple false
 
+## Whether to make emission profiles
+/WCSimIO/SaveEmissionProfile true
+/WCSimIO/EmissionProfile localfile_emission.root
+
 ## Set the name of the photon ntuple root file, default = localfile_photons.root
 #/WCSimIO/PhotonNtuple ~/some/absolute/path/file.root
 
 ## Set the percentage of Cherenkov photons to draw (0.0 - 100.0)
-/WCSimTrack/PercentCherenkovPhotonsToDraw 0.0
+/WCSimTrack/PercentCherenkovPhotonsToDraw 100.0
 
 # Seed the random generator with two integers
 /random/setSeeds 100 10
 
 # Number of events to generate
-/run/beamOn 1
+/run/beamOn 100
 #exit
