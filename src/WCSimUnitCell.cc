@@ -213,9 +213,9 @@ double WCSimUnitCell::GetCellExposeHeight() const {
 	double maxExpose = 0.0;
 	std::vector<WCSimPMTPlacement>::const_iterator pmtItr = fPMTs.begin();
 	for( ; pmtItr != fPMTs.end(); ++pmtItr ){
-		double expose = (*pmtItr).GetPMTConfig().GetExposeHeight();
-		if( expose > maxExpose) { maxExpose = expose; }
-	}
+	  double expose = std::max(((*pmtItr).GetPMTConfig().GetLCConfig()).GetExposeHeight(), (*pmtItr).GetPMTConfig().GetExposeHeight());
+	  if( expose > maxExpose) { maxExpose = expose; }
+	}	
 	return maxExpose;
 }
 

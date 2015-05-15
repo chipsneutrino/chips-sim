@@ -80,6 +80,11 @@ void WCSimPMTManager::FillPMTAttribute(WCSimPMTConfig &pmt, rapidxml::xml_attrib
 		ss >> tempVal;
 		pmt.SetTimeConstant(tempVal);
 	}
+	else if(name == "lightCollector"){
+		std::string tempVal;
+		ss >> tempVal;
+		pmt.SetLCConfig(tempVal);
+	}
 	else if(name.find("qe")!=std::string::npos){
 		double tempWavelength, tempEff;
 		ss >> tempWavelength >> tempEff;

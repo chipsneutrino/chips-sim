@@ -10,6 +10,7 @@
 #include "WCSimWCSD.hh"
 #include "G4Box.hh"
 #include "G4LogicalBorderSurface.hh"
+#include "G4LogicalSkinSurface.hh"
 #include "G4LogicalVolume.hh"
 #include "G4Material.hh"
 #include "G4VPhysicalVolume.hh"
@@ -107,6 +108,32 @@ void WCSimPMTBuilder::ConstructPMT(WCSimPMTConfig config) {
 	double sphereRadius = (tmpExpose*tmpExpose + tmpRadius*tmpRadius)/(2*tmpExpose);
 	double PMTOffset =  sphereRadius - tmpExpose;
 
+
+
+	// Light   Collector 
+	int lcPoints = (config.GetLCConfig()).GetNShapePoints();
+
+	// This limits/forces the number of points for the Light Collector polycone to 100!! Need to be improved.
+        G4double LCZ[100];
+        G4double LCr[100];
+        G4double LCrb[100];
+        G4double LCR[100];
+
+	G4double lcReflector_thickness = 0.2,  lcSupport_thickness = 0.1; // Hard coded for now! 
+
+	for( int ipoint=0; ipoint<lcPoints; ipoint++){
+	  LCZ[ipoint] = (config.GetLCConfig()).GetShapeVector()[ipoint].first; 
+	  LCr[ipoint] = (config.GetLCConfig()).GetShapeVector()[ipoint].second;
+	  LCrb[ipoint] = LCr[ipoint]  + lcReflector_thickness;
+	  LCR[ipoint]  = LCrb[ipoint] + lcSupport_thickness;
+	}
+
+	G4double LCZmax = (config.GetLCConfig()).GetExposeHeight();
+	G4double LCRmax = (config.GetLCConfig()).GetMaxRadius() + lcReflector_thickness + lcSupport_thickness;
+
+	if(LCRmax > tmpRadius) tmpRadius = LCRmax;
+	if(LCZmax > tmpExpose) tmpExpose = LCZmax; 
+
 	//All components of the PMT are now contained in a single logical volume logicWCPMT.
 	//Origin is on the blacksheet, faces positive z-direction.
 
@@ -114,12 +141,12 @@ void WCSimPMTBuilder::ConstructPMT(WCSimPMTConfig config) {
 	G4double PMTHolderR[2] = {tmpRadius, tmpRadius};
 	G4double PMTHolderr[2] = {0,0};
 
-  // Use the PMT name to modify the standard geometry name such that we can
-  // tell the difference between different types of PMT later on.
-  std::string pmtName = config.GetPMTName();
+	// Use the PMT name to modify the standard geometry name such that we can
+	// tell the difference between different types of PMT later on.
+	std::string pmtName = config.GetPMTName();
 
 	G4Polycone* solidWCPMT = new G4Polycone(("WCPMT_"+pmtName).c_str(), 0.0*deg, 360.0*deg, 2,
-		  	  	  	  	  	  	  	  	    PMTHolderZ, PMTHolderr, PMTHolderR);
+						                                    PMTHolderZ, PMTHolderr, PMTHolderR);
 //		  	  	  	  	  	  	  	  	    PMTHolderZ, PMTHolderR, PMTHolderr);
 
 	G4Material * water = WCSimMaterialsBuilder::Instance()->GetMaterial("Water");
@@ -175,6 +202,64 @@ void WCSimPMTBuilder::ConstructPMT(WCSimPMTConfig config) {
 	                                    																		 physiGlassFaceWCPMT,
 	                                    																		 physiInteriorWCPMT,
 	                                    																		 OpGlassCathodeSurface);
+
+
+	// Light Collector 
+
+	if( lcPoints > 0 ) {
+	  G4Polycone* solidWCLCSupport = new G4Polycone(("LightCollectorSupport"+pmtName).c_str(), 0.0*deg, 360.0*deg, 100,
+							LCZ, LCrb, LCR );
+
+	  G4Material *blacksheet = WCSimMaterialsBuilder::Instance()->GetMaterial("Blacksheet");
+	  G4LogicalVolume *logicWCLCSupport = new G4LogicalVolume(solidWCLCSupport, blacksheet, ("LightCollectorSupport"+pmtName).c_str(), 0,0,0);
+	  logicWCLCSupport->SetVisAttributes(G4VisAttributes::Invisible);
+
+	  G4VPhysicalVolume* physiWCLCSupport =   new G4PVPlacement(0,
+								    G4ThreeVector(0, 0, 0),
+								    logicWCLCSupport, ("LightCollectorSupport"+pmtName).c_str(),
+								    logicWCPMT,   false, 0);
+
+	  //Add Optical Surfaces                                                                                                                           
+
+	  G4SurfaceProperty * OpWaterLCoutSurface = (G4SurfaceProperty*)(WCSimMaterialsBuilder::Instance()->GetOpticalSurface("WaterLCoutSurface"));
+
+	  G4LogicalSkinSurface* WaterLCoutSurface = new G4LogicalSkinSurface(
+                                                                          "WaterLCoutSurface",
+                                                                          logicWCLCSupport,
+                                                                          OpWaterLCoutSurface);
+
+	  //  Reflector                                                                                                                            
+
+	  G4Polycone* solidWCLC = new G4Polycone(("LightCollector"+pmtName).c_str(), 0.0*deg, 360.0*deg, 100,
+						 LCZ, LCr, LCrb );
+
+
+	  G4Material * aluminum = WCSimMaterialsBuilder::Instance()->GetMaterial("Aluminum");
+	  G4LogicalVolume* logicWCLC = new G4LogicalVolume(solidWCLC, aluminum, ("LightCollector"+pmtName).c_str(), 0,0,0);
+
+	  G4VisAttributes* WCLCVisAtt = new G4VisAttributes(G4Colour(0.0,0.6,1.0));
+	  WCLCVisAtt->SetForceWireframe(true);
+	  logicWCLC->SetVisAttributes(WCLCVisAtt);
+
+
+	  G4VPhysicalVolume* physiWCLC =  new G4PVPlacement(0,
+							    G4ThreeVector(0, 0, 0),
+							    logicWCLC, ("LightCollector"+pmtName).c_str(),
+							    logicWCPMT,   false, 0);
+
+	  //Add Optical Surfaces                                                                                                                           
+	  
+	  G4SurfaceProperty * OpWaterLCinSurface = (G4SurfaceProperty*)(WCSimMaterialsBuilder::Instance()->GetOpticalSurface("WaterLCinSurface"));
+	
+	  G4LogicalSkinSurface* WaterLCinSurface = new G4LogicalSkinSurface(
+									    "WaterLCinSurface",
+									    logicWCLC,
+									    OpWaterLCinSurface);
+
+	} // Light Collector
+
+
+
                                       
 	fPMTLogicalVolumes[config.GetPMTName()] = WCSimGeantPMTWrapper( logicWCPMT, logicGlassFaceWCPMT);
 	std::cout << "PMT object constructed ... " << config.GetPMTName() << "   " << logicWCPMT->GetName() << std::endl;

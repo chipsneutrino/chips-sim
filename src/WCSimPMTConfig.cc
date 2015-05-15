@@ -4,6 +4,8 @@
 #include "math.h"
 
 #include "WCSimPMTConfig.hh"
+#include "WCSimLCConfig.hh"
+#include "WCSimLCManager.hh"
 
 // Default (and only) constructor
 WCSimPMTConfig::WCSimPMTConfig(){
@@ -14,6 +16,7 @@ WCSimPMTConfig::WCSimPMTConfig(){
 	fEffBins = 0;
 	fMaxEff = 0;
 	fPMTName = "";
+	fLCName = "";
 
 }
 
@@ -24,6 +27,9 @@ WCSimPMTConfig::WCSimPMTConfig(const WCSimPMTConfig &rhs){
 	fGlassThickness = rhs.GetGlassThickness();
 	this->SetEfficiencyVector(rhs.GetEfficiencyVector());
 	fPMTName = rhs.GetPMTName();
+	fLCName = rhs.GetLCName();
+	fLCConfig = rhs.GetLCConfig();
+
 }
 
 // Destructor
@@ -113,6 +119,25 @@ void WCSimPMTConfig::SetPMTName(std::string name){
 	fPMTName = name;
 }
 
+std::string WCSimPMTConfig::GetLCName() const{
+	return fLCName;
+}
+
+void WCSimPMTConfig::SetLCName(std::string name){
+	fLCName = name;
+}
+
+WCSimLCConfig WCSimPMTConfig::GetLCConfig() const{
+	return fLCConfig;
+}
+
+void WCSimPMTConfig::SetLCConfig(std::string name){
+        this->SetLCName(name);
+
+	fLCConfig = fLCManager.GetLCByName(name);
+
+}
+
 // Print out the PMT details
 void WCSimPMTConfig::Print() const{
 
@@ -121,6 +146,8 @@ void WCSimPMTConfig::Print() const{
 	std::cout << "\tRadius = " << this->GetRadius()/m << "m" << std::endl;
 	std::cout << "\tExpose Height = " << this->GetExposeHeight()/m << "m" << std::endl;
 	std::cout << "\tGlass Thickness = " << this->GetGlassThickness()/m << "m" << std::endl;
+	if(this->GetLCName() != "") 
+	  std::cout << "\tLight Collector = " << this->GetLCName() << std::endl;
 	std::cout << "\tEfficiency @ Wavelength(nm):" << std::endl;
 	for(unsigned int i = 0; i < this->GetNEfficiencyBins(); ++i){
 		std::cout << "\t\t" << fEffVec[i].second << " at " << fEffVec[i].first << "nm" << std::endl;

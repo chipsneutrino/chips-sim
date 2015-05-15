@@ -6,6 +6,8 @@
 
 // GEANT definitions
 #include "globals.hh"
+#include "WCSimLCConfig.hh"
+#include "WCSimLCManager.hh"
 
 // This class is designed to store the information about a type of PMT.
 
@@ -45,6 +47,12 @@ public:
 	std::string GetPMTName() const;
 	void SetPMTName(std::string name);
 
+  	std::string GetLCName() const;
+	void SetLCName(std::string name);
+
+        WCSimLCConfig GetLCConfig() const;
+	void SetLCConfig(std::string name);
+
 	void Print() const;
 	
 private:
@@ -58,6 +66,10 @@ private:
 	double fMaxEff;
 	unsigned int fEffBins;
 	std::string fPMTName;
+        std::string fLCName;
+        
+        WCSimLCConfig  fLCConfig; 
+        WCSimLCManager fLCManager;
 };
 
 #endif

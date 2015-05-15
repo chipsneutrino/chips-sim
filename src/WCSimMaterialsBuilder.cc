@@ -20,7 +20,9 @@ static WCSimMaterialsBuilder* fgMaterialsBuilder = 0;
 
 WCSimMaterialsBuilder::WCSimMaterialsBuilder() : fOpWaterBSSurface(NULL),
 	                                               fOpGlassCathodeSurface(NULL),
-                                                 fOpWaterTySurface(NULL) 
+                                                 fOpWaterTySurface(NULL),
+						 fOpWaterLCinSurface(NULL),
+						 fOpWaterLCoutSurface(NULL)
 {
 	BuildVacuum();
 	BuildElements();
@@ -753,6 +755,17 @@ void WCSimMaterialsBuilder::BuildMaterialPropertiesTable() {
 	fOpWaterTySurface->SetMaterialPropertiesTable(myST3);
 
 
+	// Light Collector Reflecting Surface
+	G4double ENERGY_LC[NUM]             = {1.7e-9 * GeV,  6.2e-9 * GeV } ;
+        G4double LCREREFLECTIVITY[NUM]      = { 0.95, 0.95 }; // Constant for the moment (probably needs some refinemnet)        
+        G4MaterialPropertiesTable *myST4 = new G4MaterialPropertiesTable();
+        myST4->AddProperty("REFLECTIVITY", ENERGY_LC, LCREREFLECTIVITY,NUM);
+        fOpWaterLCinSurface->SetMaterialPropertiesTable(myST4);
+
+        // Give Light Collector Outer Surface same properties as Blak Sheet (myST1) 
+        fOpWaterLCoutSurface->SetMaterialPropertiesTable(myST1);
+
+
 }
 
 G4OpticalSurface* WCSimMaterialsBuilder::GetOpticalSurface(
@@ -809,5 +822,31 @@ void WCSimMaterialsBuilder::BuildSurfaces() {
 		fOpWaterTySurface->SetSigmaAlpha(0.5); //cf. A. Chavarria's ~30deg
     fOpticalSurfaces[name] = fOpWaterTySurface;
 	}
+
+        // --------- Light Collector Reflecting Surface  
+        if (fOpWaterLCinSurface == NULL) {
+          G4String name = "WaterLCinSurface";
+
+          fOpWaterLCinSurface = new G4OpticalSurface(name);
+          fOpWaterLCinSurface->SetType(dielectric_metal);
+          fOpWaterLCinSurface->SetModel(unified);
+          fOpWaterLCinSurface->SetFinish(polished);
+          fOpWaterLCinSurface->SetSigmaAlpha(0.01);  // Guessed!!! To be checked    
+          fOpticalSurfaces[name] = fOpWaterLCinSurface;
+
+        }
+
+        // --------- Light Collector Outer Surface  
+	if (fOpWaterLCoutSurface == NULL) {
+          G4String name = "WaterLCoutSurface";
+
+          fOpWaterLCoutSurface = new G4OpticalSurface(name);
+          fOpWaterLCoutSurface->SetType(dielectric_dielectric);
+          fOpWaterLCoutSurface->SetModel(unified);
+          fOpWaterLCoutSurface->SetFinish(groundfrontpainted);
+          fOpWaterLCoutSurface->SetSigmaAlpha(0.1);
+          fOpticalSurfaces[name] = fOpWaterLCoutSurface;
+
+        }
 }
 
