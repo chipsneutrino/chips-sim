@@ -1,6 +1,7 @@
 #ifndef WCSIMEVDISPLAY_HH
 #define WCSIMEVDISPLAY_HH
 
+#include <iostream>
 #include <string>
 
 #include <TGClient.h>
@@ -92,7 +93,7 @@ private:
 };
 
 class WCSimEvDisplay : public TGMainFrame {
-private:
+protected:
 
 	// Canvas to show the hit PMTs
   TRootEmbeddedCanvas *fHitMapCanvas;
