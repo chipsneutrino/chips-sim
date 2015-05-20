@@ -199,12 +199,13 @@ protected:
 	// Flag to decide whether we show the 1D plots
 	bool fShow1DHists;
 	// Function to update the pads as a result.
-	void ResizePads();
+	virtual void ResizePads();
 
   // Default construct some plots
   void MakeDefaultPlots();
 
 	// Function to draw plots from the standard WCSim files
+  virtual void FillPlots();
 	void FillPlotsFromWCSimEvent();
 	// Use the geometry to resize the plots.
 	void ResizePlotsFromGeometry();
@@ -219,7 +220,7 @@ protected:
 	// Set the colour axes for the 2D plots
 	void SetPlotZAxes();
 	// Update the canvases after updating the plots.
-	void UpdateCanvases();
+	virtual void UpdateCanvases();
   // Draw the reco plots to their pads, but don't show yet.
   void UpdateRecoPads();
   // Draw the truth information to its pad, but don't show yet.
@@ -266,12 +267,12 @@ public:
 
 	// Public method to set the input file. Useful for supplying the file 
 	// from the command line.
-	void SetInputFile(std::string name);
+	virtual void SetInputFile(std::string name);
 
 	// All "slot" commands, ie those that are called by buttons
 	// need to be public.
 	// Open the file to display events from
-	void OpenFile(std::string name);
+	virtual void OpenFile(std::string name);
 	void OpenFile();
 	// Toggles to switch between events
   void NextEvent();

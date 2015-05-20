@@ -212,6 +212,10 @@ void WCSimEvDisplay::CreateSubButtonBar(){
 	this->AddFrame(hWCSimButtons,new TGLayoutHints(kLHintsCenterX,2,2,2,2));
 }
 
+void WCSimEvDisplay::FillPlots(){
+  this->FillPlotsFromWCSimEvent();
+}
+
 void WCSimEvDisplay::FillPlotsFromWCSimEvent(){
 	// First things first, clear the histograms.
 	this->ClearPlots();
@@ -439,7 +443,7 @@ void WCSimEvDisplay::SetViewCharge(){
 	if(fViewType != 0){
 		fViewType = 0;
 		std::cout << "Setting colour axis to charge" << std::endl;
-		this->FillPlotsFromWCSimEvent();
+		this->FillPlots();
 	}
 	else{
 		std::cout << "Already viewing charge." << std::endl;
@@ -451,7 +455,7 @@ void WCSimEvDisplay::SetViewTime(){
   if(fViewType != 1){
 		fViewType = 1;
 		std::cout << "Setting colour axis to time" << std::endl;
-		this->FillPlotsFromWCSimEvent();
+		this->FillPlots();
 	}
 	else{
 		std::cout << "Already viewing time." << std::endl;
@@ -464,7 +468,7 @@ void WCSimEvDisplay::SetChargeCut(){
   // Update the charge cut
   fChargeCut = fPEInput->GetNumberEntry()->GetNumber();
   // Redraw the event
-  this->FillPlotsFromWCSimEvent();
+  this->FillPlots();
 
 }
 
@@ -751,7 +755,7 @@ void WCSimEvDisplay::NextEvent() {
 		if(fCurrentEvent < fMaxEvent){
 			++fCurrentEvent;
 			std::cout << "Moving to event " << fCurrentEvent << std::endl;
-			this->FillPlotsFromWCSimEvent();
+			this->FillPlots();
       fEventInput->GetNumberEntry()->SetNumber(fCurrentEvent);
 		}
 		else{
@@ -769,7 +773,7 @@ void WCSimEvDisplay::PrevEvent(){
 		if(fCurrentEvent > fMinEvent){
 			--fCurrentEvent;
 			std::cout << "Moving to event " << fCurrentEvent << std::endl;
-			this->FillPlotsFromWCSimEvent();
+			this->FillPlots();
       fEventInput->GetNumberEntry()->SetNumber(fCurrentEvent);
 		}
 		else{
@@ -789,7 +793,7 @@ void WCSimEvDisplay::SetEvent(){
     }
     else if(newEvt >= fMinEvent && newEvt <= fMaxEvent){
       fCurrentEvent = newEvt;
-      this->FillPlotsFromWCSimEvent();
+      this->FillPlots();
     }
     else{
       std::cout << "Event number " << newEvt << " is out of range" << std::endl;
@@ -866,7 +870,7 @@ void WCSimEvDisplay::OpenWCSimFile(std::string name){
 	fMinEvent = 0;
 	fCurrentEvent = 0;
 	fMaxEvent = fChain->GetEntries() - 1;
-	this->FillPlotsFromWCSimEvent();
+	this->FillPlots();
 
 }
 
