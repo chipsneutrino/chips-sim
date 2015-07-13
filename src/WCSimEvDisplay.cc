@@ -1,6 +1,7 @@
 #include <cstring>
 #include <string>
 #include <sstream>
+#include <cstdlib>
 //#include <TGClient.h>
 #include <TROOT.h>
 #include <TStyle.h>
@@ -250,6 +251,10 @@ void WCSimEvDisplay::FillPlotsFromWCSimEvent(){
     for(unsigned int p = 0; p < pi0EnVec.size(); ++p){
       this->SearchForPi0Photons(pi0EnVec[p],wcSimTrigger->GetTracks());
     }
+  }
+  // If we have a pi-zero gun, make sure we treat it properly.
+  else if (fTruthSummary->GetBeamPDG() == 111){
+    this->SearchForPi0Photons(fTruthSummary->GetBeamEnergy(),wcSimTrigger->GetTracks());
   }
 
   // Update the truth view
@@ -1340,7 +1345,6 @@ void WCSimEvDisplay::MakeDefaultPlots(){
 
 // Draw the truth ring corresponding to primary particle number particleNo
 void WCSimEvDisplay::DrawTruthRing(unsigned int particleNo, int colour){
-
   // Does the truth information exist
   if(fTruthSummary==0x0) return; 
 
@@ -1382,7 +1386,6 @@ void WCSimEvDisplay::DrawTruthRing(unsigned int particleNo, int colour){
   double beta = sqrt(en*en - mass*mass) / en; // beta = p / E
   double refrac = 1.33; // Refractive index of water
   double thetaC = (180.0 / TMath::Pi()) * TMath::ACos(1./(refrac*beta)); // Cherenkov angle
-
 
   // Also need 6 vectors to store the 2D-coordinates for the 3 regions
   std::vector<double> topPos1; // For top, this is the y coord
@@ -1705,21 +1708,24 @@ void WCSimEvDisplay::SearchForPi0Photons(double energy, TClonesArray* trajCont){
 
   TVector3 mainVtx = fTruthSummary->GetVertex();
   for(int e = 0; e < trajCont->GetEntries(); ++e){
+    // Skip the first entry for particle gun events as it is repeated
+    if(e == 0 && fTruthSummary->IsParticleGunEvent()) continue;
+
     // Get the track
     WCSimRootTrack* trk = (WCSimRootTrack*)(*trajCont)[e];
-    
+
     if(!gotPi0){
       // Is it a pizero?
       if(trk->GetIpnu() != 111) continue;
-      if(trk->GetE() != energy) continue;
-
+      std::cout << "Found a pi0... " << trk->GetE() << " vs " << energy << std::endl;
+      if(fabs(trk->GetE()-energy) > 1e-2) continue;
+      std::cout << "Finally, we have our pi0..." << std::endl;
       // This is our pi0
       gotPi0 = true;
       pi0ID = trk->GetId();
 
       pi0Vtx = TVector3(trk->GetStart(0),trk->GetStart(1),trk->GetStart(2));
       pi0Dir = TVector3(trk->GetDir(0),trk->GetDir(1),trk->GetDir(2));
-
     }
     else{
       // Presumably the photons are after the pi0? Let's look for them, then
@@ -1739,12 +1745,12 @@ void WCSimEvDisplay::SearchForPi0Photons(double energy, TClonesArray* trajCont){
     }
   }
   if(gotPi0 && gotPhotons==2){
+    std::cout << "Creating new Pi0 object" << std::endl;
     WCSimEvDispPi0 *newPi0 = new WCSimEvDispPi0();
     newPi0->SetPi0Information(pi0Energy,pi0Vtx,pi0Dir);
     newPi0->SetPhotonInformation(1,photonEn1,photonDir1);
     newPi0->SetPhotonInformation(2,photonEn2,photonDir2);
-    fPi0s.push_back(newPi0);
-  }
+    fPi0s.push_back(newPi0); }
 }
 
 void WCSimEvDisplay::ClearPi0Vector(){
