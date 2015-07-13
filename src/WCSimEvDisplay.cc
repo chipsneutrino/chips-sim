@@ -1717,9 +1717,7 @@ void WCSimEvDisplay::SearchForPi0Photons(double energy, TClonesArray* trajCont){
     if(!gotPi0){
       // Is it a pizero?
       if(trk->GetIpnu() != 111) continue;
-      std::cout << "Found a pi0... " << trk->GetE() << " vs " << energy << std::endl;
       if(fabs(trk->GetE()-energy) > 1e-2) continue;
-      std::cout << "Finally, we have our pi0..." << std::endl;
       // This is our pi0
       gotPi0 = true;
       pi0ID = trk->GetId();
@@ -1745,7 +1743,6 @@ void WCSimEvDisplay::SearchForPi0Photons(double energy, TClonesArray* trajCont){
     }
   }
   if(gotPi0 && gotPhotons==2){
-    std::cout << "Creating new Pi0 object" << std::endl;
     WCSimEvDispPi0 *newPi0 = new WCSimEvDispPi0();
     newPi0->SetPi0Information(pi0Energy,pi0Vtx,pi0Dir);
     newPi0->SetPhotonInformation(1,photonEn1,photonDir1);
