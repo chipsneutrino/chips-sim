@@ -1,3 +1,4 @@
+#include <iostream>
 #include <fstream>
 #include <sstream>
 
@@ -5,8 +6,14 @@
 #include <rapidxml-1.13/rapidxml.hpp>
 #include <rapidxml-1.13/rapidxml_utils.hpp>
 
+// Geant4
+#include "globals.hh"
+
 #include "WCSimPMTManager.hh"
 
+#ifndef REFLEX_DICTIONARY
+ClassImp(WCSimPMTManager)
+#endif
 // Default constructor
 WCSimPMTManager::WCSimPMTManager(){
 
@@ -38,7 +45,7 @@ void WCSimPMTManager::ReadPMTTypeList(){
 		// Clear the temporary efficiency / wavelength vector
 		fTempEffVec.clear();
 		for (rapidxml::xml_attribute<> *curAttr = curNode->first_attribute(); curAttr; curAttr = curAttr->next_attribute()){
-			this->FillPMTAttribute(pmt,curAttr);	
+			this->FillPMTAttribute(pmt,curAttr->name(), curAttr->value());	
 		}
 		// We have filled the temporary efficiency vector. Now sort it and add to the pmt object.
 		std::sort(fTempEffVec.begin(),fTempEffVec.end());
@@ -48,44 +55,43 @@ void WCSimPMTManager::ReadPMTTypeList(){
  
 }
 
-void WCSimPMTManager::FillPMTAttribute(WCSimPMTConfig &pmt, rapidxml::xml_attribute<> *attr){
+void WCSimPMTManager::FillPMTAttribute(WCSimPMTConfig &pmt, const std::string &attrName, const std::string &attrValue){
 
-	std::string name = attr->name();
 	// Define a stringstream to convert types conveniently
 	std::stringstream ss; 
-	ss << attr->value();
+	ss << attrValue;
 
-	if(name == "name"){
+	if(attrName == "name"){
 		std::string tempVal;
 		ss >> tempVal;
 		pmt.SetPMTName(tempVal);
 	}
-	else if(name == "radius"){
+	else if(attrName == "radius"){
 		double tempVal;
 		ss >> tempVal;
 		pmt.SetRadius(tempVal*m);
 	}
-	else if(name == "exposeHeight"){
+	else if(attrName == "exposeHeight"){
 		double tempVal;
 		ss >> tempVal;
 		pmt.SetExposeHeight(tempVal*m);
 	}
-	else if(name == "glassThickness"){
+	else if(attrName == "glassThickness"){
 		double tempVal;
 		ss >> tempVal;
 		pmt.SetGlassThickness(tempVal*m);
 	}
-	else if(name == "timeConstant"){
+	else if(attrName == "timeConstant"){
 		double tempVal;
 		ss >> tempVal;
 		pmt.SetTimeConstant(tempVal);
 	}
-	else if(name == "lightCollector"){
+	else if(attrName == "lightCollector"){
 		std::string tempVal;
 		ss >> tempVal;
 		pmt.SetLCConfig(tempVal);
 	}
-	else if(name.find("qe")!=std::string::npos){
+	else if(attrName.find("qe")!=std::string::npos){
 		double tempWavelength, tempEff;
 		ss >> tempWavelength >> tempEff;
 		// Create a temporary pair and add it to the vector
@@ -93,7 +99,7 @@ void WCSimPMTManager::FillPMTAttribute(WCSimPMTConfig &pmt, rapidxml::xml_attrib
 		fTempEffVec.push_back(tempPair);
 	}
 	else{
-		std::cerr << "WCSimPMTManager::FillPMTAttribute: Unexpected parameter " << attr->value() << std::endl;
+		std::cerr << "WCSimPMTManager::FillPMTAttribute: Unexpected parameter " << attrValue << std::endl;
 	}
 
 }

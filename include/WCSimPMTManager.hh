@@ -3,11 +3,10 @@
 
 #include "WCSimPMTConfig.hh"
 
-#include <rapidxml-1.13/rapidxml.hpp>
-
+#include <TObject.h>
 // This is a class that builds a list of defined PMT types and
 // provides the access interface to them.
-class WCSimPMTManager {
+class WCSimPMTManager : public TObject{
 
 	public:
 
@@ -26,7 +25,7 @@ class WCSimPMTManager {
 		void ReadPMTTypeList();
 
 		// Fill PMT object attribute from xml file
-		void FillPMTAttribute(WCSimPMTConfig &pmt, rapidxml::xml_attribute<> *attr);
+		void FillPMTAttribute(WCSimPMTConfig &pmt, const std::string &attrName, const std::string &attrValue);
 
 		// Vector to store the requested PMT types
 		std::vector<WCSimPMTConfig> fPMTVector;
@@ -35,6 +34,7 @@ class WCSimPMTManager {
 		std::vector<std::pair<double,double> > fTempEffVec;
 
 		std::string fConfigFile;
+    ClassDef(WCSimPMTManager,1);
 };
 
 #endif

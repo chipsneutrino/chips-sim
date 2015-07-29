@@ -5,6 +5,10 @@
 
 #include "WCSimLCConfig.hh"
 
+#ifndef REFLEX_DICTIONARY
+ClassImp(WCSimLCConfig)
+#endif
+
 // Default (and only) constructor
 WCSimLCConfig::WCSimLCConfig(){
 
@@ -20,7 +24,7 @@ WCSimLCConfig::WCSimLCConfig(const WCSimLCConfig &rhs){
 	fMaxRadius = rhs.GetMaxRadius();
 	fExposeHeight = rhs.GetExposeHeight();
 	this->SetShapeVector(rhs.GetShapeVector());
-	fName = rhs.GetName();
+	fName = rhs.GetLCName();
 }
 
 // Destructor
@@ -72,7 +76,7 @@ unsigned int WCSimLCConfig::GetNShapePoints() const{
 
 // Name
 
-std::string WCSimLCConfig::GetName() const{
+std::string WCSimLCConfig::GetLCName() const{
 	return fName;
 }
 
@@ -84,7 +88,7 @@ void WCSimLCConfig::SetName(std::string name){
 void WCSimLCConfig::Print() const{
 
 	std::cout << "== WCSimLCConfig object ==" << std::endl;
-	std::cout << "\tName = " << this->GetName() << std::endl;
+	std::cout << "\tName = " << this->GetLCName() << std::endl;
 	std::cout << "\tMax Radius = " << this->GetMaxRadius()/m << "m" << std::endl;
 	std::cout << "\tExpose Height = " << this->GetExposeHeight()/m << "m" << std::endl;
 	std::cout << "\tHeight @ R (m):" << std::endl;

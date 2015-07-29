@@ -7,6 +7,9 @@
 #include "WCSimLCConfig.hh"
 #include "WCSimLCManager.hh"
 
+#ifndef REFLEX_DICTIONARY
+ClassImp(WCSimPMTConfig)
+#endif
 // Default (and only) constructor
 WCSimPMTConfig::WCSimPMTConfig(){
 

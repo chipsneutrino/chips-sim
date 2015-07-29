@@ -6,6 +6,13 @@
 #include <rapidxml-1.13/rapidxml_utils.hpp>
 
 #include "WCSimLCManager.hh"
+#include <iostream>
+#include "globals.hh"
+
+#ifndef REFLEX_DICTIONARY
+ClassImp(WCSimLCManager)
+#endif
+
 
 // Default constructor
 WCSimLCManager::WCSimLCManager(){
@@ -38,7 +45,7 @@ void WCSimLCManager::ReadLCTypeList(){
 		// Clear the temporary Z / R vector
 		fTempShapeVec.clear();
 		for (rapidxml::xml_attribute<> *curAttr = curNode->first_attribute(); curAttr; curAttr = curAttr->next_attribute()){
-			this->FillLCAttribute(lc,curAttr);	
+			this->FillLCAttribute(lc,curAttr->name(), curAttr->value());	
 		}
 		// We have filled the temporary LC Z-R vector. Now sort it and add to the lc object.
 		std::sort(fTempShapeVec.begin(),fTempShapeVec.end());
@@ -48,19 +55,18 @@ void WCSimLCManager::ReadLCTypeList(){
  
 }
 
-void WCSimLCManager::FillLCAttribute(WCSimLCConfig &lc, rapidxml::xml_attribute<> *attr){
+void WCSimLCManager::FillLCAttribute(WCSimLCConfig &lc, const std::string &attrName, const std::string &attrValue){
 
-	std::string name = attr->name();
 	// Define a stringstream to convert types conveniently
 	std::stringstream ss; 
-	ss << attr->value();
+	ss << attrValue;
 
-	if(name == "name"){
+	if(attrName == "name"){
 		std::string tempVal;
 		ss >> tempVal;
 		lc.SetName(tempVal);
 	}
-	else if(name.find("lc")!=std::string::npos){
+	else if(attrName.find("lc")!=std::string::npos){
 		double tempZ, tempR;
 		ss >> tempZ >> tempR;
 		// Create a temporary pair and add it to the vector
@@ -68,7 +74,7 @@ void WCSimLCManager::FillLCAttribute(WCSimLCConfig &lc, rapidxml::xml_attribute<
 		fTempShapeVec.push_back(tempPair);
 	}
 	else{
-		std::cerr << "WCSimLCManager::FillLCAttribute: Unexpected parameter " << attr->value() << std::endl;
+		std::cerr << "WCSimLCManager::FillLCAttribute: Unexpected parameter " << attrValue << std::endl;
 	}
 
 }
@@ -78,7 +84,7 @@ WCSimLCConfig  WCSimLCManager::GetLCByName(std::string name){
 	unsigned int lc = fLCVector.size()+1;
 	// Iterate through the LCs to look for what we want.
 	for(unsigned int p = 0; p < fLCVector.size(); ++p){
-		if(name == fLCVector[p].GetName()){
+		if(name == fLCVector[p].GetLCName()){
 			lc = p;
 			break;
 		}
@@ -93,7 +99,7 @@ WCSimLCConfig  WCSimLCManager::GetLCByName(std::string name){
     std::cout << "Available LCs are: " << std::endl;
     for ( unsigned int i = 0 ; i < fLCVector.size(); ++i ) 
     {
-      std::cout << "    " << fLCVector.at(i).GetName() << std::endl;
+      std::cout << "    " << fLCVector.at(i).GetLCName() << std::endl;
 	  }
   }
 

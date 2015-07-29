@@ -3,15 +3,15 @@
 
 #include <vector>
 #include <string>
+#include "TObject.h"
 
 // GEANT definitions
-#include "globals.hh"
 #include "WCSimLCConfig.hh"
 #include "WCSimLCManager.hh"
 
 // This class is designed to store the information about a type of PMT.
 
-class WCSimPMTConfig {
+class WCSimPMTConfig : public TObject {
 public:
 	// Default constructor
 	WCSimPMTConfig();
@@ -70,6 +70,8 @@ private:
         
         WCSimLCConfig  fLCConfig; 
         WCSimLCManager fLCManager;
+
+  ClassDef(WCSimPMTConfig,1)  
 };
 
 #endif

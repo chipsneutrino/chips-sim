@@ -3,11 +3,12 @@
 
 #include "WCSimLCConfig.hh"
 
-#include <rapidxml-1.13/rapidxml.hpp>
-
+#include <TObject.h>
+#include <string>
 // This is a class that builds a list of defined LC types and
 // provides the access interface to them.
-class WCSimLCManager {
+
+class WCSimLCManager : public TObject {
 
 	public:
 
@@ -26,7 +27,7 @@ class WCSimLCManager {
 		void ReadLCTypeList();
 
 		// Fill LC object attribute from xml file
-		void FillLCAttribute(WCSimLCConfig &lc, rapidxml::xml_attribute<> *attr);
+		void FillLCAttribute(WCSimLCConfig &lc, const std::string &attrName, const std::string &attrValue);
 
 		// Vector to store the requested LC types
 		std::vector<WCSimLCConfig> fLCVector;
@@ -35,6 +36,7 @@ class WCSimLCManager {
 		std::vector<std::pair<double,double> > fTempShapeVec;
 
 		std::string fConfigFile;
+    ClassDef(WCSimLCManager,1)
 };
 
 #endif
