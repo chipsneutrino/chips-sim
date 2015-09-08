@@ -1052,9 +1052,31 @@ void WCSimEvDisplay::UpdateTruthPave(){
     tmpS << fTruthSummary->GetTargetPDG();
     fTruthTextMain->AddText(("PDG Code = "+tmpS.str()).c_str());
   }
+  else{
+    // If we have a particle gun of pi0s then print out the photon information.
+    if(fTruthSummary->GetBeamPDG() == 111){
+      std::string mod = "***";
+      fTruthTextPrimaries->AddText("List of Primary Particles (*** above Cherenkov threshold)");
+      WCSimEvDispPi0* thisPi0 = fPi0s[GetPi0(fTruthSummary->GetBeamEnergy())];
+      std::stringstream phot1, phot2;
+      TVector3 phot1Dir = thisPi0->GetPhotonDirection(1); 
+      TVector3 phot2Dir = thisPi0->GetPhotonDirection(2); 
+      phot1 << mod << " ";
+      phot1 << "#pi^{0} decay photon with energy " << thisPi0->GetPhotonEnergy(1);
+      phot1 << " MeV and direction (" << phot1Dir.X() << "," << phot1Dir.Y() << "," << phot1Dir.Z() << ")";
+      phot1 << " " << mod;
+      phot2 << mod << " ";
+      phot2 << "#pi^{0} decay photon with energy " << thisPi0->GetPhotonEnergy(2);
+      phot2 << " MeV and direction (" << phot2Dir.X() << "," << phot2Dir.Y() << "," << phot2Dir.Z() << ")";
+      phot2 << " " << mod;
+      fTruthTextPrimaries->AddText(phot1.str().c_str());
+      fTruthTextPrimaries->AddText(phot2.str().c_str());
+    }
+  }
 
   int nTruthRings = 0;
   // Create the TLegend for the truth overlays
+  // This get filled in the DrawTruthRing function
   if(fTruthLegend != 0x0){
     // Remove it from the pad
     if(fTruthOverlayPad->GetListOfPrimitives()->FindObject(fTruthLegend)){
