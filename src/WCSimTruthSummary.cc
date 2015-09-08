@@ -16,6 +16,7 @@ WCSimTruthSummary::WCSimTruthSummary() : TObject() {
 // Copy constructor
 WCSimTruthSummary::WCSimTruthSummary(const WCSimTruthSummary &ts) : TObject(ts) {
   fVertex = ts.GetVertex();
+  fVertexT = ts.GetVertexT();
 
   fInteractionMode = ts.GetInteractionMode();
 
@@ -39,6 +40,7 @@ WCSimTruthSummary::~WCSimTruthSummary(){
 
 void WCSimTruthSummary::ResetValues(){
   fVertex = TVector3(-999.,-999.,-999.);
+  fVertexT = 0.0;
 
   fInteractionMode = WCSimTruthSummary::kNotSet;
 
@@ -67,6 +69,15 @@ void WCSimTruthSummary::SetVertex(double x, double y, double z){
   fVertex = TVector3(x,y,z);
 }
 
+void WCSimTruthSummary::SetVertex(double x, double y, double z, double t){
+  fVertex = TVector3(x,y,z);
+  fVertexT = t;
+}
+
+void WCSimTruthSummary::SetVertexT(double t){
+  fVertexT = t;
+}
+
 // Get the vertex components
 double WCSimTruthSummary::GetVertexX() const{
   return fVertex.X();
@@ -78,6 +89,10 @@ double WCSimTruthSummary::GetVertexY() const{
 
 double WCSimTruthSummary::GetVertexZ() const{
   return fVertex.Z();
+}
+
+double WCSimTruthSummary::GetVertexT() const{
+  return fVertexT;
 }
 
 // Get and set the interaction mode using the same numbers as GENIE

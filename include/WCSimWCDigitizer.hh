@@ -25,7 +25,8 @@ public:
     
 
   int NumberOfGatesInThisEvent() { return TriggerTimes.size(); }
-  
+
+  double GetVertexTime() { return fVertexTime;};  
 public:
   void MakeHitsHistogram(WCSimWCHitsCollection*);
   void FindNumberOfGatesFast();
@@ -83,6 +84,7 @@ private:
 	WCSimDetectorConstruction* fDet;
 	WCSimCHIPSPMT* fPMTSim;
 
+  double fVertexTime;
 };
 
 #endif

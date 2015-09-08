@@ -8,6 +8,7 @@
 #include "WCSimWCDigitizer.hh"
 #include "WCSimDetectorConstruction.hh"
 #include "WCSimPMTConfig.hh"
+#include "WCSimTruthSummary.hh"
 
 #include "G4Event.hh"
 #include "G4RunManager.hh"
@@ -110,6 +111,10 @@ void WCSimEventAction::EndOfEventAction(const G4Event* evt)
 
   // Digitize the hits
   WCDM->Digitize();
+  // Set the true vertex time with the shifts from the digitiser.
+  double vtxTime = WCDM->GetVertexTime();
+  std::cout << "Event vertex time set to " << vtxTime << "ns" << std::endl;
+  generatorAction->GetTruthSummaryPointer()->SetVertexT(vtxTime);
 
   // Get the digitized collection for the WC
   G4int WCDCID = DMman->GetDigiCollectionID("WCDigitizedCollection");

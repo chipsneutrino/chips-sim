@@ -26,8 +26,8 @@ public:
 	void GeneratePrimaries(G4Event* anEvent);
 
   // Return the truth summary object
+  WCSimTruthSummary* GetTruthSummaryPointer() {return &fTruthSummary;};
   WCSimTruthSummary GetTruthSummary() const {return fTruthSummary;};
-  void SetTruthSummary(WCSimTruthSummary ts) {fTruthSummary = ts;};
   void SetVtx(G4ThreeVector i)     { vtx = i; };
   void SetBeamEnergy(G4double i)   { beamenergy = i; };
   void SetBeamDir(G4ThreeVector i) { beamdir = i; };

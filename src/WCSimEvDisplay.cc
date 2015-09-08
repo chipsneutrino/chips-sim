@@ -1019,6 +1019,9 @@ void WCSimEvDisplay::UpdateTruthPave(){
   TVector3 vtx = fTruthSummary->GetVertex();
   tmpS << vtx.X() << "," << vtx.Y() << "," << vtx.Z();
   fTruthTextMain->AddText(("Vertex at ("+tmpS.str()+") mm").c_str());
+  tmpS.str("");
+  tmpS << fTruthSummary->GetVertexT();
+  fTruthTextMain->AddText(("Vertex time = " +tmpS.str()+ " ns").c_str());
   if(fTruthSummary->IsNeutrinoEvent()){
     // Neutrino information
     tmpS.str("");

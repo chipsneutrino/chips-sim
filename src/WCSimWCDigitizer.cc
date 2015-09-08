@@ -166,6 +166,7 @@ extern "C" void skrn1pe_(float* );
 	DigiHitMap.clear();
 	fDet = myDet;
 	fPMTSim = new WCSimCHIPSPMT();
+  fVertexTime = 0.;
 }
 
 WCSimWCDigitizer::~WCSimWCDigitizer() {
@@ -219,51 +220,21 @@ void WCSimWCDigitizer::Digitize()
 
 void WCSimWCDigitizer::MakeHitsHistogram(WCSimWCHitsCollection* WCHC)
 {
-	// Maximilien Fechner, april 2005
-	// add an individual integration gate for each PMT
-	// + a global gate for the event
-	// define t0 as in SKdetsim : t0 = 960 - (time after which 25 hits have been observed), see 'dshigh.F'
-	// if ever a laser sudy is done it seems (see K2K1KT meetings of Jan 5th
-	// 2005, laser_simulation.ppt) that this is not good, and the offset should be constant.
-	// updates aug 2006 by MF to deal with subevents.
 
 	GateMap.clear();
-	MinTime = WCSimWCDigitizer::LongTime;
 
-	G4float tc;
+  // Put the hits into an integer map
 	for (G4int i = 0 ; i < WCHC->entries() ; i++)
 	{
 		(*WCHC)[i]->SortHitTimes(); // VERY IMPORTANT!!!		
 		GateMap[int(floor((*WCHC)[i]->GetTime(0)))]++;
-//		if ( tc < MinTime ) MinTime = tc; // find the earliest hit
-//		for ( G4int ip = 0 ; ip < (*WCHC)[i]->GetTotalPe() ; ip++)
-//		{
-//			tc = (*WCHC)[i]->GetTime(ip);
-//			if ( tc < WCSimWCDigitizer::LongTime)
-//			{ 
-//				//GateMap[ int(floor(tc/5.0)) ]++;
-//				GateMap[ int(floor(tc)) ]++;
-//				std::cout << "PHOTON TIME: " << tc << ", " << floor(tc) << std::endl;
-//			}  
-//		}	
 	}    
-	// the map must end with a value below trigger threshold
-	// otherwise we will be stuck in infinite loops -- Maximilien Fechner, feb 22, 2007
-	GateMap[100001]=0;
 
-	// DEBUG: Print out the map
-//	std::cout << "=== TRIG MAP ===" << std::endl;
-//	for(std::map<int,int>::const_iterator mi = GateMap.begin(); mi != GateMap.end(); ++mi){
-//		std::cout << "TRIG MAP: " << mi->first << ", " << mi->second << std::endl;
-//	}
 }
-
 
 void WCSimWCDigitizer::FindNumberOfGatesFast()
 {
-	//GateMap is indexed by time histogram bin, and
-	//references elements of the timing histogram
-
+	//GateMap is indexed by time bin and stores the number of hits in that nanosecond.
 	G4int acc = 0; // accumulated # hits within time window...
 	std::map< G4int, G4int>::iterator _mGateKeeper, _mNextGate;
 
@@ -300,34 +271,8 @@ void WCSimWCDigitizer::FindNumberOfGatesFast()
 
 void WCSimWCDigitizer::DigitizeGate(WCSimWCHitsCollection* WCHC,G4int G)
 {
-/*
-	G4float timingConstant = 0.0;
-
-	if (round(PMTSize) == 0.254*m)      // 20 inch tube
-		//timingConstant = 3.0;      // sqrt(3.0ns) @1pe + 1ns = 2.7 ns  
-		// M Fechner : essai 
-		//      timingConstant = 8.3885;
-
-		timingConstant = 10.0;  //actual value is 13 nanoseconds
-
-	else if (round(PMTSize) == 0.1016*m) // 8 inch tube
-		//      timingConstant = .58;      // sqrt(.58ns) @1pe + 1ns = 1.76 ns  
-		timingConstant = 1.890; // same scaling, M Fechner
-	else if (round(PMTSize) == 0.127*m) //10 inch tube
-		timingConstant = 2.0; // (JF) Need real value
-	else if (round(PMTSize) == round(0.1524*m)) //12 inch tube
-		timingConstant = 2.0;// (JF) Need the real value
-	else
-	{
-		G4cout << "Sorry.  Resolution for " << PMTSize/cm 
-			<< "cm PMTs is unknown.  Exiting program. " 
-			<< G4endl;
-		exit(-1);
-	}
-*/
 	G4double EvtG8Down = WCSimWCDigitizer::eventgatedown;
 	G4double EvtG8Up = WCSimWCDigitizer::eventgateup;  // this is a negative number...
-
 
 	G4double lowerbound;
 	if (G==0) lowerbound = TriggerTimes[G]+EvtG8Down;
@@ -335,6 +280,12 @@ void WCSimWCDigitizer::DigitizeGate(WCSimWCHitsCollection* WCHC,G4int G)
 		lowerbound = ( TriggerTimes[G]+EvtG8Down >= TriggerTimes[G-1] + EvtG8Up ) ?  TriggerTimes[G]+EvtG8Down : TriggerTimes[G-1] + EvtG8Up;
 	}
 	G4double upperbound = TriggerTimes[G]+EvtG8Up;
+
+  // Update the truth summary information to store the event vertex time. 
+  // This should just be equal to the offset minus the trigger time.
+  if(G == 0){
+    fVertexTime = WCSimWCDigitizer::offset - TriggerTimes[G];
+  }
 
   // Before looping over the hits, get hold of the PMTManager
   WCSimPMTManager *pmtMan = fDet->GetPMTManager();

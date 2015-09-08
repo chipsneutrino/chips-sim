@@ -59,10 +59,13 @@ public:
   TVector3 GetVertex() const;
   void SetVertex(TVector3 vtx);
   void SetVertex(double x, double y, double z);
+  void SetVertex(double x, double y, double z, double t);
+  void SetVertexT(double t);
 
   double GetVertexX() const;
   double GetVertexY() const;
   double GetVertexZ() const;
+  double GetVertexT() const;
 
   // Interaction type
   int GetInteractionMode() const;
@@ -134,6 +137,8 @@ private:
 
   // Vertex position
   TVector3 fVertex;
+  // Vertex time
+  double fVertexT;
 
   // Neutrino interaction type. In the case of a beam gun, this is will have a dummy value
   int fInteractionMode;
@@ -153,7 +158,7 @@ private:
   std::vector<double> fPrimaryEnergies;
   std::vector<TVector3> fPrimaryDirs;
 
-  ClassDef(WCSimTruthSummary,1);
+  ClassDef(WCSimTruthSummary,2);
 
 };
 
