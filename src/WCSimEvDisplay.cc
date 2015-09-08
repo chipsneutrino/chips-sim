@@ -1083,13 +1083,31 @@ void WCSimEvDisplay::UpdateTruthPave(){
       }
       dir = fTruthSummary->GetPrimaryDir(n);
       tmpS.str("");
-      tmpS << mod << " ";
+      if(pdg != 111){
+        tmpS << mod << " ";
 //      tmpS << "Particle: " << pdg;
-      tmpS << this->GetParticleName(pdg);
-      tmpS << " with energy " << energy;
-      tmpS << " MeV and direction (" << dir.X() << "," << dir.Y() << "," << dir.Z() << ")";
-      tmpS << " " << mod;
-      fTruthTextPrimaries->AddText(tmpS.str().c_str());
+        tmpS << this->GetParticleName(pdg);
+        tmpS << " with energy " << energy;
+        tmpS << " MeV and direction (" << dir.X() << "," << dir.Y() << "," << dir.Z() << ")";
+        tmpS << " " << mod;
+        fTruthTextPrimaries->AddText(tmpS.str().c_str());
+      }
+      else{
+        WCSimEvDispPi0* thisPi0 = fPi0s[GetPi0(energy)];
+        std::stringstream phot1, phot2;
+        TVector3 phot1Dir = thisPi0->GetPhotonDirection(1); 
+        TVector3 phot2Dir = thisPi0->GetPhotonDirection(2); 
+        phot1 << mod << " ";
+        phot1 << "#pi^0 decay photon with energy " << thisPi0->GetPhotonEnergy(1);
+        phot1 << " MeV and direction (" << phot1Dir.X() << "," << phot1Dir.Y() << "," << phot1Dir.Z() << ")";
+        phot1 << " " << mod;
+        phot2 << mod << " ";
+        phot2 << "#pi^0 decay photon with energy " << thisPi0->GetPhotonEnergy(2);
+        phot2 << " MeV and direction (" << phot2Dir.X() << "," << phot2Dir.Y() << "," << phot2Dir.Z() << ")";
+        phot2 << " " << mod;
+        fTruthTextPrimaries->AddText(phot1.str().c_str());
+        fTruthTextPrimaries->AddText(phot2.str().c_str());
+      }
     } 
   }
   else{
@@ -1402,6 +1420,8 @@ void WCSimEvDisplay::DrawTruthRing(unsigned int particleNo, int colour){
   // Need to make sure the Cherenkov angle is correct, and draw rings for both photons
   TVector3 trkDir2;
   TVector3 trkVtxProj2;
+  double pi0PhotE1 = 0.;
+  double pi0PhotE2 = 0.;
   if(pdgCode == 111){
     thetaC = (180.0 / TMath::Pi()) * TMath::ACos(1./(refrac)); // Beta = 1 for photons
     // Find the pi0 we want
@@ -1409,9 +1429,11 @@ void WCSimEvDisplay::DrawTruthRing(unsigned int particleNo, int colour){
     // Get the projection of the first photon onto the wall
     // Photon has the same vtx as pi0, so no need to update that.
     trkDir = thisPi0->GetPhotonDirection(1);
+    pi0PhotE1 = thisPi0->GetPhotonEnergy(1);
     this->ProjectToWall(trkVtx,trkDir,trkVtxProj, detRegion);
     // Now for photon two
     trkDir2 = thisPi0->GetPhotonDirection(2);
+    pi0PhotE2 = thisPi0->GetPhotonEnergy(2);
     this->ProjectToWall(trkVtx,trkDir2,trkVtxProj2,detRegion);
   }
 
@@ -1468,11 +1490,21 @@ void WCSimEvDisplay::DrawTruthRing(unsigned int particleNo, int colour){
   // Now we have the vectors of coordinates that we need for each region. Now to make the TPolyMarkers
   // and add an entry to the legend
   std::stringstream legendText;
-  legendText << this->GetParticleName(pdgCode) << " with total energy = " << en << " MeV";
+  std::stringstream legendText2;
+  if(pdgCode != 111){
+    legendText << this->GetParticleName(pdgCode) << " with total energy = " << en << " MeV";
+  }
+  else{
+    legendText << "#pi^{0} decay photon with total energy = " << pi0PhotE1 << " MeV";
+    legendText2 << "#pi^{0} decay photon with total energy = " << pi0PhotE2 << " MeV";
+  }
   TLine* line = new TLine();
   line->SetLineColor(colour);
   fTruthLines.push_back(line);
   fTruthLegend->AddEntry(fTruthLines[fTruthLines.size()-1],legendText.str().c_str(),"l");
+  if(pdgCode == 111){
+    fTruthLegend->AddEntry(fTruthLines[fTruthLines.size()-1],legendText2.str().c_str(),"l");    
+  }
   if(topPos1.size() != 0){
     this->MakePolyMarker(topPos1,topPos2,fTruthMarkersTop,colour);
   }
