@@ -18,6 +18,7 @@ WCSimPMTConfig::WCSimPMTConfig(){
 	fGlassThickness = 0.;
 	fEffBins = 0;
 	fMaxEff = 0;
+	fTimeConstant = 0.;
 	fPMTName = "";
 	fLCName = "";
 
@@ -32,6 +33,7 @@ WCSimPMTConfig::WCSimPMTConfig(const WCSimPMTConfig &rhs){
 	fPMTName = rhs.GetPMTName();
 	fLCName = rhs.GetLCName();
 	fLCConfig = rhs.GetLCConfig();
+	fTimeConstant = rhs.GetTimeConstant();
 
 }
 
