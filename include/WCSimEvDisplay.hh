@@ -135,7 +135,7 @@ protected:
   double fQMax;
   double fTMin;
   double fTMax;
-  Int_t fColours[10];
+  std::vector<Int_t> fColours;
   void InitialiseGraph(TGraph* g, int i);
   void CalculateChargeAndTimeBins();
   unsigned int GetChargeBin(double charge) const;

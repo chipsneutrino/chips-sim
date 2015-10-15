@@ -71,8 +71,7 @@ WCSimEvDisplay::WCSimEvDisplay(const TGWindow *p,UInt_t w,UInt_t h) : TGMainFram
 
   // Create the TGraph vectors with default TGraphs
   this->MakeGraphColours();
-  gStyle->SetPalette(10,fColours);
-  for(unsigned int g = 0; g < 10; ++g){
+  for(unsigned int g = 0; g < fColours.size(); ++g){
     fTopGraphs.push_back(new TGraph());
     fBarrelGraphs.push_back(new TGraph());
     fBottomGraphs.push_back(new TGraph());
@@ -351,7 +350,7 @@ void WCSimEvDisplay::FillPlotsFromWCSimEvent(){
 
 void WCSimEvDisplay::InitialiseGraph(TGraph* g, int i){
 
-  g->SetMarkerColor(fColours[i]);
+  g->SetMarkerColor(fColours.at(i));
   g->SetMarkerStyle(7);
   g->SetEditable(0);
 
@@ -363,17 +362,17 @@ void WCSimEvDisplay::CalculateChargeAndTimeBins(){
   fChargeBins.clear();
   fTimeBins.clear();
   
-  double deltaQ = (fQMax - fQMin) / 10.;
-  double deltaT = (fTMax - fTMin) / 10.;
+  double deltaQ = (fQMax - fQMin) / static_cast<Double_t>(fColours.size());
+  double deltaT = (fTMax - fTMin) / static_cast<Double_t>(fColours.size());
 
-  for(int i = 0; i < 10; ++i){
+  for(int i = 0; i < fColours.size(); ++i){
     fChargeBins.push_back(fQMin+i*deltaQ);
     fTimeBins.push_back(fTMin+i*deltaT);
   }
 }
 
 unsigned int WCSimEvDisplay::GetChargeBin(double charge) const{
-  unsigned int bin = 9;
+  unsigned int bin = fChargeBins.size()-1;
   for(unsigned int i = 1; i < fChargeBins.size(); ++i){
     if(charge < fChargeBins[i]){
       bin = i - 1;
@@ -384,9 +383,9 @@ unsigned int WCSimEvDisplay::GetChargeBin(double charge) const{
 }
 
 unsigned int WCSimEvDisplay::GetTimeBin(double time) const{
-  unsigned int bin = 9;
+  unsigned int bin = fTimeBins.size()-1;
   for(unsigned int i = 0; i < fTimeBins.size(); ++i){
-    if(time < fTimeBins[i]){
+    if(time < fTimeBins.at(i)){
       bin = i - 1;
       break;
     }
@@ -396,17 +395,21 @@ unsigned int WCSimEvDisplay::GetTimeBin(double time) const{
 
 void WCSimEvDisplay::MakeGraphColours(){
 
+  // Black Body palette
+  const Int_t nRGBs = 5;
+  const Int_t nContours = 100;
+  Double_t stops[nRGBs] = { 0.00, 0.25, 0.50, 0.75, 0.95};
+  Double_t red[nRGBs]   = { 0.00, 0.50, 1.00, 1.0, 1.0};
+  Double_t green[nRGBs] = { 0.00, 0.00, 0.44, 0.80, 0.96};
+  Double_t blue[nRGBs]  = { 0.00, 0.00, 0.00, 0.00, 0.8};
+  Int_t startColour = TColor::CreateGradientColorTable(nRGBs, stops, red, green, blue, nContours);
+
   // Make a palette
-  fColours[0] = TColor::GetColor("#330000");
-  fColours[1] = TColor::GetColor("#660000");
-  fColours[2] = TColor::GetColor("#990000");
-  fColours[3] = TColor::GetColor("#CC0000");
-  fColours[4] = TColor::GetColor("#FF0000");
-  fColours[5] = TColor::GetColor("#FF3300");
-  fColours[6] = TColor::GetColor("#FF6600");
-  fColours[7] = TColor::GetColor("#FF8800");
-  fColours[8] = TColor::GetColor("#FFAA00");
-  fColours[9] = TColor::GetColor("#FFCC00");
+  fColours.clear();
+  for(size_t i = 0; i < nContours; ++i)
+  {
+    fColours.push_back(startColour+i);
+  }
   
 }
 
