@@ -133,6 +133,7 @@ void WCSimEventAction::EndOfEventAction(const G4Event* evt)
       G4int processID = trj->GetProcessID();
       G4int pdgCode = trj->GetPDGEncoding();
       G4double energy = trj->GetEnergy();
+      G4double momentum = trj->GetInitialMomentum().mag();
       G4double lambda = trj->GetWavelength();
       G4bool opticalPhoton = trj->IsOpticalPhoton();
       G4bool scatteredPhoton = trj->IsScatteredPhoton();
@@ -152,7 +153,7 @@ void WCSimEventAction::EndOfEventAction(const G4Event* evt)
       {
     	  WCSimPhotonNtuple::Fill( event_id,
     			  pdgCode, trackID, parentID, processID,
-    			  energy, lambda,
+    			  energy, momentum, lambda,
     			  opticalPhoton, scatteredPhoton,
     			  vtxX, vtxY, vtxZ, vtxTime,
     			  endX, endY, endZ, endTime,

@@ -23,7 +23,7 @@ class WCSimPhotonNtuple
   static void Close();
   static void Fill(Int_t eventID,
                    Int_t pdgCode, Int_t trackID, Int_t parentID, Int_t processID,
-                   Float_t energy, Float_t lambda,
+                   Float_t energy, Float_t momentum, Float_t lambda,
                    Bool_t opticalPhoton,  Bool_t scatteredPhoton,
                    Float_t vtxX, Float_t vtxY, Float_t vtxZ, Float_t vtxTime,
                    Float_t endX, Float_t endY, Float_t endZ, Float_t endTime,
@@ -37,7 +37,7 @@ class WCSimPhotonNtuple
 
   void WriteEvent( Int_t eventID,
                    Int_t pdgCode, Int_t trackID, Int_t parentID, Int_t processID,
-                   Float_t energy, Float_t lambda,
+                   Float_t energy, Float_t momentum, Float_t lambda,
                    Bool_t opticalPhoton,  Bool_t scatteredPhoton,
                    Float_t vtxX, Float_t vtxY, Float_t vtxZ, Float_t vtxTime,
                    Float_t endX, Float_t endY, Float_t endZ, Float_t endTime,
@@ -63,6 +63,7 @@ class WCSimPhotonNtuple
   Int_t fParentID;
   Int_t fProcessID;
   Float_t fEnergy; 
+  Float_t fMomentum;
   Float_t fLambda;
   Int_t fOpticalPhoton;
   Int_t fScatteredPhoton;
