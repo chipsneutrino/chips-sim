@@ -23,12 +23,23 @@ public:
 public:
   void BeginOfRunAction(const G4Run*);
   void EndOfRunAction(const G4Run*);
+
+
+  void SetSaveRootFile( const G4bool &saveIt ){ SaveRootFile = saveIt; }
+  G4bool GetSaveRootFile() const { return SaveRootFile; }
   void SetRootFileName(G4String fname) { RootFileName = fname; }
   G4String GetRootFileName() { return RootFileName; }
-  void SetSavePhotonNtuple( G4bool saveIt ){ SavePhotonNtuple = saveIt; }
-  G4bool GetSavePhotonNtuple() { return SavePhotonNtuple; }
-  void SetPhotonNtupleName(G4String fname) { PhotonNtupleName = fname; }
-  G4String GetPhotonNtupleName() { return PhotonNtupleName; }
+
+  void SetSavePhotonNtuple( const G4bool &saveIt ){ SavePhotonNtuple = saveIt; }
+  G4bool GetSavePhotonNtuple() const { return SavePhotonNtuple; }
+  void SetPhotonNtupleName(const G4String &fname) { PhotonNtupleName = fname; }
+  G4String GetPhotonNtupleName() const { return PhotonNtupleName; }
+
+  void SetSaveEmissionProfile( const G4bool &saveIt ) { SaveEmissionProfile = saveIt; }
+  G4bool GetSaveEmissionProfile() const { return SaveEmissionProfile; }
+  void SetEmissionProfileName( const G4String &fname ) { EmissionProfileName = fname; }
+  G4String GetEmissionProfileName() const { return EmissionProfileName; }
+
   void FillGeoTree();
   TTree* GetTree(){return WCSimTree;}
   TTree* GetGeoTree(){return geoTree;}
@@ -52,7 +63,10 @@ private:
   // MFechner : set by the messenger
   std::string RootFileName;
   std::string PhotonNtupleName;
+  std::string EmissionProfileName;
+  bool SaveRootFile;
   bool SavePhotonNtuple;
+  bool SaveEmissionProfile;
   //
   TTree* WCSimTree;
   TTree* geoTree;

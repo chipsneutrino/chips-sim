@@ -72,17 +72,17 @@ void WCSimPhotonNtuple::FileName(const char* filename)
   WCSimPhotonNtuple::Instance()->SetFileName(filename);
 }
 
-void WCSimPhotonNtuple::Fill( Int_t eventID, Int_t pdgCode, Int_t trackID, Int_t parentID, Int_t processID, Float_t energy, Float_t lambda, Bool_t opticalPhoton,  Bool_t scatteredPhoton, Float_t vtxX, Float_t vtxY, Float_t vtxZ, Float_t vtxTime, Float_t endX, Float_t endY, Float_t endZ, Float_t endTime, Float_t vtxdirX, Float_t vtxdirY, Float_t vtxdirZ )
+void WCSimPhotonNtuple::Fill( Int_t eventID, Int_t pdgCode, Int_t trackID, Int_t parentID, Int_t processID, Float_t energy, Float_t momentum, Float_t lambda, Bool_t opticalPhoton,  Bool_t scatteredPhoton, Float_t vtxX, Float_t vtxY, Float_t vtxZ, Float_t vtxTime, Float_t endX, Float_t endY, Float_t endZ, Float_t endTime, Float_t vtxdirX, Float_t vtxdirY, Float_t vtxdirZ )
 {
   WCSimPhotonNtuple::Instance()->WriteEvent(eventID, pdgCode, trackID, parentID, processID, 
-                                            energy, lambda, 
+                                            energy, momentum, lambda, 
                                             opticalPhoton, scatteredPhoton,
                                             vtxX, vtxY, vtxZ, vtxTime,
                                             endX, endY, endZ, endTime,  
                                             vtxdirX, vtxdirY, vtxdirZ );
 }
 
-void WCSimPhotonNtuple::WriteEvent( Int_t eventID, Int_t pdgCode, Int_t trackID, Int_t parentID, Int_t processID, Float_t energy, Float_t lambda, Bool_t opticalPhoton,  Bool_t scatteredPhoton, Float_t vtxX, Float_t vtxY, Float_t vtxZ, Float_t vtxTime, Float_t endX, Float_t endY, Float_t endZ, Float_t endTime, Float_t vtxdirX, Float_t vtxdirY, Float_t vtxdirZ )
+void WCSimPhotonNtuple::WriteEvent( Int_t eventID, Int_t pdgCode, Int_t trackID, Int_t parentID, Int_t processID, Float_t energy, Float_t momentum, Float_t lambda, Bool_t opticalPhoton,  Bool_t scatteredPhoton, Float_t vtxX, Float_t vtxY, Float_t vtxZ, Float_t vtxTime, Float_t endX, Float_t endY, Float_t endZ, Float_t endTime, Float_t vtxdirX, Float_t vtxdirY, Float_t vtxdirZ )
 {
   fEventID = eventID;
   fPdgCode = pdgCode;
@@ -90,6 +90,7 @@ void WCSimPhotonNtuple::WriteEvent( Int_t eventID, Int_t pdgCode, Int_t trackID,
   fParentID = parentID;
   fProcessID = processID;
   fEnergy = energy;
+  fMomentum = momentum;
   fLambda = lambda;
   fOpticalPhoton = opticalPhoton;
   fScatteredPhoton = scatteredPhoton;
@@ -137,23 +138,24 @@ void WCSimPhotonNtuple::OpenFile(const char* filename)
     fWCTree->Branch("trackID",&fTrackID,"trackID/I");
     fWCTree->Branch("parentID",&fParentID,"parentID/I");
     fWCTree->Branch("processID",&fProcessID,"processID/I");
-    fWCTree->Branch("energy",&fEnergy,"energy/D");
-    fWCTree->Branch("wavelength",&fLambda,"wavelength/D");
+    fWCTree->Branch("energy",&fEnergy,"energy/F");
+    fWCTree->Branch("momentum", &fMomentum, "momentum/F");
+    fWCTree->Branch("wavelength",&fLambda,"wavelength/F");
     fWCTree->Branch("optical",&fOpticalPhoton,"optical/I");
     fWCTree->Branch("scattered",&fScatteredPhoton,"scattered/I");
-    fWCTree->Branch("vtxX",&fVtxX,"vtxX/D");
-    fWCTree->Branch("vtxY",&fVtxY,"vtxY/D");
-    fWCTree->Branch("vtxZ",&fVtxZ,"vtxZ/D");
-    //fWCTree->Branch("vtxTime",&fVtxTime,"vtxTime/D");
-    fWCTree->Branch("endX",&fEndX,"endX/D");
-    fWCTree->Branch("endY",&fEndY,"endY/D");
-    fWCTree->Branch("endZ",&fEndZ,"endZ/D");
-//    fWCTree->Branch("endU",&fEndU,"endU/D");
-//    fWCTree->Branch("endV",&fEndV,"endV/D");
-//    //fWCTree->Branch("endTime",&fEndTime,"endTime/D");
-    fWCTree->Branch("vtxdirX",&fVtxDirX,"vtxdirX/D");
-    fWCTree->Branch("vtxdirY",&fVtxDirY,"vtxdirY/D");
-    fWCTree->Branch("vtxdirZ",&fVtxDirZ,"vtxdirZ/D");
+    fWCTree->Branch("vtxX",&fVtxX,"vtxX/F");
+    fWCTree->Branch("vtxY",&fVtxY,"vtxY/F");
+    fWCTree->Branch("vtxZ",&fVtxZ,"vtxZ/F");
+    //fWCTree->Branch("vtxTime",&fVtxTime,"vtxTime/F");
+    fWCTree->Branch("endX",&fEndX,"endX/F");
+    fWCTree->Branch("endY",&fEndY,"endY/F");
+    fWCTree->Branch("endZ",&fEndZ,"endZ/F");
+//    fWCTree->Branch("endU",&fEndU,"endU/F");
+//    fWCTree->Branch("endV",&fEndV,"endV/F");
+//    //fWCTree->Branch("endTime",&fEndTime,"endTime/F");
+    fWCTree->Branch("vtxdirX",&fVtxDirX,"vtxdirX/F");
+    fWCTree->Branch("vtxdirY",&fVtxDirY,"vtxdirY/F");
+    fWCTree->Branch("vtxdirZ",&fVtxDirZ,"vtxdirZ/F");
     //fWCTree->Branch("isDetected",&fIsDetected,"isDetected/I");
     gDirectory = tmpd;
   }

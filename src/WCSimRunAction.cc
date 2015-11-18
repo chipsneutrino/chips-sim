@@ -20,6 +20,7 @@
 #include "WCSimPhotonNtuple.hh"
 #include "WCSimPMTManager.hh"
 #include "WCSimPMTConfig.hh"
+#include "WCSimEmissionProfileMaker.hh"
 
 #include <vector>
 
@@ -93,6 +94,13 @@ void WCSimRunAction::BeginOfRunAction(const G4Run* aRun)
     WCSimPhotonNtuple::Instance(photonname); 
   }
 
+  if( GetSaveEmissionProfile() )
+  {
+	  G4String emissionProfileName = GetEmissionProfileName();
+	  std::cout << "Emission profile name = " << emissionProfileName << std::endl;
+	  WCSimEmissionProfileMaker::Instance(emissionProfileName);
+  }
+
 }
 
 void WCSimRunAction::EndOfRunAction(const G4Run*)
@@ -111,6 +119,7 @@ void WCSimRunAction::EndOfRunAction(const G4Run*)
 
   // Close the Root file at the end of the run
   if( GetSavePhotonNtuple() ) { WCSimPhotonNtuple::Close(); }
+  if( GetSaveEmissionProfile()) { WCSimEmissionProfileMaker::Close(); }
   TFile* hfile = WCSimTree->GetCurrentFile();
   hfile->Close();
 

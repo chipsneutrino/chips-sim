@@ -12,6 +12,7 @@
 #include "WCSimWCHit.hh"
 #include "WCSimWCDigi.hh"
 
+class WCSimEmissionProfileMaker;
 class WCSimRunAction;
 class WCSimPrimaryGeneratorAction;
 class G4Event;
@@ -40,6 +41,7 @@ public:
  private:
   G4int WCSimEventFindStartingVolume( G4ThreeVector vtx);
   G4int WCSimEventFindStoppingVolume( G4String stopVolumeName);
+  WCSimEmissionProfileMaker * fEmissionProfileMaker;
 
 };
 

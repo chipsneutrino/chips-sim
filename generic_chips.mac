@@ -36,13 +36,18 @@
 
 ## Change the name of the output root file, default = wcsim.root
 #/WCSimIO/RootFile ~/some/absolute/path/file.root
-/WCSimIO/RootFile localfile.root
+/WCSimIO/SaveRootFile true
+#WCSimIO/RootFile localfile.root
 
 ## Whether to save an ntuple with all the optical photon tracks, default = false
 # Saving of photon trajectories in the main output is still
 # controlled by the variable percentageOfCherenkovPhotonsToDraw 
 # in src/WCSimTrackingAction.cc !!!
 /WCSimIO/SavePhotonNtuple false
+
+## Whether to make emission profiles
+/WCSimIO/SaveEmissionProfile false
+#/WCSimIO/EmissionProfile localfile_emission.root
 
 ## Set the name of the photon ntuple root file, default = localfile_photons.root
 #/WCSimIO/PhotonNtuple ~/some/absolute/path/file.root
