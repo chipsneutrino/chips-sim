@@ -365,7 +365,7 @@ void WCSimEvDisplay::CalculateChargeAndTimeBins(){
   double deltaQ = (fQMax - fQMin) / static_cast<Double_t>(fColours.size());
   double deltaT = (fTMax - fTMin) / static_cast<Double_t>(fColours.size());
 
-  for(int i = 0; i < fColours.size(); ++i){
+  for(size_t i = 0; i < fColours.size(); ++i){
     fChargeBins.push_back(fQMin+i*deltaQ);
     fTimeBins.push_back(fTMin+i*deltaT);
   }
@@ -406,7 +406,7 @@ void WCSimEvDisplay::MakeGraphColours(){
 
   // Make a palette
   fColours.clear();
-  for(size_t i = 0; i < nContours; ++i)
+  for(int i = 0; i < nContours; ++i)
   {
     fColours.push_back(startColour+i);
   }
@@ -1288,38 +1288,13 @@ void WCSimEvDisplay::ResizePlotsFromGeometry(){
 	fPMTTop = 0;
 	fPMTBarrel = 0;
 	fPMTBottom = 0;
-	// Also use this loop to find unique positions to count:
-	// Number of PMTs in barrel height, number round the barrel
-	// Number across the top and bottom.
-	std::vector<double> xPos;
-	std::vector<double> yPos;
-	std::vector<double> zPos;
-	std::vector<double> phiPos;
 	for(int p = 0; p < geo->GetWCNumPMT(); ++p){
 		WCSimRootPMT pmt = geo->GetPMT(p);
 		if(pmt.GetCylLoc() == 0){
-			++fPMTTop;
-			if(std::find(xPos.begin(),xPos.end(),pmt.GetPosition(0)) == xPos.end()){
-				xPos.push_back(pmt.GetPosition(0));
-			}
-			if(std::find(yPos.begin(),yPos.end(),pmt.GetPosition(1)) == yPos.end()){
-				yPos.push_back(pmt.GetPosition(1));
-			}
+      ++fPMTTop;
 		}
 		else if(pmt.GetCylLoc() == 1){
 			++fPMTBarrel;
-			double tempZ = pmt.GetPosition(2);
-			if(fabs(tempZ) < 1e-10){ 
-				tempZ = 0.0;
-			}
-			if(std::find(zPos.begin(),zPos.end(),tempZ) == zPos.end()){
-				zPos.push_back(tempZ);
-			}
-			double tempPhi = TMath::ATan2(pmt.GetPosition(1),pmt.GetPosition(0));
-			if(std::find(phiPos.begin(),phiPos.end(),tempPhi) == phiPos.end()){
-				phiPos.push_back(tempPhi);
-//				std::cout << "UNIQUE PHIPOS: " << tempPhi << std::endl;
-			}
 		}
 		else{
 			++fPMTBottom;
@@ -1330,19 +1305,16 @@ void WCSimEvDisplay::ResizePlotsFromGeometry(){
 	std::cout << "\t- Top    : " << fPMTTop << std::endl;
 	std::cout << "\t- Bottom : " << fPMTBottom << std::endl;
 
-	std::cout << xPos.size() << ", " << yPos.size() << ", " << zPos.size() << ", " << phiPos.size() << std::endl;
-
 	// How many bins do we need?
 	// For x and y, round up sqrt of number of Top PMTs
-	int nBinsX = (int)xPos.size();
-	int nBinsY = (int)yPos.size();
-	int nBinsZ = (int)zPos.size(); 
-	int nBinsPhi = (int)phiPos.size();
+  int nBinsX = 1;
+  int nBinsY = 1;
+  int nBinsZ = 1;
+  int nBinsPhi = 1;
 
   // Now with phi, sort the vector then make a variably binned array from it
-
-	double phiMin = TMath::Pi()* -1 + (TMath::Pi()/(double)phiPos.size());
-	double phiMax = TMath::Pi() + (TMath::Pi()/(double)phiPos.size());
+	double phiMin = TMath::Pi()* (-1);
+	double phiMax = TMath::Pi();
 
 	double xMin = -geo->GetWCCylRadius();
 	double xMax = geo->GetWCCylRadius();
