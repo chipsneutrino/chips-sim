@@ -4,6 +4,8 @@
  *
  *  Created on: Aug 15, 2014
  *      Author: aperch
+ *  
+ *  PMT Rotation feature added by S. Germani on Dec 10, 2015
  */
 
 #ifndef WCSIMCHERENKOVBUILDER_HH_
@@ -77,6 +79,11 @@ private:
 
 	void CalculateZoneCoverages(); //< Work out what fraction of each zone should be covered
 	double GetZoneCoverage(WCSimGeometryEnums::DetectorRegion_t region, int zone); //< Get the fraction of a given zone that should be covered
+
+        G4RotationMatrix  GetArbitraryPMTFaceRotation(double theta, double phi);
+        G4RotationMatrix  GetEndcapPMTFaceRotation(WCSimGeometryEnums::PMTDirection_t type, G4int zflip);
+        G4RotationMatrix  GetBarrelPMTFaceRotation(WCSimGeometryEnums::PMTDirection_t type, G4int zone);
+
 
 	void ConstructUnitCells(); //< Construct the unit cell objects specified in the geometry config
 	WCSimUnitCell * GetUnitCell(WCSimGeometryEnums::DetectorRegion_t region, int zone);

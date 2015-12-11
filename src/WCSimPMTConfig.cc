@@ -124,6 +124,19 @@ void WCSimPMTConfig::SetPMTName(std::string name){
 	fPMTName = name;
 }
 
+
+//Max Radius between PMT and Light Cone 
+
+double WCSimPMTConfig::GetMaxRadius() const{
+  return std::max(fRadius, fLCConfig.GetMaxRadius());
+}
+
+// Max Exposed height between PMT and Light Cone 
+
+double WCSimPMTConfig::GetMaxExposeHeight() const{
+  return std::max(fExposeHeight, fLCConfig.GetExposeHeight());
+}
+
 std::string WCSimPMTConfig::GetLCName() const{
 	return fLCName;
 }

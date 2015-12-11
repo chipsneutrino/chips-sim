@@ -538,7 +538,7 @@ double WCSimGeoConfig::GetCellPMTFacePhi(
 	return phi;
 }
 
-std::vector<double> WCSimGeoConfig::GetCellPMTPhi(
+std::vector<double> WCSimGeoConfig::GetCellPMTFacePhi(
 		WCSimGeometryEnums::DetectorRegion_t region, int zone) const
 {
 	std::vector<double> pmtPhi;

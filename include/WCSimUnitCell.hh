@@ -4,11 +4,14 @@
  *  Created on: 11 Aug 2014
  *      Author: aperch
  *
+ *  PMT rotation feature added on: 10 Dec 2015
+ *      by  S. Germani
  */
 
 #ifndef WCSIMUNITCELL_HH_
 #define WCSIMUNITCELL_HH_
 #include "WCSimPMTConfig.hh"
+#include "WCSimGeometryEnums.hh"
 #include "G4TwoVector.hh"
 #include <vector>
 
@@ -29,6 +32,7 @@ public:
      * @param y The PMT centre's y position in the unit cell (0.0 < y < 1.0) - Units must be METRES
      */
     WCSimPMTPlacement(WCSimPMTConfig pmt, double x, double y);
+    WCSimPMTPlacement(WCSimPMTConfig pmt, double x, double y,  WCSimGeometryEnums::PMTDirection_t  dir, double theta, double phi);
     virtual ~WCSimPMTPlacement();
 
     /** \brief Calculate the distance between two PMT placments
@@ -48,13 +52,28 @@ public:
 
     double GetX() const; //< @return PMT x-coordinate in metres
     double GetY() const; //< @return PMT y-coordinate in metres
+    double GetTheta() const; //< @return PMT theta in radians
+    double GetPhi()   const; //< @return PMT phi   in radians
+    WCSimGeometryEnums::PMTDirection_t GetDir() const;//< @return PMT direction
+   
+
     double GetPMTRadius() const; //< @return PMT radius in metres
     WCSimPMTConfig GetPMTConfig() const; //< @return PMT config object
     void Print() const;
+
+    void SetTheta(double theta); //< set PMT theta in radians
+    void SetPhi(double phi);   //< set PMT phi   in radians
+    void SetDir(WCSimGeometryEnums::PMTDirection_t dir); //< set PMT direction
+
 private:
     WCSimPMTConfig fPMTConfig; //< Pointer to config object that specifies PMT type
     double fX; //< PMT centre x-position in the 1m x 1m unit cell (units are METRES)
     double fY; //< PMT centre y-position in the 1m x 1m unit cell (units are METRES)
+
+    WCSimGeometryEnums::PMTDirection_t fDir;
+    double fTheta; //< PMT Theta angle in the unit cell (units are RADIANS)
+    double fPhi;   //< PMT Phi   angle in the unit cell (units are RADIANS)
+
 };
 
 class WCSimUnitCell
@@ -68,6 +87,7 @@ public:
      * @param y PMT centre's y-coordinate (0.0 < y < 1.0) - units are METRES
      */
     WCSimUnitCell(const WCSimPMTConfig &pmt, double x, double y); // Constructor that adds the first PMT
+    WCSimUnitCell(const WCSimPMTConfig &pmt, double x, double y,  WCSimGeometryEnums::PMTDirection_t dir, double theta, double phi); // Constructor that adds the first PMT
     virtual ~WCSimUnitCell();
     
     /** \brief Place a new PMT in the cell
@@ -76,6 +96,11 @@ public:
      * @param y PMT centre's y-coordinate (0.0 < y < 1.0) - units are METRES
      */
     void AddPMT(const WCSimPMTConfig &pmt, double x, double y);  // Add a new PMT
+    void AddPMT(const WCSimPMTConfig &pmt, double x, double y, WCSimGeometryEnums::PMTDirection_t dir, double theta, double phi);  // Add a new PMT
+  
+    void SetPMTTheta(unsigned int pmt, double theta); //< set PMT theta in radians
+    void SetPMTPhi(unsigned int pmt, double phi);   //< set PMT phi   in radians
+    void SetPMTDir(unsigned int pmt, WCSimGeometryEnums::PMTDirection_t dir); //< set PMT direction
 
     /** \brief If the 1m x 1m unit cell is scaled to have a different side length, 
      * but the PMT radii do not change, what percentage of the new cell is covered?

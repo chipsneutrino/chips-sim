@@ -90,7 +90,7 @@ public:
 	void AddCellPMTFacePhi(double phi);
 	void AddCellPMTFacePhi(WCSimGeometryEnums::DetectorRegion_t region, int zone, double theta);
 	double GetCellPMTFacePhi(WCSimGeometryEnums::DetectorRegion_t region, int zone, unsigned int pmt) const;
-	std::vector<double> GetCellPMTPhi(WCSimGeometryEnums::DetectorRegion_t region, int zone) const;
+	std::vector<double> GetCellPMTFacePhi(WCSimGeometryEnums::DetectorRegion_t region, int zone) const;
 
 	void AddCurrentRegion(std::string regionName);
 	void AddCurrentZone(int zoneNum);
