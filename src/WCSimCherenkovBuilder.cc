@@ -1725,22 +1725,24 @@ void WCSimCherenkovBuilder::PlaceEndCapPMTs(G4int zflip){
 						//						std::cout << "Placing cap PMT at (" << cellpos.x() << ", " << cellpos.y() << std::endl;
 						//						std::cout << "Here, phi = " << cellpos.phi() << " and start = " << thetaStart << ", end = " << thetaEnd << std::endl;
 
+
+					        G4RotationMatrix * tmpWCCapPMTRotation =  new G4RotationMatrix(*WCCapPMTRotation); // tmpWCCapPMTRotation is needed to avoid satring rotation drifting
+
+						if(pmtFaceType.at(iPMT) == WCSimGeometryEnums::PMTDirection_t::kArbitrary) 
+						  *tmpWCCapPMTRotation *= GetArbitraryPMTFaceRotation( pmtFaceTheta.at(iPMT), pmtFacePhi.at(iPMT));
+						else  *tmpWCCapPMTRotation *= GetEndcapPMTFaceRotation( pmtFaceType.at(iPMT),  zflip);
+
 					        WCSimPMTConfig config = unitCell->GetPMTPlacement(iPMT).GetPMTConfig();
 						double radius = config.GetMaxRadius();
-						double dZ     = radius*fabs(sin(WCCapPMTRotation->getTheta()));
+						double dZ     = radius*fabs(sin(tmpWCCapPMTRotation->getTheta()));
 
 
 						G4TwoVector pmtCellPosition = unitCell->GetPMTPos(iPMT, cellSizeVec->at(iZone)); // PMT position in cell, relative to top left of cell
 						G4ThreeVector PMTPosition(topLeftCell.x() + pmtCellPosition.x(),
-								topLeftCell.y() - pmtCellPosition.y(), zflip*dZ);
-
-						if(pmtFaceType.at(iPMT) == WCSimGeometryEnums::PMTDirection_t::kArbitrary) 
-						  *WCCapPMTRotation *= GetArbitraryPMTFaceRotation( pmtFaceTheta.at(iPMT), pmtFacePhi.at(iPMT));
-						else  *WCCapPMTRotation *= GetEndcapPMTFaceRotation( pmtFaceType.at(iPMT),  zflip);
-	
+								topLeftCell.y() - pmtCellPosition.y(), zflip*dZ);	
 
 						// G4VPhysicalVolume* physiCapPMT =
-						new G4PVPlacement(WCCapPMTRotation,     // its rotation
+						new G4PVPlacement(tmpWCCapPMTRotation,     // its rotation
 								PMTPosition, fPMTBuilder.GetPMTLogicalVolume(config),        // its logical volume
 								("WCPMT_"+config.GetPMTName()).c_str(),           // its name
 								capLogic,      // its mother volume
