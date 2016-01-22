@@ -31,6 +31,13 @@ WCSimTruthSummary::WCSimTruthSummary(const WCSimTruthSummary &ts) : TObject(ts) 
   fPrimaryPDGs = ts.GetPrimaryPDGs();
   fPrimaryEnergies = ts.GetPrimaryEnergies();
   fPrimaryDirs = ts.GetPrimaryDirs();
+
+  fOverlayVertex = ts.GetOverlayVertex();
+  fOverlayVertexT = ts.GetOverlayVertexT();
+  fOverlayPDGs = ts.GetOverlayPDGs();
+  fOverlayEnergies = ts.GetOverlayEnergies();
+  fOverlayDirs = ts.GetOverlayDirs();
+  
 }
 
 // Destructor
@@ -54,6 +61,12 @@ void WCSimTruthSummary::ResetValues(){
   fPrimaryPDGs.clear();
   fPrimaryEnergies.clear();
   fPrimaryDirs.clear();
+
+  fOverlayVertex = TVector3(-999.,-999.,-999.);
+  fOverlayVertexT = 0.0;
+  fOverlayPDGs.clear();
+  fOverlayEnergies.clear();
+  fOverlayDirs.clear();
 }
 
 // Get and set the vertex information
@@ -362,4 +375,113 @@ bool WCSimTruthSummary::IsNeutrinoEvent() const{
   else return false;
 }
 
+// ---------------------------------------------
+// Overlay information, if it exists.
+// ---------------------------------------------
+
+bool WCSimTruthSummary::IsOverlayEvent() const{
+  if(this->GetNOverlays() > 0){
+    return true;
+  }
+  else{
+    return false;
+  }
+}
+
+// Get and set the overlay vertex information
+TVector3 WCSimTruthSummary::GetOverlayVertex() const{
+  return fOverlayVertex;
+}
+
+void WCSimTruthSummary::SetOverlayVertex(TVector3 vtx){
+  fOverlayVertex = vtx;
+}
+
+void WCSimTruthSummary::SetOverlayVertex(double x, double y, double z){
+  fOverlayVertex = TVector3(x,y,z);
+}
+
+void WCSimTruthSummary::SetOverlayVertex(double x, double y, double z, double t){
+  fOverlayVertex = TVector3(x,y,z);
+  fOverlayVertexT = t;
+}
+
+void WCSimTruthSummary::SetOverlayVertexT(double t){
+  fOverlayVertexT = t;
+}
+
+// Get the overlay vertex components
+double WCSimTruthSummary::GetOverlayVertexX() const{
+  return fOverlayVertex.X();
+}
+
+double WCSimTruthSummary::GetOverlayVertexY() const{
+  return fOverlayVertex.Y();
+}
+
+double WCSimTruthSummary::GetOverlayVertexZ() const{
+  return fOverlayVertex.Z();
+}
+
+double WCSimTruthSummary::GetOverlayVertexT() const{
+  return fOverlayVertexT;
+}
+
+void WCSimTruthSummary::AddOverlayTrack(int pdg, double en, TVector3 dir){
+  fOverlayPDGs.push_back(pdg);
+  fOverlayEnergies.push_back(en);
+  fOverlayDirs.push_back(dir);
+}
+
+void WCSimTruthSummary::AddOverlayTrack(int pdg, double en, double dx, double dy, double dz){
+  this->AddOverlayTrack(pdg,en,TVector3(dx,dy,dz));
+}
+
+int WCSimTruthSummary::GetOverlayPDG(unsigned int p) const{
+  if(p < this->GetNOverlays()){
+    return fOverlayPDGs[p]; 
+  }
+  else{
+    std::cerr << "== Request for overlay particle " << p << " of [0..." << this->GetNOverlays()-1 << "]" << std::endl;
+    return -999;
+  }
+}
+
+double WCSimTruthSummary::GetOverlayEnergy(unsigned int p) const{
+  if(p < this->GetNOverlays()){
+    return fOverlayEnergies[p]; 
+  }
+  else{
+    std::cerr << "== Request for overlay particle " << p << " of [0..." << this->GetNOverlays()-1 <<  "]" << std::endl;
+    return -999.;
+  }
+
+}
+
+TVector3 WCSimTruthSummary::GetOverlayDir(unsigned int p) const{
+  if(p < this->GetNOverlays()){
+    return fOverlayDirs[p]; 
+  }
+  else{
+    std::cerr << "== Request for overlay particle " << p << " of [0..." << this->GetNOverlays()-1 <<  "]" << std::endl;
+    return TVector3(-999.,-999.,-999.);
+  }
+
+}
+
+std::vector<int> WCSimTruthSummary::GetOverlayPDGs() const{
+  return fOverlayPDGs;
+}
+
+std::vector<double> WCSimTruthSummary::GetOverlayEnergies() const{
+  return fOverlayEnergies;
+}
+
+std::vector<TVector3> WCSimTruthSummary::GetOverlayDirs() const{
+  return fOverlayDirs;
+}
+
+unsigned int WCSimTruthSummary::GetNOverlays() const{
+  return fOverlayPDGs.size();
+}
 

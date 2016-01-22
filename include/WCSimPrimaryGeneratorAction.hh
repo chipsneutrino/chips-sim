@@ -28,35 +28,16 @@ public:
   // Return the truth summary object
   WCSimTruthSummary* GetTruthSummaryPointer() {return &fTruthSummary;};
   WCSimTruthSummary GetTruthSummary() const {return fTruthSummary;};
-  void SetVtx(G4ThreeVector i)     { vtx = i; };
-  void SetBeamEnergy(G4double i)   { beamenergy = i; };
-  void SetBeamDir(G4ThreeVector i) { beamdir = i; };
-  void SetBeamPDG(G4int i)         { beampdg = i; };
 
+  // Fiducial vertex functions
+  void SetRandomVertex(bool val) {fUseRandomVertex = val;};
+  bool GetRandomVertex() {return fUseRandomVertex;};
+  void SetFiducialBorder(double val) {fFidBorder = val;};
+  bool GetFiducialBorder() {return fFidBorder;};
 
-  // These go with jhfNtuple
-  G4int GetVecRecNumber(){return vecRecNumber;}
-  G4int GetMode() {return mode;};
-  G4int GetVtxVol() {return vtxvol;};
-  G4ThreeVector GetVtx() {return vtx;}
-  G4int GetNpar() {return npar;};
-  G4int GetBeamPDG() {return beampdg;};
-  G4double GetBeamEnergy() {return beamenergy;};
-  G4ThreeVector GetBeamDir() {return beamdir;};
-  G4int GetTargetPDG() {return targetpdg;};
-  G4double GetTargetEnergy() {return targetenergy;};
-  G4ThreeVector GetTargetDir() {return targetdir;};
-
-
-
-  G4double GetNuEnergy() {return nuEnergy;};
-  G4double GetEnergy() {return energy;};
-  G4double GetXPos() {return xPos;};
-  G4double GetYPos() {return yPos;};
-  G4double GetZPos() {return zPos;};
-  G4double GetXDir() {return xDir;};
-  G4double GetYDir() {return yDir;};
-  G4double GetZDir() {return zDir;};
+  // Swap X and Z coordinates for events generated with GENIE
+  void SetUseXAxisForBeam(bool val) {fUseXAxisForBeam = val;};
+  bool GetUseXAxisForBeam() {return fUseXAxisForBeam;};
 
 private:
   WCSimDetectorConstruction*      myDetector;
@@ -72,29 +53,42 @@ private:
 	G4bool useNormalEvt;
 	G4bool useLaserEvt;  //T. Akiri: Laser flag
 	G4bool useGpsEvt;
+	G4bool useOverlayEvt;
 	std::fstream inputFile;
 	G4String vectorFileName;
 	std::vector<G4String> vectorFileVec;
 	std::vector<G4String>::const_iterator vectorFileIterator;
 	G4bool GenerateVertexInRock;
 
-	// These go with jhfNtuple
-	G4int mode;
-	G4int vtxvol;
-	G4ThreeVector vtx;
-	G4int npar;
-	G4int beampdg, targetpdg;
-	G4ThreeVector beamdir, targetdir;
-	G4double beamenergy, targetenergy;
-	G4int vecRecNumber;
+  // Overlay variables and functions
+  std::fstream fOverlayFile;
+  G4String fOverlayFileName;
+	std::vector<G4String> fOverlayFileVec;
+	std::vector<G4String>::const_iterator fOverlayFileIterator;
+  void GenerateOverlayEvents(G4Event *evt);
+  // For the overlay events, need to find a fake vertex just inside the detector, and adjust the energy correspondingly.
+  bool UpdateOverlayVertexAndEnergy(G4ThreeVector &vtx, double &timeOffset, G4ThreeVector dir, double &energy);
 
-	G4double nuEnergy;
-	G4double energy;
-	G4double xPos, yPos, zPos;
-	G4double xDir, yDir, zDir;
+  // Take a tokenised "track" line from a .vec file and contact the particle gun
+  // .vec files typically need to swap x and z coordinates for use here.
+  void FireParticleGunFromTrackLine(G4Event *evt, G4ThreeVector &vtx, double& vtxTime,std::vector<std::string> &tokens, bool swapXZ, bool isOverlay);
 
-	G4int _counterRock;
-	G4int _counterCublic;
+  // Function to pull an event time out of a flat distribution
+  // that simulates the beam spill.
+  double GetBeamSpillEventTime() const;
+
+  // Function to get a random vertex within the detector volume
+  // The fiducial flag gives metre space to the wall.
+  G4ThreeVector GenerateRandomVertex() const;
+
+  // Random vertex variables
+  bool fUseRandomVertex;
+  double fFidBorder;
+
+  // Bool to determine whether we want to swap the X and Z coordinates.
+  // This is because GENIE uses Z as the beam axis, and we use X here.
+  bool fUseXAxisForBeam;
+
 public:
 
 	inline void SetMulineEvtGenerator(G4bool choice)
@@ -133,6 +127,15 @@ public:
 	{
 		return useGpsEvt;
 	}
+  // Add the overlay generator
+	inline void SetOverlayEvtGenerator(G4bool choice)
+	{
+		useOverlayEvt = choice;
+	}
+	inline G4bool IsUsingOverlayEvtGenerator()
+	{
+		return useOverlayEvt;
+	}
 
 	inline void OpenVectorFile(G4String fileName)
 	{
@@ -164,6 +167,35 @@ public:
 			nextExists = true;
 		}
 		vectorFileIterator++;
+		return nextExists;
+	}
+  // Functions for dealing with the overlay files in the same way 
+  // as the standard vector files.
+	inline void OpenOverlayFile(G4String fileName){
+		if (fOverlayFile.is_open()){
+			fOverlayFile.close();
+		}
+		fOverlayFileName = fileName;
+		fOverlayFile.open(fOverlayFileName, std::fstream::in);
+	}
+
+	inline void AddOverlayFile(G4String fileName){
+		fOverlayFileVec.push_back(fileName);
+		if(fOverlayFileVec.size() == 1)
+		{
+			fOverlayFileIterator = fOverlayFileVec.begin();
+			LoadNextOverlayFile();
+		}
+		return;
+	}
+	inline bool LoadNextOverlayFile(){
+		bool nextExists = false;
+		if (fOverlayFileIterator != fOverlayFileVec.end())
+		{
+			OpenOverlayFile(*fOverlayFileIterator);
+			nextExists = true;
+		}
+		fOverlayFileIterator++;
 		return nextExists;
 	}
 

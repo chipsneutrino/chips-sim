@@ -166,7 +166,6 @@ extern "C" void skrn1pe_(float* );
 	DigiHitMap.clear();
 	fDet = myDet;
 	fPMTSim = new WCSimCHIPSPMT();
-  fVertexTime = 0.;
 }
 
 WCSimWCDigitizer::~WCSimWCDigitizer() {
@@ -204,9 +203,10 @@ void WCSimWCDigitizer::Digitize()
 
 	if (WCHC) {
 
-		MakeHitsHistogram(WCHC); 
+//		MakeHitsHistogram(WCHC); 
 		//FindNumberOfGates(); //get list of t0 and number of triggers.
-		FindNumberOfGatesFast(); //get list of t0 and number of triggers.
+//		FindNumberOfGatesFast(); //get list of t0 and number of triggers.
+    this->FindTriggerWindows(WCHC);
 
 		for ( int i = 0 ; i < this->NumberOfGatesInThisEvent(); i++)
 		{
@@ -216,6 +216,48 @@ void WCSimWCDigitizer::Digitize()
 
 	StoreDigiCollection(DigitsCollection);
 
+}
+
+void WCSimWCDigitizer::FindTriggerWindows(WCSimWCHitsCollection* hits){
+
+  std::vector<double> pmtHitTimes;
+
+  for(int i = 0; i < hits->entries(); ++i){
+    // Make sure that we get the first hit on the PMT
+    (*hits)[i]->SortHitTimes();
+    pmtHitTimes.push_back((*hits)[i]->GetTime(0));
+  }
+
+  // Now we want to sort out times into ascending order.
+  std::sort(pmtHitTimes.begin(),pmtHitTimes.end());
+
+  // Iterate over the times and look for continuous chains of hits without 
+  // a gap of great than 200ns, with at least GlobalThreshold hits.
+  double firstHit = pmtHitTimes[0];
+  unsigned int nHits = 1;
+  for(unsigned int v = 1; v < pmtHitTimes.size(); ++v){ 
+//    std::cout << firstHit << ", " << pmtHitTimes[v-1] << ", " << pmtHitTimes[v] << " :: " << nHits << std::endl;
+    if((pmtHitTimes[v] - pmtHitTimes[v-1]) < 200){
+      ++nHits;
+    }
+    else{
+      if(nHits >= WCSimWCDigitizer::GlobalThreshold){
+        // Save this time and start over.
+        TriggerTimes.push_back(firstHit);    
+      }
+      // Either way, start the process again
+      firstHit = pmtHitTimes[v];
+      nHits = 1;
+    }
+  }
+  // Make a trigger time out of whatever is left if we need to.
+  if(nHits >= WCSimWCDigitizer::GlobalThreshold){
+    TriggerTimes.push_back(firstHit);
+  }
+
+  for(unsigned int t = 0; t < TriggerTimes.size(); ++t){
+    std::cout << "- Trigger time = " << TriggerTimes[t] << std::endl;
+  }
 }
 
 void WCSimWCDigitizer::MakeHitsHistogram(WCSimWCHitsCollection* WCHC)
@@ -281,11 +323,7 @@ void WCSimWCDigitizer::DigitizeGate(WCSimWCHitsCollection* WCHC,G4int G)
 	}
 	G4double upperbound = TriggerTimes[G]+EvtG8Up;
 
-  // Update the truth summary information to store the event vertex time. 
-  // This should just be equal to the offset minus the trigger time.
-  if(G == 0){
-    fVertexTime = WCSimWCDigitizer::offset - TriggerTimes[G];
-  }
+  std::cout << "Trigger window info: " << lowerbound << ", " << TriggerTimes[G] << ", " << upperbound << std::endl;
 
   // Before looping over the hits, get hold of the PMTManager
   WCSimPMTManager *pmtMan = fDet->GetPMTManager();
@@ -377,10 +415,12 @@ void WCSimWCDigitizer::DigitizeGate(WCSimWCHitsCollection* WCHC,G4int G)
 			// looking at SK's jitter function for 20" tubes
 			if (timingResolution < 0.58) timingResolution=0.58;
 
-			G4double digihittime = -TriggerTimes[G]
-				+ WCSimWCDigitizer::offset
-				+ firstHitTime
-				+ G4RandGauss::shoot(0.0,timingResolution);
+//			G4double digihittime = -TriggerTimes[G]
+//				+ WCSimWCDigitizer::offset
+//				+ firstHitTime
+//				+ G4RandGauss::shoot(0.0,timingResolution);
+
+      G4double digihittime = firstHitTime + G4RandGauss::shoot(0.0,timingResolution);
 
 			if ( digihittime > 0.0 && peSmeared>0.0) 
 			{	  

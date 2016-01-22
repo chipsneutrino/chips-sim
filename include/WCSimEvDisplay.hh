@@ -147,6 +147,10 @@ protected:
   // The truth display is all contained within TPaveText objects
   TPaveText *fTruthTextMain;
   TPaveText *fTruthTextPrimaries;
+  // Also have a truth text display for overlay events
+  TPaveText *fTruthTextOverlay;
+  // Function to change the sizes of the TPaveTexts
+  void ResizeTruthPaveTexts(bool isOverlay);
 
 	// When using WCSim files, store the geometry information
 	double fWCRadius;

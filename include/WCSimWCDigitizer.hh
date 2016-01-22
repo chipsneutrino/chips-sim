@@ -26,10 +26,10 @@ public:
 
   int NumberOfGatesInThisEvent() { return TriggerTimes.size(); }
 
-  double GetVertexTime() { return fVertexTime;};  
 public:
   void MakeHitsHistogram(WCSimWCHitsCollection*);
   void FindNumberOfGatesFast();
+  void FindTriggerWindows(WCSimWCHitsCollection* hits ); // Leigh, new simple function to find trigger windows.
   void DigitizeGate(WCSimWCHitsCollection* WCHC,G4int G);
   void Digitize();
   G4double GetTriggerTime(int i) { return TriggerTimes[i];}
@@ -84,7 +84,6 @@ private:
 	WCSimDetectorConstruction* fDet;
 	WCSimCHIPSPMT* fPMTSim;
 
-  double fVertexTime;
 };
 
 #endif
