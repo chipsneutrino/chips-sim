@@ -516,7 +516,6 @@ bool WCSimPrimaryGeneratorAction::UpdateOverlayVertexAndEnergy(G4ThreeVector &vt
     double muonSpeed = 2.9979e8 * m / s;
     energy -= dist * 2.0 / cm; // Assume 2.0 MeV/cm energy loss
     timeOffset = dist / muonSpeed;
-    std::cout << "Time offset " << timeOffset << " :: " << dist << std::endl;
     if(energy > 0){
       energyOK = true;
       vtx = newVtx;

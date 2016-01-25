@@ -323,8 +323,6 @@ void WCSimWCDigitizer::DigitizeGate(WCSimWCHitsCollection* WCHC,G4int G)
 	}
 	G4double upperbound = TriggerTimes[G]+EvtG8Up;
 
-  std::cout << "Trigger window info: " << lowerbound << ", " << TriggerTimes[G] << ", " << upperbound << std::endl;
-
   // Before looping over the hits, get hold of the PMTManager
   WCSimPMTManager *pmtMan = fDet->GetPMTManager();
 
