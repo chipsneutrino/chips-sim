@@ -460,9 +460,9 @@ void WCSimPrimaryGeneratorAction::FireParticleGunFromTrackLine(G4Event *evt, G4T
 
 double WCSimPrimaryGeneratorAction::GetBeamSpillEventTime() const{
 
-  double beamSpillDuration = 10000*ns;
+  double beamSpillDuration = 9900*ns;
 
-  return G4UniformRand() * beamSpillDuration;
+  return 100 + (G4UniformRand() * beamSpillDuration);
 }
 
 G4ThreeVector WCSimPrimaryGeneratorAction::GenerateRandomVertex() const{
