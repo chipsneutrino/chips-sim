@@ -121,9 +121,16 @@ public:
   void   SetPMT_QE_Method(G4int choice){PMT_QE_Method = choice;}
   void   SetPMT_Coll_Eff(G4int choice){PMT_Coll_Eff = choice;}
 
-	// Leigh: PMTSim Get and Set methods
-	G4int GetPMTSim() const {return PMTSim_Method;};
-	void SetPMTSim(G4int val) {PMTSim_Method = val;};
+  // Leigh: PMTSim Get and Set methods
+  G4int GetPMTSim() const {return PMTSim_Method;};
+  void SetPMTSim(G4int val) {PMTSim_Method = val;};
+  
+  // Andy: getters and setters for the PMT timing options
+  G4int GetPMTTime() const {return PMTTime_Method;};
+  void SetPMTTime(const G4int &val) {PMTTime_Method = val;};
+  
+  G4bool GetPMTPerfectTiming() const {return PMTPerfectTiming;};
+  void SetPMTPerfectTiming(const G4bool &val) {PMTPerfectTiming = val;};
 
   // Geometry options
   void   SetIsUpright(G4bool choice) {isUpright = choice;}
@@ -253,6 +260,19 @@ protected: // Changed this from private to let WCSimCherenkovBuilder
 	// - 0 = WCSim default method
 	// - 1 = CHIPS PMT simulation based on IceCube PMTs
 	G4int PMTSim_Method;
+
+    // Andy: Flag to decide which method to use for setting
+    // the PMT hit time:
+    // - 0 = First photon hit time (default)
+    // - 1 = Mean photon hit time (useful for debugging)
+    G4int PMTTime_Method;
+
+    // Andy: Flag to give the PMT perfect timing resolution
+    // ie. the hit time will be taken exactly from the photons 
+    // without any smearing applied
+    // false = do the normal smearing (default)
+    // true  = use perfect timing
+    G4bool PMTPerfectTiming;
 
   G4double WCLength;
 

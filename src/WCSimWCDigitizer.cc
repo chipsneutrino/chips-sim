@@ -345,17 +345,18 @@ void WCSimWCDigitizer::DigitizeGate(WCSimWCHitsCollection* WCHC,G4int G)
 		// Get the information from the hit
 		G4int   tube         = (*WCHC)[i]->GetTubeID();
 		// august 2004 : sorting is necessary before doing this !!!     
-		//      G4float firstHitTime = (*WCHC)[i]->GetTime(0);
-		G4float firstHitTime = (*WCHC)[i]->GetFirstHitTimeInGate(lowerbound,
-				upperbound);
+		//      G4float trueHitTime = (*WCHC)[i]->GetTime(0);
 
-		if (firstHitTime < 0.) { //PMT not hit in this gate
+		G4float trueHitTime = (fDet->GetPMTTime() == 1) ? (*WCHC)[i]->GetMeanHitTimeInGate(lowerbound, upperbound) 
+                                                        : (*WCHC)[i]->GetFirstHitTimeInGate(lowerbound, upperbound);
+
+		if (trueHitTime < 0.) { //PMT not hit in this gate
 			//	G4cout << "skipped this hit\n";
 			continue; // move on to the next Hit PMT
 		}
 
 
-		double bound1 = firstHitTime+WCSimWCDigitizer::pmtgate;      
+		double bound1 = trueHitTime+WCSimWCDigitizer::pmtgate;      
 		G4float totalPe = (*WCHC)[i]->GetPeInGate(lowerbound,upperbound,bound1);
 		// Now digitize this hit
 
@@ -387,7 +388,7 @@ void WCSimWCDigitizer::DigitizeGate(WCSimWCHitsCollection* WCHC,G4int G)
 		else{
 			// Firstly, we need to get the time spread of the photon arrival
 			// times.
-			double minTime = firstHitTime;
+			double minTime = trueHitTime;
 			double maxTime = -1e20;
 			if(totalPe == 1) maxTime = minTime;
 			else maxTime = (*WCHC)[i]->GetLastHitTimeInGate(lowerbound,upperbound);
@@ -406,19 +407,20 @@ void WCSimWCDigitizer::DigitizeGate(WCSimWCHitsCollection* WCHC,G4int G)
 			// hits can appear to be negative (if the t0 is triggered much later)
 			// they have to be removed otherwise nothing will work.
 
-			// MF : found 'by hand', fits SK PMT resolution (2002 values ?)
-			// Add cutoffs 
-			float Q = (peSmeared > 0.5) ? peSmeared : 0.5;
-			float timingResolution = 0.33 + sqrt(timingConstant/Q);
-			// looking at SK's jitter function for 20" tubes
-			if (timingResolution < 0.58) timingResolution=0.58;
+            G4double digihittime = trueHitTime;
 
-//			G4double digihittime = -TriggerTimes[G]
-//				+ WCSimWCDigitizer::offset
-//				+ firstHitTime
-//				+ G4RandGauss::shoot(0.0,timingResolution);
-
-      G4double digihittime = firstHitTime + G4RandGauss::shoot(0.0,timingResolution);
+            // Add on a Gaussian resolution effect if the PMT resolution is switched on
+            if(!fDet->GetPMTPerfectTiming())
+            {
+			    // MF : found 'by hand', fits SK PMT resolution (2002 values ?)
+			    // Add cutoffs 
+			    float Q = (peSmeared > 0.5) ? peSmeared : 0.5;
+			    float timingResolution = 0.33 + sqrt(timingConstant/Q);
+			    
+                // looking at SK's jitter function for 20" tubes
+			    if (timingResolution < 0.58) timingResolution=0.58;
+                digihittime += G4RandGauss::shoot(0.0,timingResolution);
+            }
 
 			if ( digihittime > 0.0 && peSmeared>0.0) 
 			{	  
