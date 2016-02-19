@@ -5,6 +5,15 @@
 # Uncomment to use Leigh's pmt simulation
 #/WCSim/PMTSim chips
 
+# Should we use the first or mean photon hit time for the time recorded by the PMT?
+# Options: first (default), mean (unphysical but helpful for debugging)
+/WCSim/PMTTime first
+
+# Flag to give the PMT perfect timing resolution - i.e. uses the exact photon time
+# for the digitized hit time, without any smearing
+# Options are: false (default, normal timing resolution), true (perfect timing)
+/WCSim/PMTPerfectTiming false
+
 #Added for the PMT QE option 08/17/10 (XQ)
 # 1. Stacking only mean when the photon is generated
 # the QE is applied to reduce the total number of photons
