@@ -32,26 +32,35 @@ int main(int argc,char** argv)
   G4String macFile("vis.mac");
   if(argc > 1){
   	for(int i = 1; i < argc; ++i){
-        std::string dash("-");
+      std::string dash("-");
 
-  		// File name switch 
-  		if(std::strcmp(argv[i],"-g") == 0){
-  			if(argc >= i+1){
-  				geoMacFile = argv[i+1];
-  				std::cout << "== Geometry mac file = " << argv[i+1] << std::endl;
-  				++i;
-  			}
-            else if (!G4String(argv[i]).compare(0, dash.size(), dash)){
-                std::cout << "Unregcognised flag " << argv[i] << std::endl;
-                usage();
-                return 0;
-            }       
-            else{ 
-                macFile = argv[i];
-            }
-  		}
+  	  // File name switch 
+  	  if(std::strcmp(argv[i],"-g") == 0){
+        if(argc >= i+1){
+  	      geoMacFile = argv[i+1];
+  	  	std::cout << "== Geometry mac file = " << argv[i+1] << std::endl;
+  	  	++i;
+  	    }
+        else
+        {
+            std::cerr << "== Flag -g expects an argument == " << std::endl;
+            usage();
+            return 0;
+        }
+      }
+      else if (!G4String(argv[i]).compare(0, dash.size(), dash)){
+        std::cerr << "Unregcognised flag " << argv[i] << std::endl;
+        usage();
+        return 0;
+      }       
+      else{ 
+        macFile = argv[i];
+        std::cout << "Setting macfile to " << macFile << std::endl;
+  	  }
   	}
   }
+  std::cout << "Geometry macfile is " << geoMacFile << std::endl;
+  std::cout << "Run config macfile is " << macFile << std::endl;
 
   // Construct the default run manager
   G4RunManager* runManager = new G4RunManager;
