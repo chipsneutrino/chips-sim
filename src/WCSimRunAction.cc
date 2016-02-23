@@ -110,12 +110,16 @@ void WCSimRunAction::EndOfRunAction(const G4Run*)
 //        << "% through-going (hit Catcher)" << G4endl;
 
   // Close the Root file at the end of the run
+  int events = WCSimTree->GetEntries();
   if( GetSavePhotonNtuple() ) { WCSimPhotonNtuple::Close(); }
   TFile* hfile = WCSimTree->GetCurrentFile();
   hfile->Close();
 
   // Clean up stuff on the heap; I think deletion of hfile and trees
   // is taken care of by the file close
+ 
+  std::cout << "Finished running and saved " << events << " events to " << GetRootFileName() << std::endl;
+
 
   delete wcsimrootsuperevent; wcsimrootsuperevent=0;
   delete wcsimrootgeom; wcsimrootgeom=0;
