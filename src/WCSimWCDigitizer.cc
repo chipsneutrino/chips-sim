@@ -233,26 +233,30 @@ void WCSimWCDigitizer::FindTriggerWindows(WCSimWCHitsCollection* hits){
 
   // Iterate over the times and look for continuous chains of hits without 
   // a gap of great than 200ns, with at least GlobalThreshold hits.
-  double firstHit = pmtHitTimes[0];
-  unsigned int nHits = 1;
-  for(unsigned int v = 1; v < pmtHitTimes.size(); ++v){ 
-//    std::cout << firstHit << ", " << pmtHitTimes[v-1] << ", " << pmtHitTimes[v] << " :: " << nHits << std::endl;
-    if((pmtHitTimes[v] - pmtHitTimes[v-1]) < 200){
-      ++nHits;
-    }
-    else{
-      if(nHits >= WCSimWCDigitizer::GlobalThreshold){
-        // Save this time and start over.
-        TriggerTimes.push_back(firstHit);    
+  if(pmtHitTimes.size() > 0)
+  {
+    double firstHit = pmtHitTimes[0];
+    unsigned int nHits = 1;
+    for(unsigned int v = 1; v < pmtHitTimes.size(); ++v){ 
+//      std::cout << firstHit << ", " << pmtHitTimes[v-1] << ", " << pmtHitTimes[v] << " :: " << nHits << std::endl;
+      if((pmtHitTimes[v] - pmtHitTimes[v-1]) < 200){
+        ++nHits;
       }
-      // Either way, start the process again
-      firstHit = pmtHitTimes[v];
-      nHits = 1;
+      else{
+        if(nHits >= WCSimWCDigitizer::GlobalThreshold){
+          // Save this time and start over.
+          TriggerTimes.push_back(firstHit);    
+        }
+        // Either way, start the process again
+        firstHit = pmtHitTimes[v];
+        nHits = 1;
+      }
     }
-  }
-  // Make a trigger time out of whatever is left if we need to.
-  if(nHits >= WCSimWCDigitizer::GlobalThreshold){
-    TriggerTimes.push_back(firstHit);
+
+    // Make a trigger time out of whatever is left if we need to.
+    if(nHits >= WCSimWCDigitizer::GlobalThreshold){
+      TriggerTimes.push_back(firstHit);
+    }
   }
 
   for(unsigned int t = 0; t < TriggerTimes.size(); ++t){
