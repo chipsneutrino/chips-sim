@@ -4,6 +4,7 @@
 
 # Absorption
 /WCSim/tuning/abwff 0.615
+/WCSim/tuning/abwff 0.045356  # Make maximum value 30m
 # default was 1.23
 
 # Reflectivity of glass cathode

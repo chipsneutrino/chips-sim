@@ -3,9 +3,13 @@
  *
  *  Created on: 11 Aug 2014
  *      Author: andy
+ *
+ *  PMT rotation feature added on: 10 Dec 2015
+ *      by  S. Germani
  */
 
 #include "WCSimUnitCell.hh"
+#include "WCSimGeometryEnums.hh"
 #include <cassert>
 #include <math.h>
 #include <vector>
@@ -15,6 +19,13 @@
 
 WCSimPMTPlacement::WCSimPMTPlacement(WCSimPMTConfig pmt, double x, double y) :
 		fPMTConfig(pmt), fX(x), fY(y) {
+                                                fDir = WCSimGeometryEnums::PMTDirection_t::kInwards;
+						fTheta = 0;
+						fPhi   = 0;
+}
+
+WCSimPMTPlacement::WCSimPMTPlacement(WCSimPMTConfig pmt, double x, double y, WCSimGeometryEnums::PMTDirection_t dir, double theta, double phi) :
+                fPMTConfig(pmt), fX(x), fY(y), fDir(dir), fTheta(theta), fPhi(phi)  {
 }
 
 WCSimPMTPlacement::~WCSimPMTPlacement() {
@@ -45,6 +56,31 @@ double WCSimPMTPlacement::GetX() const {
 
 double WCSimPMTPlacement::GetY() const {
 	return fY;
+}
+
+double WCSimPMTPlacement::GetTheta() const {
+	return fTheta;
+}
+
+double WCSimPMTPlacement::GetPhi() const {
+	return fPhi;
+}
+
+WCSimGeometryEnums::PMTDirection_t WCSimPMTPlacement::GetDir() const {
+	return fDir;
+}
+
+
+void WCSimPMTPlacement::SetTheta(double theta){
+        fTheta = theta;
+}
+
+void WCSimPMTPlacement::SetPhi(double phi){
+	fPhi = phi;
+}
+
+void WCSimPMTPlacement::SetDir(WCSimGeometryEnums::PMTDirection_t dir){
+	fDir = dir;
 }
 
 double WCSimPMTPlacement::GetPMTRadius() const {
@@ -98,6 +134,11 @@ void WCSimUnitCell::Print() const{
        itr != fPMTs.end(); ++itr ){
     std::cout << (*itr).GetPMTConfig().GetPMTName() << " at (" << (*itr).GetX() / m 
               << "," << (*itr).GetY() / m << ")" << std::endl;
+    if((*itr).GetDir() != WCSimGeometryEnums::PMTDirection_t::kInwards ) 
+      std::cout << " Dir "<< (*itr).GetDir() << " Angles (" << (*itr).GetTheta() *deg 
+		<< "," << (*itr).GetPhi() *deg << ")" << std::endl;
+
+
   }
   std::cout << "-----------------" << std::endl << std::endl;
 }
@@ -110,6 +151,32 @@ void WCSimUnitCell::AddPMT(const WCSimPMTConfig &pmt, double x, double y) {
 	assert(1.0 * m > y && "y position must be less than 1 (and > 0)");
 	fPMTs.push_back(WCSimPMTPlacement(pmt, x, y));
 }
+
+void WCSimUnitCell::AddPMT(const WCSimPMTConfig &pmt, double x, double y, WCSimGeometryEnums::PMTDirection_t dir, double theta, double phi) {
+  	assert(0.0 * m < x && "x position must be greater than 0 (and < 1)");
+	assert(1.0 * m > x && "x position must be less than 1 (and > 0)");
+	assert(0.0 * m < y && "y position must be greater than 0 (and < 1)");
+	assert(1.0 * m > y && "y position must be less than 1 (and > 0)");
+	fPMTs.push_back(WCSimPMTPlacement(pmt, x, y, dir, theta, phi));
+}
+
+
+void WCSimUnitCell::SetPMTTheta(unsigned int pmt, double theta){
+  assert(pmt < fPMTs.size());
+  fPMTs.at(pmt).SetTheta(theta);
+}
+
+void WCSimUnitCell::SetPMTPhi(unsigned int pmt, double phi){
+  assert(pmt < fPMTs.size());
+  fPMTs.at(pmt).SetPhi(phi);
+}
+
+
+void WCSimUnitCell::SetPMTDir(unsigned int pmt, WCSimGeometryEnums::PMTDirection_t dir){
+  assert(pmt < fPMTs.size());
+  fPMTs.at(pmt).SetDir(dir);
+}
+
 
 double WCSimUnitCell::GetPhotocathodeCoverage(double side) const {
 	double cellarea = side * side;
@@ -213,7 +280,10 @@ double WCSimUnitCell::GetCellExposeHeight() const {
 	double maxExpose = 0.0;
 	std::vector<WCSimPMTPlacement>::const_iterator pmtItr = fPMTs.begin();
 	for( ; pmtItr != fPMTs.end(); ++pmtItr ){
-	  double expose = std::max(((*pmtItr).GetPMTConfig().GetLCConfig()).GetExposeHeight(), (*pmtItr).GetPMTConfig().GetExposeHeight());
+	  double expose = (*pmtItr).GetPMTConfig().GetMaxExposeHeight();       // get  Expose Height from PMT or LightCone
+	  double radius = (*pmtItr).GetPMTConfig().GetMaxRadius();             // get radius from PMT or LightCone
+	  expose = sqrt( pow(2*radius,2) + pow(expose,2));  // This is called before setting PMT angles add height to make room for possible rotations 
+
 	  if( expose > maxExpose) { maxExpose = expose; }
 	}	
 	return maxExpose;

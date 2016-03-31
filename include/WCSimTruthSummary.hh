@@ -133,6 +133,31 @@ public:
   bool IsParticleGunEvent() const;
   bool IsNeutrinoEvent() const;
 
+  // Functions to deal with overlay events
+  bool IsOverlayEvent() const;
+
+  TVector3 GetOverlayVertex() const;
+  void SetOverlayVertex(TVector3 vtx);
+  void SetOverlayVertex(double x, double y, double z);
+  void SetOverlayVertex(double x, double y, double z, double t);
+  void SetOverlayVertexT(double t);
+
+  double GetOverlayVertexX() const;
+  double GetOverlayVertexY() const;
+  double GetOverlayVertexZ() const;
+  double GetOverlayVertexT() const;
+
+  void AddOverlayTrack(int pdg, double en, TVector3 dir);
+  void AddOverlayTrack(int pdg, double en, double dx, double dy, double dz);
+  int GetOverlayPDG(unsigned int p) const; // Index starts at 0
+  double GetOverlayEnergy(unsigned int p) const; // Index starts at 0
+  TVector3 GetOverlayDir(unsigned int p) const; // Index starts at 0
+  std::vector<int> GetOverlayPDGs() const;
+  std::vector<double> GetOverlayEnergies() const; 
+  std::vector<TVector3> GetOverlayDirs() const;
+  
+  unsigned int GetNOverlays() const;
+
 private:
 
   // Vertex position
@@ -158,7 +183,14 @@ private:
   std::vector<double> fPrimaryEnergies;
   std::vector<TVector3> fPrimaryDirs;
 
-  ClassDef(WCSimTruthSummary,2);
+  // Overlay vertex
+  TVector3 fOverlayVertex;
+  double fOverlayVertexT;
+  std::vector<int> fOverlayPDGs;
+  std::vector<double> fOverlayEnergies;
+  std::vector<TVector3> fOverlayDirs;
+
+  ClassDef(WCSimTruthSummary,3);
 
 };
 

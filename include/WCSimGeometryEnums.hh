@@ -156,7 +156,7 @@ namespace WCSimGeometryEnums
 		PMTDirection_t(const PMTDirection_t &ep) : fType(ep.fType) {};
 		operator Type () const { return fType; };
 		bool CanBuildWithoutAngles(){
-			return (fType == kInwards || fType == kOutwards);
+			return (fType == kInwards || fType == kOutwards  || fType == kAngledUpstream );
 		}
 
 		std::string AsString() const{

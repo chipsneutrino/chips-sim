@@ -7,6 +7,8 @@
 #include "G4ThreeVector.hh"
 #include "G4LogicalVolume.hh"
 #include "G4ios.hh"
+// for accumulate
+#include <numeric>
 // for sort, find, count_if
 #include <string>
 #include <algorithm>
@@ -136,6 +138,23 @@ class WCSimWCHit : public G4VHit
       lasttime = -10000.; //error code.
     }
     return lasttime;
+  }
+  
+  // low is the trigger time, up is trigger+950ns (end of event)
+  G4float GetMeanHitTimeInGate(G4float low,G4float upevent)
+  {
+    G4float meantime;
+    std::vector<G4float>::reverse_iterator tfirst = time.rbegin();
+    std::vector<G4float>::reverse_iterator tlast = time.rend();
+  
+
+    if( time.size() > 0 ){
+        meantime = std::accumulate(time.begin(), time.end(), 0.0) / time.size();
+    }
+    else {
+      meantime = -10000.; //error code.
+    }
+    return meantime;
   }
 
   // pmtgate  and evgate are durations, ie not absolute times

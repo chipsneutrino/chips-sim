@@ -47,6 +47,10 @@ public:
 	std::string GetPMTName() const;
 	void SetPMTName(std::string name);
 
+	double GetMaxRadius() const;
+
+	double GetMaxExposeHeight() const;
+
   	std::string GetLCName() const;
 	void SetLCName(std::string name);
 

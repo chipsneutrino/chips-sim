@@ -3,6 +3,8 @@
  *
  *  Created on: Aug 15, 2014
  *      Author: aperch
+ *
+ *  PMT Rotation feature added by S. Germani on Dec 10, 2015
  */
 
 #include "WCSimCherenkovBuilder.hh"
@@ -581,6 +583,12 @@ void WCSimCherenkovBuilder::PlaceBarrelPMTs()
 		 *  fWallCellSize
 		*/
 
+
+
+		std::vector<Double_t> pmtFaceTheta = fGeoConfig->GetCellPMTFaceTheta(WCSimGeometryEnums::DetectorRegion_t::kWall, iZone);
+		std::vector<Double_t> pmtFacePhi   = fGeoConfig->GetCellPMTFacePhi(  WCSimGeometryEnums::DetectorRegion_t::kWall, iZone);
+		std::vector<WCSimGeometryEnums::PMTDirection_t> pmtFaceType  = fGeoConfig->GetCellPMTFaceType(WCSimGeometryEnums::DetectorRegion_t::kWall, iZone);
+
 		for (G4double i = 0; i < fWallCellsX.at(iZone); i++) {
 
 			// Note that these coordinates get rotated around
@@ -606,8 +614,26 @@ void WCSimCherenkovBuilder::PlaceBarrelPMTs()
 				std::cout << "Cell mother height and width: " << heightPerCell/2. << "  "  << segmentWidth/2. << std::endl;
 				WCSimPMTConfig config = unitCell->GetPMTPlacement(nPMT).GetPMTConfig();
 				std::cout << " PMT logical volume name = " << fPMTBuilder.GetPMTLogicalVolume(config)->GetName() << std::endl;
+
+				//----->  PMT rotation and shift ...
+				G4RotationMatrix * tmpWCPMTRotation =  new G4RotationMatrix(*WCPMTRotation); // tmpWCPMTRotation is needed to avoid satring rotation drifting
+														
+				if(pmtFaceType.at(nPMT) == WCSimGeometryEnums::PMTDirection_t::kArbitrary) 
+				      *tmpWCPMTRotation *= GetArbitraryPMTFaceRotation( pmtFaceTheta.at(nPMT), pmtFacePhi.at(nPMT));
+				else  *tmpWCPMTRotation *= GetBarrelPMTFaceRotation(    pmtFaceType.at(nPMT),  iZone);
+				
+
+				//	double radius = std::max((config.GetLCConfig()).GetMaxRadius(), config.GetRadius()       );			
+				double radius = config.GetMaxRadius();			
+				double dTheta = fabs( tmpWCPMTRotation->thetaY()/deg -90 );
+				double dR     = radius*sin(dTheta*deg);
+				
+				G4ThreeVector PMTShift( -dR, 0, 0);
+				PMTPosition += PMTShift;
+				// <<----                               <---------
+				
 				// G4VPhysicalVolume* physiWCBarrelPMT =
-				new G4PVPlacement(WCPMTRotation,     // its rotation
+				new G4PVPlacement(tmpWCPMTRotation,     // its rotation
 													PMTPosition,
 													fPMTBuilder.GetPMTLogicalVolume(config),        // its logical volume //
 													("WCPMT_"+config.GetPMTName()).c_str(),           // its name
@@ -1628,6 +1654,11 @@ void WCSimCherenkovBuilder::PlaceEndCapPMTs(G4int zflip){
 		// if they live outside the loop.;
 		std::vector<Double_t> pmtX = fGeoConfig->GetCellPMTX(region, iZone);
 		std::vector<Double_t> pmtY = fGeoConfig->GetCellPMTY(region, iZone);
+
+		std::vector<Double_t> pmtFaceTheta = fGeoConfig->GetCellPMTFaceTheta(region, iZone);
+		std::vector<Double_t> pmtFacePhi   = fGeoConfig->GetCellPMTFacePhi(  region, iZone);
+		std::vector<WCSimGeometryEnums::PMTDirection_t> pmtFaceType  = fGeoConfig->GetCellPMTFaceType(region, iZone);
+
 		std::vector<std::string> pmtNames = fGeoConfig->GetCellPMTName(region,iZone);
 		std::vector<Double_t> pmtRad;
 		for (unsigned int iPMT = 0; iPMT < pmtNames.size(); ++iPMT) {
@@ -1694,12 +1725,24 @@ void WCSimCherenkovBuilder::PlaceEndCapPMTs(G4int zflip){
 						//						std::cout << "Placing cap PMT at (" << cellpos.x() << ", " << cellpos.y() << std::endl;
 						//						std::cout << "Here, phi = " << cellpos.phi() << " and start = " << thetaStart << ", end = " << thetaEnd << std::endl;
 
+
+					        G4RotationMatrix * tmpWCCapPMTRotation =  new G4RotationMatrix(*WCCapPMTRotation); // tmpWCCapPMTRotation is needed to avoid satring rotation drifting
+
+						if(pmtFaceType.at(iPMT) == WCSimGeometryEnums::PMTDirection_t::kArbitrary) 
+						  *tmpWCCapPMTRotation *= GetArbitraryPMTFaceRotation( pmtFaceTheta.at(iPMT), pmtFacePhi.at(iPMT));
+						else  *tmpWCCapPMTRotation *= GetEndcapPMTFaceRotation( pmtFaceType.at(iPMT),  zflip);
+
+					        WCSimPMTConfig config = unitCell->GetPMTPlacement(iPMT).GetPMTConfig();
+						double radius = config.GetMaxRadius();
+						double dZ     = radius*fabs(sin(tmpWCCapPMTRotation->getTheta()));
+
+
 						G4TwoVector pmtCellPosition = unitCell->GetPMTPos(iPMT, cellSizeVec->at(iZone)); // PMT position in cell, relative to top left of cell
 						G4ThreeVector PMTPosition(topLeftCell.x() + pmtCellPosition.x(),
-								topLeftCell.y() - pmtCellPosition.y(), 0.0);
-						WCSimPMTConfig config = unitCell->GetPMTPlacement(iPMT).GetPMTConfig();
+								topLeftCell.y() - pmtCellPosition.y(), zflip*dZ);	
+
 						// G4VPhysicalVolume* physiCapPMT =
-						new G4PVPlacement(WCCapPMTRotation,     // its rotation
+						new G4PVPlacement(tmpWCCapPMTRotation,     // its rotation
 								PMTPosition, fPMTBuilder.GetPMTLogicalVolume(config),        // its logical volume
 								("WCPMT_"+config.GetPMTName()).c_str(),           // its name
 								capLogic,      // its mother volume
@@ -1808,7 +1851,8 @@ void WCSimCherenkovBuilder::SetPositions()
 	 - 2. * barrelCellHeight;
 
 	 //  innerAnnulusRadius = fGeoConfig->GetOuterRadius() - WCPMTExposeHeight-1.*mm;
-	 innerAnnulusRadius = fGeoConfig->GetOuterRadius() - fPMTConfigs[0].GetExposeHeight()
+	 //==>	 innerAnnulusRadius = fGeoConfig->GetOuterRadius() - fPMTConfigs[0].GetExposeHeight()
+	 innerAnnulusRadius = fGeoConfig->GetOuterRadius() - fPMTConfigs[0].GetMaxExposeHeight()
 	 - 1. * mm;
 	 outerAnnulusRadius = fGeoConfig->GetOuterRadius() + fBlacksheetThickness + 1. * mm;//+ Stealstructure etc.
 	 // the radii are measured to the center of the surfaces
@@ -1952,3 +1996,42 @@ void WCSimCherenkovBuilder::ConstructPMTs()
     std::cout << "SIZE OF CONFIGS VECTOR = " << fPMTConfigs.size() << std::endl;
 	fPMTBuilder.ConstructPMTs( fPMTConfigs );
 }
+
+G4RotationMatrix WCSimCherenkovBuilder::GetArbitraryPMTFaceRotation(double theta, double phi){
+
+  G4RotationMatrix rotation;    
+    rotation.setTheta(theta * deg);
+    rotation.setPhi(  phi   * deg);
+
+  return rotation;
+}
+
+
+G4RotationMatrix WCSimCherenkovBuilder::GetEndcapPMTFaceRotation(WCSimGeometryEnums::PMTDirection_t type, G4int zflip){
+
+  G4RotationMatrix rotation;
+  if     ( type == WCSimGeometryEnums::PMTDirection_t::kInwards );  
+  else if( type == WCSimGeometryEnums::PMTDirection_t::kAngledUpstream && zflip == 1) rotation.rotateY(( 45) * deg);   // 
+  else if( type == WCSimGeometryEnums::PMTDirection_t::kAngledUpstream && zflip ==-1) rotation.rotateY((-45) * deg);  //
+  else G4cerr << "PMT Rotation Option NOT Defined or Implemented"  << G4endl;
+
+  return rotation;
+}
+
+
+G4RotationMatrix WCSimCherenkovBuilder::GetBarrelPMTFaceRotation(WCSimGeometryEnums::PMTDirection_t type, G4int zone){
+
+  G4RotationMatrix rotation;
+  if     ( type == WCSimGeometryEnums::PMTDirection_t::kInwards );
+  else if( type == WCSimGeometryEnums::PMTDirection_t::kAngledUpstream){
+
+    G4RotationMatrix *segmentRotation = (fPrismWallPhysics.at(zone))->GetRotation();
+    if( fabs( segmentRotation->phiX()/deg ) < 90 )                     // Rotate PMTs for backward facing segments only
+      rotation.rotateZ(-0.55*segmentRotation->phiX());  
+    
+  }
+  else G4cerr << "PMT Rotation Option NOT Defined or Implemented"  << G4endl;
+
+  return rotation;
+}
+

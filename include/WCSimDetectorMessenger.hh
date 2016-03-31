@@ -4,6 +4,7 @@
 class WCSimDetectorConstruction;
 class G4UIdirectory;
 class G4UIcmdWithAString;
+class G4UIcmdWithABool;
 
 #include "G4UImessenger.hh"
 #include "globals.hh"
@@ -39,6 +40,13 @@ class WCSimDetectorMessenger: public G4UImessenger
 	// - "default" uses the standard one in WCSim
 	// - "CHIPS" uses the more complex method based on the IceCube PMTs.
   G4UIcmdWithAString* PMTSim;
+
+  // Andy: Add new parameter to decide whether we use the first or mean
+  // photon hit time for the time recorded by the PMT
+  G4UIcmdWithAString* PMTTime;
+
+  // Andy: Flag to give the PMT perfect timing resolution (i.e. turn off time smearing)
+  G4UIcmdWithABool* PMTPerfectTiming;
 
   G4UIcmdWithAString* tubeCmd;
   G4UIcmdWithAString* distortionCmd;

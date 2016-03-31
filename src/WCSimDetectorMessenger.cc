@@ -6,6 +6,7 @@
 #include "G4UIcommand.hh"
 #include "G4UIparameter.hh"
 #include "G4UIcmdWithAString.hh"
+#include "G4UIcmdWithABool.hh"
 
 WCSimDetectorMessenger::WCSimDetectorMessenger(WCSimDetectorConstruction* WCSimDet)
 :WCSimDetector(WCSimDet)
@@ -98,12 +99,29 @@ WCSimDetectorMessenger::WCSimDetectorMessenger(WCSimDetectorConstruction* WCSimD
 			    "off ");
   PMTCollEff->AvailableForStates(G4State_PreInit, G4State_Idle);
 
-	PMTSim = new G4UIcmdWithAString("/WCSim/PMTSim", this);
-	PMTSim->SetGuidance("Set the PMT Simulation required");
-	PMTSim->SetGuidance("Available options are:\n default (SuperK) \n CHIPS (based on IceCube PMTs)");
-	PMTSim->SetParameterName("PMTSim",false);
-	PMTSim->SetCandidates("default CHIPS chips");
+  PMTSim = new G4UIcmdWithAString("/WCSim/PMTSim", this);
+  PMTSim->SetGuidance("Set the PMT Simulation required");
+  PMTSim->SetGuidance("Available options are:\n default (SuperK) \n CHIPS (based on IceCube PMTs)");
+  PMTSim->SetParameterName("PMTSim",false);
+  PMTSim->SetCandidates("default CHIPS chips");
   PMTSim->AvailableForStates(G4State_PreInit, G4State_Idle);
+
+  PMTTime = new G4UIcmdWithAString("/WCSim/PMTTime", this);
+  PMTTime->SetGuidance("Set the time recorded by the PMT");
+  PMTTime->SetGuidance("Available options are:\
+          \n first (use the time at which the first photon hits - default)\
+          \n mean (use the mean of all the photon hit times - debugging option)");
+  PMTTime->SetParameterName("PMTTime", true); // Omittable, default to first
+  PMTTime->SetDefaultValue("first ");
+  PMTTime->SetCandidates("first mean");
+  PMTTime->AvailableForStates(G4State_PreInit, G4State_Idle);
+  
+  PMTPerfectTiming = new G4UIcmdWithABool("/WCSim/PMTPerfectTiming", this);
+  PMTPerfectTiming->SetGuidance("Bool to toggle perfect time resolution in the PMT\n"
+                                " - The default value is false.\n");
+  PMTPerfectTiming->SetParameterName("PMTPerfectTiming", true); // Omittable, default to false
+  PMTPerfectTiming->SetDefaultValue(false);
+
 
   WCConstruct = new G4UIcmdWithoutParameter("/WCSim/Construct", this);
   WCConstruct->SetGuidance("Update detector construction with new settings.");
@@ -115,7 +133,9 @@ WCSimDetectorMessenger::~WCSimDetectorMessenger()
   delete SavePi0;
   delete PMTQEMethod;
   delete PMTCollEff;
-	delete PMTSim;
+  delete PMTSim;
+  delete PMTTime;
+  delete PMTPerfectTiming;
   delete tubeCmd;
   delete distortionCmd;
   delete WCSimDir;
@@ -250,6 +270,24 @@ void WCSimDetectorMessenger::SetNewValue(G4UIcommand* command,G4String newValue)
 			G4cout << "That PMT Sim value does not exist." << std::endl;
 		}
 	}
+	// Andy: PMT timing choice
+	if(command == PMTTime){
+		// WCSim default method
+		if (newValue == "first"){
+			WCSimDetector->SetPMTTime(0);
+		}
+		else if (newValue == "mean"){
+			WCSimDetector->SetPMTTime(1);
+		}
+		else{
+			G4cout << "That PMT time value does not exist." << std::endl;
+		}
+	}
+    if(command == PMTPerfectTiming){
+      bool val = false;
+      if(newValue == "true"){val = true;}
+      WCSimDetector->SetPMTPerfectTiming(val);
+    }
 
 
 }

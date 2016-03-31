@@ -10,12 +10,22 @@
 
 ## Select the input nuance-formatted vector file
 ## you can of course use your own
-#/mygen/vecfile ../genieFluxes/nue.vec
+/mygen/vecfile /unix/fnu/lwhitehead/genieFlux/newGen/nue_cc_flux/chips_nue_cc_10.vec
 
+# Toggles for swapping X and Z, and randomising vertices
+/mygen/useXAxisForBeam true
+/mygen/enableRandomVtx true
+/mygen/fiducialDist 1.0
 
-# Or you can use the G4 General Particle Source
-# (choose 'gps' to use the particle source instead of gun)
-/mygen/generator gps
+# Select the generator
+# gps for general particle gun
+# muline for vector files
+# overlay for cosmic overlays
+/mygen/generator muline
+
+# If you want to overlay cosmic events, define the file here.
+# Remember to set /mygen/generator overlay
+/mygen/overlayfile /unix/fnu/lwhitehead/chips10_5000_50m_overburden.vec
 
 #/gps/particle e-
 /gps/particle mu-
@@ -59,5 +69,5 @@
 /random/setSeeds 100 10
 
 # Number of events to generate
-/run/beamOn 1
+/run/beamOn 10
 #exit

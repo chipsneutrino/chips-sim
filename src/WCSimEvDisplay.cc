@@ -62,6 +62,8 @@ WCSimEvDisplay::WCSimEvDisplay(const TGWindow *p,UInt_t w,UInt_t h) : TGMainFram
   fWhichPads = 0; // Default is reco
   fTruthTextMain = new TPaveText(0.05,0.45,0.95,0.90,"NDC");
   fTruthTextPrimaries = new TPaveText(0.05,0.1,0.95,0.40,"NDC");
+  // The above TPaveText objects will be resized should we need to show this.
+  fTruthTextOverlay = new TPaveText(0.05,0.05,0.95,0.15,"NDC");
   fDatabasePDG = 0x0;
 
   // Initialise the TGNumberEntry
@@ -361,11 +363,15 @@ void WCSimEvDisplay::CalculateChargeAndTimeBins(){
   // Firstly, clear the existing vectors
   fChargeBins.clear();
   fTimeBins.clear();
-  
-  double deltaQ = (fQMax - fQMin) / static_cast<Double_t>(fColours.size());
+ 
+  // In order to prevent massive hits causing a problem, have a dummy max of 200pe.
+  double dummyMax = 200.;
+  if(fQMax < dummyMax) dummyMax = fQMax;
+ 
+  double deltaQ = (dummyMax - fQMin) / static_cast<Double_t>(fColours.size());
   double deltaT = (fTMax - fTMin) / static_cast<Double_t>(fColours.size());
 
-  for(int i = 0; i < fColours.size(); ++i){
+  for(size_t i = 0; i < fColours.size(); ++i){
     fChargeBins.push_back(fQMin+i*deltaQ);
     fTimeBins.push_back(fTMin+i*deltaT);
   }
@@ -406,7 +412,7 @@ void WCSimEvDisplay::MakeGraphColours(){
 
   // Make a palette
   fColours.clear();
-  for(size_t i = 0; i < nContours; ++i)
+  for(int i = 0; i < nContours; ++i)
   {
     fColours.push_back(startColour+i);
   }
@@ -535,6 +541,7 @@ void WCSimEvDisplay::SetPlotZAxes(){
 
   double min = fQMin;
   double max = fQMax;
+  if(max > 200) max = 200;
 
   if(fViewType == 1){
     min = fTMin;
@@ -678,9 +685,17 @@ void WCSimEvDisplay::UpdateRecoPads(){
 // Draw the truth information to the truth pad
 void WCSimEvDisplay::UpdateTruthPad(){
   fTruthPad->cd();
-  fTruthTextMain->Draw();
-  fTruthTextPrimaries->Draw();
-  
+  if(fTruthSummary->IsOverlayEvent()){
+    this->ResizeTruthPaveTexts(fTruthSummary->IsOverlayEvent());
+    fTruthTextMain->Draw();
+    fTruthTextPrimaries->Draw();
+    // Only display overlay information if we have it
+    fTruthTextOverlay->Draw();
+  }
+  else{
+    fTruthTextMain->Draw();
+    fTruthTextPrimaries->Draw();
+  }
   fHitMapCanvas->GetCanvas()->cd();
 }
 
@@ -974,6 +989,19 @@ void WCSimEvDisplay::ShowTruth(){
         std::cout << " - Vertex   : (" << vtx.X() << "," << vtx.Y() << "," << vtx.Z() << ")" << std::endl;
         std::cout << " - Direction: (" << dir.X() << "," << dir.Y() << "," << dir.Z() << ")" << std::endl;
       }
+      // For now, just print information from the overlay
+      if(fTruthSummary->IsOverlayEvent()){
+        std::cout << "== Overlaid Event Information ==" << std::endl;
+        TVector3 overVtx = fTruthSummary->GetOverlayVertex();
+        std::cout << " - Vertex      : (" << overVtx.X() << "," << overVtx.Y() << "," << overVtx.Z() << ") mm" << std::endl;
+        std::cout << " - Vertex time : " << fTruthSummary->GetOverlayVertexT() << " ns" << std::endl;
+        for(unsigned int o = 0; o < fTruthSummary->GetNOverlays(); ++o){
+          std::cout << " - Particle  :" << this->GetParticleName(fTruthSummary->GetOverlayPDG(o));
+          std::cout << " with energy " << fTruthSummary->GetOverlayEnergy(o);
+          TVector3 overDir = fTruthSummary->GetOverlayDir(o);
+          std::cout << " MeV and direction (" << overDir.X() << "," << overDir.Y() << "," << overDir.Z() << ")" << std::endl;
+        } 
+      }
       this->ResizePads();
     }
     else{
@@ -1005,6 +1033,22 @@ void WCSimEvDisplay::ShowTruthOverlay(){
   }
 }
 
+void WCSimEvDisplay::ResizeTruthPaveTexts(bool isOverlay){
+
+  // The overlay text pave doesn't need resizing. Only the
+  // y-coordinates of the Main and Primaries ones.
+  if(isOverlay){
+    fTruthTextMain->SetY1NDC(0.50);
+    fTruthTextPrimaries->SetY1NDC(0.20);
+    fTruthTextPrimaries->SetY2NDC(0.45);
+  }
+  else{
+    fTruthTextMain->SetY1NDC(0.45);
+    fTruthTextPrimaries->SetY1NDC(0.10);
+    fTruthTextPrimaries->SetY2NDC(0.40);
+  }
+}
+
 void WCSimEvDisplay::UpdateTruthPave(){
   fTruthTextMain->Clear();
   fTruthTextMain->SetFillColor(kWhite);
@@ -1013,6 +1057,10 @@ void WCSimEvDisplay::UpdateTruthPave(){
   fTruthTextPrimaries->Clear();
   fTruthTextPrimaries->SetFillColor(kWhite);
   fTruthTextPrimaries->SetBorderSize(0);
+
+  fTruthTextOverlay->Clear();
+  fTruthTextOverlay->SetFillColor(kWhite);
+  fTruthTextOverlay->SetBorderSize(0);
 
   // Clear truth ring vectors
   this->ClearTruthMarkerVectors();
@@ -1142,6 +1190,39 @@ void WCSimEvDisplay::UpdateTruthPave(){
     if(this->IsAboveCherenkovThreshold(pdg,energy)){
       this->DrawTruthRing(9999,this->GetTruthRingColour(1)); // Dummy value to flag it isn't a primary particle
     }
+  }
+
+  // Special case for overlay events.
+  if(fTruthSummary->IsOverlayEvent()){
+    std::stringstream ovStr;
+    fTruthTextOverlay->AddText("Overlaid Event Information");
+    TVector3 overVtx = fTruthSummary->GetOverlayVertex();
+    ovStr << overVtx.X() << "," << overVtx.Y() << "," << overVtx.Z();
+    fTruthTextOverlay->AddText(("Vertex at ("+ovStr.str()+") mm").c_str());
+    ovStr.str("");
+    ovStr << fTruthSummary->GetOverlayVertexT();
+    fTruthTextOverlay->AddText(("Vertex time = " +ovStr.str()+ " ns").c_str());
+    for(unsigned int ov = 0; ov < fTruthSummary->GetNOverlays(); ++ov){
+      int pdg = fTruthSummary->GetOverlayPDG(ov);
+      double energy = fTruthSummary->GetOverlayEnergy(ov);
+      // Lets try to draw these truth rings too.
+      std::string mod = "";
+      if(this->IsAboveCherenkovThreshold(pdg,energy)){
+        mod = "***";
+        // Add a true ring to the display
+        ++nTruthRings; 
+        int ringColour = this->GetTruthRingColour(nTruthRings);
+        this->DrawTruthRing(ov + fTruthSummary->GetNPrimaries(),ringColour);
+      }
+      ovStr.str("");
+      TVector3 overDir = fTruthSummary->GetOverlayDir(ov);
+      ovStr << mod << " ";
+      ovStr << this->GetParticleName(fTruthSummary->GetOverlayPDG(ov));
+      ovStr << " with energy " << fTruthSummary->GetOverlayEnergy(ov);
+      ovStr << " MeV and direction (" << overDir.X() << "," << overDir.Y() << "," << overDir.Z() << ")";
+      ovStr << " " << mod;
+      fTruthTextOverlay->AddText(ovStr.str().c_str());
+    } 
   }
 }
 
@@ -1288,38 +1369,13 @@ void WCSimEvDisplay::ResizePlotsFromGeometry(){
 	fPMTTop = 0;
 	fPMTBarrel = 0;
 	fPMTBottom = 0;
-	// Also use this loop to find unique positions to count:
-	// Number of PMTs in barrel height, number round the barrel
-	// Number across the top and bottom.
-	std::vector<double> xPos;
-	std::vector<double> yPos;
-	std::vector<double> zPos;
-	std::vector<double> phiPos;
 	for(int p = 0; p < geo->GetWCNumPMT(); ++p){
 		WCSimRootPMT pmt = geo->GetPMT(p);
 		if(pmt.GetCylLoc() == 0){
-			++fPMTTop;
-			if(std::find(xPos.begin(),xPos.end(),pmt.GetPosition(0)) == xPos.end()){
-				xPos.push_back(pmt.GetPosition(0));
-			}
-			if(std::find(yPos.begin(),yPos.end(),pmt.GetPosition(1)) == yPos.end()){
-				yPos.push_back(pmt.GetPosition(1));
-			}
+      ++fPMTTop;
 		}
 		else if(pmt.GetCylLoc() == 1){
 			++fPMTBarrel;
-			double tempZ = pmt.GetPosition(2);
-			if(fabs(tempZ) < 1e-10){ 
-				tempZ = 0.0;
-			}
-			if(std::find(zPos.begin(),zPos.end(),tempZ) == zPos.end()){
-				zPos.push_back(tempZ);
-			}
-			double tempPhi = TMath::ATan2(pmt.GetPosition(1),pmt.GetPosition(0));
-			if(std::find(phiPos.begin(),phiPos.end(),tempPhi) == phiPos.end()){
-				phiPos.push_back(tempPhi);
-//				std::cout << "UNIQUE PHIPOS: " << tempPhi << std::endl;
-			}
 		}
 		else{
 			++fPMTBottom;
@@ -1330,19 +1386,16 @@ void WCSimEvDisplay::ResizePlotsFromGeometry(){
 	std::cout << "\t- Top    : " << fPMTTop << std::endl;
 	std::cout << "\t- Bottom : " << fPMTBottom << std::endl;
 
-	std::cout << xPos.size() << ", " << yPos.size() << ", " << zPos.size() << ", " << phiPos.size() << std::endl;
-
 	// How many bins do we need?
 	// For x and y, round up sqrt of number of Top PMTs
-	int nBinsX = (int)xPos.size();
-	int nBinsY = (int)yPos.size();
-	int nBinsZ = (int)zPos.size(); 
-	int nBinsPhi = (int)phiPos.size();
+  int nBinsX = 1;
+  int nBinsY = 1;
+  int nBinsZ = 1;
+  int nBinsPhi = 1;
 
   // Now with phi, sort the vector then make a variably binned array from it
-
-	double phiMin = TMath::Pi()* -1 + (TMath::Pi()/(double)phiPos.size());
-	double phiMax = TMath::Pi() + (TMath::Pi()/(double)phiPos.size());
+	double phiMin = TMath::Pi()* (-1);
+	double phiMax = TMath::Pi();
 
 	double xMin = -geo->GetWCCylRadius();
 	double xMax = geo->GetWCCylRadius();
@@ -1374,7 +1427,7 @@ void WCSimEvDisplay::ResizePlotsFromGeometry(){
 	if(fTimeHist){
 		delete fTimeHist;
 	}
-	fTimeHist = new TH1D("timeHist","Time;Time / ns",100,800,1200);	
+	fTimeHist = new TH1D("timeHist","Time;Time / ns",100,0,10000);	
 	fTimeHist->SetDirectory(0);
 	// Clean up.
 	delete geo;
@@ -1394,16 +1447,42 @@ void WCSimEvDisplay::DrawTruthRing(unsigned int particleNo, int colour){
   // Does the truth information exist
   if(fTruthSummary==0x0) return; 
 
+  
   // Get the track vertex and direction
   TVector3 trkVtx = fTruthSummary->GetVertex();
   trkVtx = trkVtx * 0.1; // Convert to cm
   TVector3 trkDir;
-  if(particleNo==9999){
-    trkDir = fTruthSummary->GetBeamDir();
+  // Get the pdg code and energy
+  int pdgCode;
+  double en;
+
+  // If this is an overlay event need to:
+  // - Check if this particle is a primary or overlay
+  // - Set the vertex info, pdg code and energy from the overlay, not main event.
+  bool isOverlayParticle = (fTruthSummary->IsOverlayEvent() && particleNo > (fTruthSummary->GetNPrimaries() - 1));
+  if(isOverlayParticle){
+    trkVtx = fTruthSummary->GetOverlayVertex();
+    trkVtx = trkVtx * 0.1; // Convert to cm
+    particleNo = particleNo - fTruthSummary->GetNPrimaries();
+    trkDir = fTruthSummary->GetOverlayDir(particleNo);
+    pdgCode = fTruthSummary->GetOverlayPDG(particleNo);
+    en = fTruthSummary->GetOverlayEnergy(particleNo);
   }
   else{
-    trkDir = fTruthSummary->GetPrimaryDir(particleNo);
+    // Normal particle gun
+    if(particleNo==9999){
+      trkDir = fTruthSummary->GetBeamDir();
+      pdgCode = fTruthSummary->GetBeamPDG();
+      en = fTruthSummary->GetBeamEnergy();
+    }
+    // Normal primary particle
+    else{
+      trkDir = fTruthSummary->GetPrimaryDir(particleNo);
+      pdgCode = fTruthSummary->GetPrimaryPDG(particleNo);
+      en = fTruthSummary->GetPrimaryEnergy(particleNo);
+    }
   }
+
   // Get the projection of the track vertex onto the wall
   TVector3 trkVtxProj; // Point where the track would hit the wall, filled by ProjectToWall
   unsigned int detRegion; // Region of the detector, filled by ProjectToWall 
@@ -1417,16 +1496,6 @@ void WCSimEvDisplay::DrawTruthRing(unsigned int particleNo, int colour){
   // Get the particle mass
   if(fDatabasePDG == 0x0){
     fDatabasePDG = new TDatabasePDG();
-  }
-  int pdgCode;
-  double en;
-  if(particleNo==9999){
-    pdgCode = fTruthSummary->GetBeamPDG();
-    en = fTruthSummary->GetBeamEnergy();
-  }
-  else{
-    pdgCode = fTruthSummary->GetPrimaryPDG(particleNo);
-    en = fTruthSummary->GetPrimaryEnergy(particleNo);
   }
   double mass = 1000*fDatabasePDG->GetParticle(pdgCode)->Mass();
   double beta = sqrt(en*en - mass*mass) / en; // beta = p / E
@@ -1517,6 +1586,7 @@ void WCSimEvDisplay::DrawTruthRing(unsigned int particleNo, int colour){
   std::stringstream legendText;
   std::stringstream legendText2;
   if(pdgCode != 111){
+    if(isOverlayParticle) legendText << "Overlay ";
     legendText << this->GetParticleName(pdgCode) << " with total energy = " << en << " MeV";
   }
   else{
@@ -1698,6 +1768,7 @@ void WCSimEvDisplay::FindCircle(TVector3 proj, TVector3 vtx, double thetaC, doub
 
   return;
 }
+
 
 // Create the TPolyMarker from two vectors reprsenting the "x" and "y" coordinates
 void WCSimEvDisplay::MakePolyMarker(std::vector<double> coord1, std::vector<double> coord2, std::vector<TPolyMarker*>& poly, int colour){
