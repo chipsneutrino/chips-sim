@@ -30,6 +30,7 @@
 #include <TClonesArray.h>
 #include <TGraph.h>
 #include <TColor.h>
+#include <TPaletteAxis.h>
 //#include <TRootEmbeddedCanvas.h>
 //#include <RQ_OBJECT.h>
 #include "WCSimEvDisplay.hh"
@@ -71,6 +72,8 @@ WCSimEvDisplay::WCSimEvDisplay(const TGWindow *p,UInt_t w,UInt_t h) : TGMainFram
   fPEInput = 0x0;
   fChargeCut = 0;
 
+  fLogZCharge = false;
+
   // Create the TGraph vectors with default TGraphs
   this->MakeGraphColours();
   for(unsigned int g = 0; g < fColours.size(); ++g){
@@ -98,10 +101,15 @@ WCSimEvDisplay::WCSimEvDisplay(const TGWindow *p,UInt_t w,UInt_t h) : TGMainFram
 	TCanvas *can = fHitMapCanvas->GetCanvas();
 	can->cd();
 	fBarrelPad = new TPad("fBarrelPad","",0.0,0.6,1.0,1.0);
-	fTopPad = new TPad("fTopPad","",0.0,0.2,0.5,0.6);
-	fBottomPad = new TPad("fBottomPad","",0.5,0.2,1.0,0.6);
+	fTopPad = new TPad("fTopPad","",0.0,0.2,0.487,0.6);
+	fBottomPad = new TPad("fBottomPad","",0.487,0.2,1.0,0.6);
 	fChargePad = new TPad("fChargePad","",0.0,0.0,0.5,0.2);
 	fTimePad = new TPad("fTimePad","",0.5,0.0,1.0,0.2);
+  fBarrelPad->SetLeftMargin(0.05);
+  fBarrelPad->SetRightMargin(0.075);
+  fTopPad->SetRightMargin(0.0);
+  fBottomPad->SetLeftMargin(0.0);
+  fBottomPad->SetRightMargin(0.147);
 	fBarrelPad->Draw();
 	fTopPad->Draw();
 	fBottomPad->Draw();
@@ -135,6 +143,7 @@ WCSimEvDisplay::WCSimEvDisplay(const TGWindow *p,UInt_t w,UInt_t h) : TGMainFram
 	fFileType = -1;
 	this->HideFrame(hWCSimButtons);
 	fViewType = 0; // Look at charge by default
+  fViewVeto = 0; // Don't look at veto by default
 
 	// By default show the 1D plots
 	fShow1DHists = 1;
@@ -174,6 +183,10 @@ void WCSimEvDisplay::CreateMainButtonBar(){
 void WCSimEvDisplay::CreateSubButtonBar(){
 	// Create a horizontal frame to store buttons specific to WCSim files
 	hWCSimButtons = new TGHorizontalFrame(this,200,40);
+  // Switch between veto and inner detector PMTs
+  TGTextButton *togVeto = new TGTextButton(hWCSimButtons,"&Veto");
+  togVeto->Connect("Clicked()","WCSimEvDisplay",this,"ShowVeto()");
+	hWCSimButtons->AddFrame(togVeto, new TGLayoutHints(kLHintsCenterX,5,5,3,4));
   // Show Charge on z axis
 	TGTextButton *togCharge = new TGTextButton(hWCSimButtons,"&Charge");
 	togCharge->Connect("Clicked()","WCSimEvDisplay",this,"SetViewCharge()");
@@ -209,6 +222,10 @@ void WCSimEvDisplay::CreateSubButtonBar(){
   TGLabel *peLabel = new TGLabel(hWCSimButtons,"Charge Cut:");
 	hWCSimButtons->AddFrame(peLabel, new TGLayoutHints(kLHintsCenterX&&kLHintsCenterY,5,5,3,4));
 	hWCSimButtons->AddFrame(fPEInput, new TGLayoutHints(kLHintsCenterX,5,5,3,4));
+
+  TGTextButton *logZToggle = new TGTextButton(hWCSimButtons,"&Log Charge");
+  logZToggle->Connect("Clicked()","WCSimEvDisplay",this,"ToggleLogZ()");
+  hWCSimButtons->AddFrame(logZToggle, new TGLayoutHints(kLHintsCenterX,5,5,3,4));
 
   // Add the TGHorizontalFrame to the main layout
 	this->AddFrame(hWCSimButtons,new TGLayoutHints(kLHintsCenterX,2,2,2,2));
@@ -272,6 +289,12 @@ void WCSimEvDisplay::FillPlotsFromWCSimEvent(){
   for(int i = 0; i < nDigiHits; ++i){
 		TObject *element = (wcSimTrigger->GetCherenkovDigiHits())->At(i);
 		WCSimRootCherenkovDigiHit *hit = dynamic_cast<WCSimRootCherenkovDigiHit*>(element);
+    if(fViewVeto){
+      if(geo->GetPMTFromTubeID(hit->GetTubeId()).GetCylLoc() != 3) continue;
+    }
+    else{
+      if(geo->GetPMTFromTubeID(hit->GetTubeId()).GetCylLoc() == 3) continue;      
+    }
     double q = hit->GetQ();
     double t = hit->GetT();
     if(q < fQMin) fQMin = q;
@@ -293,15 +316,31 @@ void WCSimEvDisplay::FillPlotsFromWCSimEvent(){
 		WCSimRootCherenkovDigiHit *wcSimDigiHit = dynamic_cast<WCSimRootCherenkovDigiHit*>(element);
 
 		WCSimRootPMT pmt = geo->GetPMTFromTubeID(wcSimDigiHit->GetTubeId());
-		double pmtX = pmt.GetPosition(0);
-		double pmtY = pmt.GetPosition(1);
-		double pmtZ = pmt.GetPosition(2);
+    if(fViewVeto){
+      if(geo->GetPMTFromTubeID(wcSimDigiHit->GetTubeId()).GetCylLoc() != 3) continue;
+    }
+    else{
+      if(geo->GetPMTFromTubeID(wcSimDigiHit->GetTubeId()).GetCylLoc() == 3) continue;      
+    }
+
+		double pmtX = pmt.GetPosition(0) * 0.01; // convert to m
+		double pmtY = pmt.GetPosition(1) * 0.01; // convert to m
+		double pmtZ = pmt.GetPosition(2) * 0.01; // convert to m
 		double pmtPhi = TMath::ATan2(pmtY,pmtX);
 		double pmtQ = wcSimDigiHit->GetQ();
 		double pmtT = wcSimDigiHit->GetT();
 		// Set the z-axis to be charge or time.
 		double colourAxis = pmtQ;
-		if(fViewType == 1) colourAxis = pmtT;
+
+    fBarrelHist->GetZaxis()->SetTitle("Charge (p.e.)");
+    fTopHist->GetZaxis()->SetTitle("Charge (p.e.)");
+    fBottomHist->GetZaxis()->SetTitle("Charge (p.e.)");
+    if(fViewType == 1){
+      colourAxis = pmtT;
+      fBarrelHist->GetZaxis()->SetTitle("Time (ns)");
+      fTopHist->GetZaxis()->SetTitle("Time (ns)");
+      fBottomHist->GetZaxis()->SetTitle("Time (ns)");
+    }
 
     // Make sure we pass the charge cut
     if(pmtQ > fChargeCut){
@@ -323,13 +362,25 @@ void WCSimEvDisplay::FillPlotsFromWCSimEvent(){
   		else if(pmt.GetCylLoc() == 2){
 //  			fBottomHist->Fill(pmtY,pmtX,colourAxis);
           fBottomGraphs[bin]->SetPoint(fBottomGraphs[bin]->GetN(),pmtY,pmtX);
-      
   		}
   		// Barrel
-  		else{
+  		else if(pmt.GetCylLoc() == 1){
 //  			fBarrelHist->Fill(pmtPhi,pmtZ,colourAxis);
           fBarrelGraphs[bin]->SetPoint(fBarrelGraphs[bin]->GetN(),pmtPhi,pmtZ);
   		}
+      // Otherwise these are veto PMTs. Don't display, but say stuff for now.
+      else{
+//        std::cout << "Veto PMT hit: " <<  pmtX << ", " << pmtY << ", " << pmtZ << " :: " << pmtPhi << ", " << pmtQ << ", " << pmtT << std::endl;
+        if(pmt.GetOrientation(2) > 0.99){
+          fTopGraphs[bin]->SetPoint(fTopGraphs[bin]->GetN(),pmtY,pmtX);
+        }
+        else if(pmt.GetOrientation(2) < -0.99){
+          fBottomGraphs[bin]->SetPoint(fBottomGraphs[bin]->GetN(),pmtY,pmtX);
+        }
+        else{
+          fBarrelGraphs[bin]->SetPoint(fBarrelGraphs[bin]->GetN(),pmtPhi,pmtZ);
+        }
+      }
 
 		  // Now fill the 1D histograms
 		  fChargeHist->Fill(pmtQ);	 
@@ -364,15 +415,26 @@ void WCSimEvDisplay::CalculateChargeAndTimeBins(){
   fChargeBins.clear();
   fTimeBins.clear();
  
-  // In order to prevent massive hits causing a problem, have a dummy max of 200pe.
-  double dummyMax = 200.;
+  // In order to prevent massive hits causing a problem, have a dummy max of 100pe.
+  double dummyMax = 100.;
   if(fQMax < dummyMax) dummyMax = fQMax;
  
-  double deltaQ = (dummyMax - fQMin) / static_cast<Double_t>(fColours.size());
+  double deltaQ = 0;
+  if(!fLogZCharge){
+    deltaQ = (dummyMax - fQMin) / static_cast<Double_t>(fColours.size());
+  }
+  else{
+    deltaQ = TMath::Log10(dummyMax - fQMin) / static_cast<Double_t>(fColours.size());
+  }
   double deltaT = (fTMax - fTMin) / static_cast<Double_t>(fColours.size());
 
   for(size_t i = 0; i < fColours.size(); ++i){
-    fChargeBins.push_back(fQMin+i*deltaQ);
+    if(!fLogZCharge){
+      fChargeBins.push_back(fQMin+i*deltaQ);
+    }
+    else{
+      fChargeBins.push_back(fQMin+pow(10,i*deltaQ));
+    }
     fTimeBins.push_back(fTMin+i*deltaT);
   }
 }
@@ -402,12 +464,12 @@ unsigned int WCSimEvDisplay::GetTimeBin(double time) const{
 void WCSimEvDisplay::MakeGraphColours(){
 
   // Black Body palette
-  const Int_t nRGBs = 5;
+  const Int_t nRGBs = 9;
   const Int_t nContours = 100;
-  Double_t stops[nRGBs] = { 0.00, 0.25, 0.50, 0.75, 0.95};
-  Double_t red[nRGBs]   = { 0.00, 0.50, 1.00, 1.0, 1.0};
-  Double_t green[nRGBs] = { 0.00, 0.00, 0.44, 0.80, 0.96};
-  Double_t blue[nRGBs]  = { 0.00, 0.00, 0.00, 0.00, 0.8};
+    Double_t stops[nRGBs] = {0.0000, 0.1250, 0.2500, 0.3750, 0.5000, 0.6250, 0.7500, 0.8750, 1.0000};
+    Double_t red[nRGBs] = { 33./255., 31./255., 42./255., 68./255., 86./255., 111./255., 141./255., 172./255., 227./255.};
+    Double_t green[nRGBs] = { 255./255., 175./255., 145./255., 106./255., 88./255., 55./255., 15./255., 0./255., 0./255.};
+    Double_t blue[nRGBs] = { 255./255., 205./255., 202./255., 203./255., 208./255., 205./255., 203./255., 206./255., 231./255.};
   Int_t startColour = TColor::CreateGradientColorTable(nRGBs, stops, red, green, blue, nContours);
 
   // Make a palette
@@ -452,6 +514,20 @@ void WCSimEvDisplay::DrawHitGraphs(std::vector<TGraph*> vec){
   }
 }
 
+// Switch to the veto view
+void WCSimEvDisplay::ShowVeto(){
+  if(fViewVeto == 0){
+    fViewVeto = 1;
+    this->FillPlots();
+    std::cout << "Setting plots to display veto hits" << std::endl;
+  }
+  else if(fViewVeto == 1){
+    fViewVeto = 0;
+    this->FillPlots();
+    std::cout << "Setting plots to display inner detector hits" << std::endl;
+  }
+}
+
 // Switch the z-axis scale to show charge.
 void WCSimEvDisplay::SetViewCharge(){
 	if(fViewType != 0){
@@ -486,6 +562,15 @@ void WCSimEvDisplay::SetChargeCut(){
 
 }
 
+// Change the z-axis to a log scale for the charge.
+void WCSimEvDisplay::ToggleLogZ(){
+
+  // Switch the toggle.
+  fLogZCharge = !(fLogZCharge);
+  // Remake the plots.
+  this->FillPlots();
+}
+
 // Show or hide the 1D plots.
 void WCSimEvDisplay::Toggle1DHists(){
 	// Are the plots currently visible?
@@ -512,8 +597,37 @@ void WCSimEvDisplay::ClearPlots(){
 }
 
 void WCSimEvDisplay::MakePlotsPretty(TH1* h){
+  h->GetXaxis()->CenterTitle();
+  h->GetYaxis()->CenterTitle();
+  h->GetZaxis()->CenterTitle();
+  h->GetXaxis()->SetTitleSize(0.05);
+  h->GetYaxis()->SetTitleSize(0.05);
+  h->GetZaxis()->SetTitleSize(0.05);
+  h->GetXaxis()->SetLabelSize(0.05);
+  h->GetYaxis()->SetLabelSize(0.05);
+  h->GetZaxis()->SetLabelSize(0.05);
 	h->GetXaxis()->SetNdivisions(507);
 	h->GetYaxis()->SetNdivisions(507);
+}
+
+void WCSimEvDisplay::AdjustBarrelZAxis(){
+
+  TPaletteAxis* zAxis = 0x0;
+  zAxis = (TPaletteAxis*)(fBarrelHist->GetListOfFunctions()->FindObject("palette"));
+  if(zAxis != 0x0){
+    zAxis->SetX1NDC(0.927);
+    zAxis->SetX2NDC(0.950);
+    zAxis->SetTitleOffset(0.52);
+    zAxis->GetAxis()->SetTickSize(0.015);
+  }
+
+  // Also adjust the bottom plot label
+  zAxis = 0x0;
+  zAxis = (TPaletteAxis*)(fBottomHist->GetListOfFunctions()->FindObject("palette"));
+  if(zAxis != 0x0){
+    zAxis->GetAxis()->SetTitleOffset(1.03);
+    zAxis->GetAxis()->SetLabelOffset(0.012);
+  }
 }
 
 // Function mostly to account for the offset in the time origin. In
@@ -541,7 +655,7 @@ void WCSimEvDisplay::SetPlotZAxes(){
 
   double min = fQMin;
   double max = fQMax;
-  if(max > 200) max = 200;
+  if(max > 100) max = 100;
 
   if(fViewType == 1){
     min = fTMin;
@@ -582,24 +696,24 @@ void WCSimEvDisplay::ResizePads(){
   	// Resize the reco pads
   	if(fShow1DHists){
   		fBarrelPad->SetPad(0.0,0.6,1.0,1.0);
-  		fTopPad->SetPad(0.0,0.2,0.5,0.6);
-  		fBottomPad->SetPad(0.5,0.2,1.0,0.6);
+  		fTopPad->SetPad(0.0,0.2,0.487,0.6);
+  		fBottomPad->SetPad(0.487,0.2,1.0,0.6);
   		fChargePad->SetPad(0.0,0.0,0.5,0.2);
   		fTimePad->SetPad(0.5,0.0,1.0,0.2);
   	}
   	else{
   		// Resize the reco pads
       fBarrelPad->SetPad(0.0,0.5,1.0,1.0);
-      fTopPad->SetPad(0.0,0.0,0.5,0.5);
-      fBottomPad->SetPad(0.5,0.0,1.0,0.5);
+      fTopPad->SetPad(0.0,0.0,0.487,0.5);
+      fBottomPad->SetPad(0.487,0.0,1.0,0.5);
   	}
   }
   // Else show the truth overlays
   else{
     // Make sure to leave space for the truth overlay pad at the bottom
     fBarrelPad->SetPad(0.0,0.6,1.0,1.0);
-  	fTopPad->SetPad(0.0,0.2,0.5,0.6);
-  	fBottomPad->SetPad(0.5,0.2,1.0,0.6);
+  	fTopPad->SetPad(0.0,0.2,0.487,0.6);
+  	fBottomPad->SetPad(0.487,0.2,1.0,0.6);
     fTruthOverlayPad->SetPad(0.0,0.0,1.0,0.2); 
   }
 
@@ -613,6 +727,10 @@ void WCSimEvDisplay::UpdateCanvases(){
 
   // Remove the truth overlays
   this->HideTruthOverlays();
+
+  fBarrelPad->SetLogz(fLogZCharge);
+  fTopPad->SetLogz(fLogZCharge);
+  fBottomPad->SetLogz(fLogZCharge);
   
   if(fWhichPads == 0){
     // Now draw the pads
@@ -658,7 +776,8 @@ void WCSimEvDisplay::UpdateRecoPads(){
   fBarrelPad->Update();
 
   fTopPad->cd();
-  fTopHist->Draw("colz");
+//  fTopHist->Draw("colz");
+  fTopHist->Draw();
   this->DrawHitGraphs(fTopGraphs);
   fTopPad->Modified();
   fTopPad->Update();
@@ -668,6 +787,8 @@ void WCSimEvDisplay::UpdateRecoPads(){
   this->DrawHitGraphs(fBottomGraphs);
   fBottomPad->Modified();
   fBottomPad->Update();
+
+  this->AdjustBarrelZAxis();
 
   fChargePad->cd();
   fChargeHist->Draw();
@@ -729,7 +850,8 @@ void WCSimEvDisplay::DrawTruthOverlays(){
     fBarrelPad->Update();
 
   	fTopPad->cd();
-  	fTopHist->Draw("colz");
+//  	fTopHist->Draw("colz");
+  	fTopHist->Draw();
     this->DrawHitGraphs(fTopGraphs);
     // Draw the truth rings
     for(unsigned int r = 0; r < fTruthMarkersTop.size(); ++r){
@@ -748,6 +870,7 @@ void WCSimEvDisplay::DrawTruthOverlays(){
     fBottomPad->Modified();
     fBottomPad->Update();
 
+    this->AdjustBarrelZAxis();
 }
 
 void WCSimEvDisplay::HideTruthOverlays(){
@@ -1369,6 +1492,7 @@ void WCSimEvDisplay::ResizePlotsFromGeometry(){
 	fPMTTop = 0;
 	fPMTBarrel = 0;
 	fPMTBottom = 0;
+  fPMTVeto = 0;
 	for(int p = 0; p < geo->GetWCNumPMT(); ++p){
 		WCSimRootPMT pmt = geo->GetPMT(p);
 		if(pmt.GetCylLoc() == 0){
@@ -1377,14 +1501,18 @@ void WCSimEvDisplay::ResizePlotsFromGeometry(){
 		else if(pmt.GetCylLoc() == 1){
 			++fPMTBarrel;
 		}
-		else{
+		else if(pmt.GetCylLoc() == 2){
 			++fPMTBottom;
 		}
+    else{
+      ++fPMTVeto;
+    }
 	}
 
 	std::cout << "\t- Barrel : " << fPMTBarrel << std::endl;
 	std::cout << "\t- Top    : " << fPMTTop << std::endl;
 	std::cout << "\t- Bottom : " << fPMTBottom << std::endl;
+	std::cout << "\t- Veto : " << fPMTVeto << std::endl;
 
 	// How many bins do we need?
 	// For x and y, round up sqrt of number of Top PMTs
@@ -1397,37 +1525,39 @@ void WCSimEvDisplay::ResizePlotsFromGeometry(){
 	double phiMin = TMath::Pi()* (-1);
 	double phiMax = TMath::Pi();
 
-	double xMin = -geo->GetWCCylRadius();
-	double xMax = geo->GetWCCylRadius();
-	double yMin = -geo->GetWCCylRadius();
-	double yMax = geo->GetWCCylRadius();
-	double zMin = -0.5*geo->GetWCCylLength();
-	double zMax = 0.5*geo->GetWCCylLength();
+  // Convert all distances from cm into m
+	double xMin = -geo->GetWCCylRadius() * 0.01;
+	double xMax = geo->GetWCCylRadius() * 0.01;
+	double yMin = -geo->GetWCCylRadius() * 0.01;
+	double yMax = geo->GetWCCylRadius() * 0.01;
+	double zMin = -0.5*geo->GetWCCylLength() * 0.01;
+	double zMax = 0.5*geo->GetWCCylLength() * 0.01;
 
 	if(fBarrelHist){
 		delete fBarrelHist;
 	}
-	fBarrelHist = new TH2D("barrelHist","Barrel;#phi = atan(y/x);z/cm",nBinsPhi,phiMin,phiMax,nBinsZ,zMin,zMax);
+	fBarrelHist = new TH2D("barrelHist","Barrel;#phi = atan(y/x);z (m)",nBinsPhi,phiMin,phiMax,nBinsZ,zMin,zMax);
 	fBarrelHist->SetDirectory(0);
+  fBarrelHist->GetYaxis()->SetTitleOffset(0.5);
 	if(fTopHist){
 		delete fTopHist;
 	}
-	fTopHist = new TH2D("topHist","Top Cap;y/cm;x/cm",nBinsX,xMin,xMax,nBinsY,yMin,yMax);
+	fTopHist = new TH2D("topHist","Top Cap;y (m);x (m)",nBinsX,xMin,xMax,nBinsY,yMin,yMax);
 	fTopHist->SetDirectory(0);
 	if(fBottomHist){
 		delete fBottomHist;
 	}
-	fBottomHist = new TH2D("BottomHist","Bottom Cap;y/cm;x/cm",nBinsX,xMin,xMax,nBinsY,yMin,yMax);
+	fBottomHist = new TH2D("bottomHist","Bottom Cap;y (m);x (m)",nBinsX,xMin,xMax,nBinsY,yMin,yMax);
 	fBottomHist->SetDirectory(0);
 	if(fChargeHist){
 		delete fChargeHist;
 	}
-	fChargeHist = new TH1D("chargeHist","Charge;Charge / PE",100,0,25);	
+	fChargeHist = new TH1D("chargeHist","Charge;Charge (pe)",100,0,25);	
 	fChargeHist->SetDirectory(0);
 	if(fTimeHist){
 		delete fTimeHist;
 	}
-	fTimeHist = new TH1D("timeHist","Time;Time / ns",100,0,10000);	
+	fTimeHist = new TH1D("timeHist","Time;Time (ns)",100,0,10000);	
 	fTimeHist->SetDirectory(0);
 	// Clean up.
 	delete geo;
@@ -1450,7 +1580,7 @@ void WCSimEvDisplay::DrawTruthRing(unsigned int particleNo, int colour){
   
   // Get the track vertex and direction
   TVector3 trkVtx = fTruthSummary->GetVertex();
-  trkVtx = trkVtx * 0.1; // Convert to cm
+  trkVtx = trkVtx * 0.001; // Convert to m
   TVector3 trkDir;
   // Get the pdg code and energy
   int pdgCode;
@@ -1462,7 +1592,7 @@ void WCSimEvDisplay::DrawTruthRing(unsigned int particleNo, int colour){
   bool isOverlayParticle = (fTruthSummary->IsOverlayEvent() && particleNo > (fTruthSummary->GetNPrimaries() - 1));
   if(isOverlayParticle){
     trkVtx = fTruthSummary->GetOverlayVertex();
-    trkVtx = trkVtx * 0.1; // Convert to cm
+    trkVtx = trkVtx * 0.001; // Convert to m
     particleNo = particleNo - fTruthSummary->GetNPrimaries();
     trkDir = fTruthSummary->GetOverlayDir(particleNo);
     pdgCode = fTruthSummary->GetOverlayPDG(particleNo);
@@ -1490,7 +1620,7 @@ void WCSimEvDisplay::DrawTruthRing(unsigned int particleNo, int colour){
 
   // Now that we have the projected point on the wall, iterate around the Cherenkov cone and
   // find where all the points of the cone intercept the wall
-  unsigned int nMarkers = 360; // Number of points that will appear on the final plots
+  unsigned int nMarkers = 1440; // Number of points that will appear on the final plots
   double dPhi = 360 / (double)nMarkers; // Angle step around the direction vector
 
   // Get the particle mass
@@ -1621,8 +1751,8 @@ void WCSimEvDisplay::ProjectToWall(TVector3 vtx, TVector3 dir, TVector3& proj, u
   region = 999;
 
   // Get the geometry information
-  Double_t r = fWCRadius;
-  Double_t L = fWCLength;
+  Double_t r = fWCRadius * 0.01; // convert to m
+  Double_t L = fWCLength * 0.01; // convert to m
 
   Bool_t foundProjectionXY = 0;
   Bool_t foundProjectionZ = 0;

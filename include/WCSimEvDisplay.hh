@@ -159,6 +159,7 @@ protected:
 	int fPMTBarrel;
 	int fPMTTop;
 	int fPMTBottom;
+	int fPMTVeto;
 
 	// The WCSim only buttons frame need to be a member variable
 	// so that we can hide it.
@@ -182,6 +183,12 @@ protected:
 	// 0 = charge
 	// 1 = time
 	int fViewType;
+
+  // Do we want to display veto hits?
+  bool fViewVeto;
+
+  // Switch to log scale for charge plots
+  bool fLogZCharge;
 
 	// The current file to look at
 	TChain *fChain;
@@ -219,6 +226,9 @@ protected:
 
 	// Function to make the plots look how we want them to.
 	void MakePlotsPretty(TH1* h);
+  // Adjust the palette axis on the barrel plot.
+  void AdjustBarrelZAxis();
+
 	// Function to find what the colour axis minimum should be
 	void GetMinColourAxis(TH2D* h);
 	// Set the colour axes for the 2D plots
@@ -300,6 +310,9 @@ public:
 	// Button to hide the 1D plots since we don't always want them visible
 	void Toggle1DHists();
 
+  // Toggle between log and normal z axes for charge
+  void ToggleLogZ();
+
   // Button to show truth or reco
   void ShowTruth();
   void ShowReco();
@@ -307,6 +320,9 @@ public:
 
   // Update the truth TPaveText panel
   void UpdateTruthPave();
+
+  // Toggle between inner detector and veto
+  void ShowVeto();
 
   // Is a particle above Cherenkov threshold?
   bool IsAboveCherenkovThreshold(int pdg, double energy);
