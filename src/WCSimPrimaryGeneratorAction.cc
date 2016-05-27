@@ -428,13 +428,17 @@ void WCSimPrimaryGeneratorAction::FireParticleGunFromTrackLine(G4Event *evt, G4T
 
   // For overlay events, check the muon actually enters the detector. If not, don't bother tracking it.
   // If so, update the vertex to be the point at which the muon enters the detector.
+  double remainingEnergy = energy;
   if(isOverlay){
     double timeOffset = 0;
-    bool inDet = this->UpdateOverlayVertexAndEnergy(vtx,timeOffset,dir,energy);
+    G4ThreeVector innerDetVtx = vtx;
+    bool inDet = this->UpdateOverlayVertexAndEnergy(innerDetVtx,timeOffset,dir,remainingEnergy);
     if(!inDet) return;
-    fTruthSummary.SetOverlayVertex(vtx.x(),vtx.y(),vtx.z());
+    fTruthSummary.SetOverlayVertex(innerDetVtx.x(),innerDetVtx.y(),innerDetVtx.z());
     vtxTime = vtxTime - timeOffset + (G4UniformRand()-0.5)*200*ns;
-    fTruthSummary.SetOverlayVertexT(vtxTime);
+    fTruthSummary.SetOverlayVertexT(vtxTime + timeOffset);
+    std::cout << "Overlay muon vertex = " << vtx.x() << ", " << vtx.y() << ", " << vtx.z() << ", " << timeOffset << std::endl;
+    std::cout << "Psuedo muon vertex  = " << innerDetVtx.x() << ", " << innerDetVtx.y() << ", " << innerDetVtx.z() << ", " << vtxTime << std::endl;
   }
 
   // Get the particle mass and hence kinetic energy  
@@ -453,7 +457,7 @@ void WCSimPrimaryGeneratorAction::FireParticleGunFromTrackLine(G4Event *evt, G4T
     fTruthSummary.AddPrimary(pdgid,energy,TVector3(dir.x(),dir.y(),dir.z()));
   }
   else{
-    fTruthSummary.AddOverlayTrack(pdgid,energy,TVector3(dir.x(),dir.y(),dir.z()));
+    fTruthSummary.AddOverlayTrack(pdgid,remainingEnergy,TVector3(dir.x(),dir.y(),dir.z()));
   }
 
 }
@@ -505,7 +509,9 @@ bool WCSimPrimaryGeneratorAction::UpdateOverlayVertexAndEnergy(G4ThreeVector &vt
   for(int i = 0; i < 2*(int)detTop; ++i){
     double thisZ = detTop - i;
     newVtx = vtx + ((thisZ - vtx.z()) / dir.z())*dir;
-    if(newVtx.r() < (0.5*myDetector->GetWCCylInfo(0)*cm)){
+    double planeR = sqrt(newVtx.x()*newVtx.x() + newVtx.y()*newVtx.y());
+//    std::cout << "Testing position " << newVtx.x() << ", " << newVtx.y() << ", " << newVtx.z() << " :: " << planeR << ", " << newVtx.r() << std::endl;
+    if(planeR < (0.5*myDetector->GetWCCylInfo(0)*cm)){
       withinDet = true;
       break;
     }
