@@ -57,6 +57,8 @@ public:
 	void SetZonalCoverage( WCSimGeometryEnums::DetectorRegion_t region, int zone, double coverage );
 	void SetZonalCoverage(double coverage);
 
+  void SetVetoSize(double val);
+  double GetVetoSize() const;
 
 	void AddCellPMTName(std::string name);
 	void AddCellPMTName(WCSimGeometryEnums::DetectorRegion_t region, int zone, std::string name);
@@ -133,6 +135,7 @@ private:
 	double fOuterRadius;
 	double fInnerHeight;
 	unsigned int fNSides;
+  double fVetoSize;
 
 	std::string fPMTName1;
 	double fPercentCoverage;

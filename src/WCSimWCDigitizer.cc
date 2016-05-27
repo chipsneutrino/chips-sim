@@ -222,10 +222,18 @@ void WCSimWCDigitizer::FindTriggerWindows(WCSimWCHitsCollection* hits){
 
   std::vector<double> pmtHitTimes;
 
+  // Remember the index of this vector is tubeID - 1.
+  std::vector<WCSimPmtInfo*> *pmtInfoVec = fDet->Get_Pmts();
+
   for(int i = 0; i < hits->entries(); ++i){
+    WCSimWCHit* hit = (*hits)[i];
+    WCSimPmtInfo *pmtInfo = pmtInfoVec->at(hit->GetTubeID()-1);
+    if(pmtInfo->Get_cylocation() == 3){
+      continue; // Don't consider veto PMTs in the window finding.
+    }
     // Make sure that we get the first hit on the PMT
-    (*hits)[i]->SortHitTimes();
-    pmtHitTimes.push_back((*hits)[i]->GetTime(0));
+    hit->SortHitTimes();
+    pmtHitTimes.push_back(hit->GetTime(0));
   }
 
   // Now we want to sort out times into ascending order.

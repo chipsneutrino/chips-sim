@@ -210,8 +210,9 @@ void WCSimRunAction::FillGeoTree(){
     G4cout << fpmts->size() <<" vs. "<< numpmt <<G4endl;
   }
   
-  wcsimrootgeom-> SetWCNumPMT(numpmt);
-  
+  wcsimrootgeom->SetWCNumPMT(numpmt);
+  wcsimrootgeom->SetWCNumVetoPMT(wcsimdetector->GetNumVetoPmts());  
+
   geoTree->Fill();
   TFile* hfile = geoTree->GetCurrentFile();
   hfile->Write(); 

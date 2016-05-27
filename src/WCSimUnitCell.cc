@@ -265,6 +265,11 @@ bool WCSimUnitCell::ContainsOverlaps(double side) const {
 		for (uint j = i + 1; (j < fPMTs.size() && j != i); ++j) {
 			WCSimPMTPlacement second = fPMTs.at(j);
 
+      // Leigh: Make sure one isn't a veto
+      if((first.GetDir() == WCSimGeometryEnums::PMTDirection_t::kVeto || second.GetDir() == WCSimGeometryEnums::PMTDirection_t::kVeto) && first.GetDir() != second.GetDir()){
+        continue;
+      }
+
 			// Is the distance between the PMTs less than the sum of their radii?
 			double distance = first.GetDistanceTo(&second);
 			if(distance * (side) < (first.GetPMTRadius() + second.GetPMTRadius()) ){
@@ -293,6 +298,10 @@ double WCSimUnitCell::GetPhotocathodeArea() const
 {
 	double area = 0.0;
 	for(std::vector<WCSimPMTPlacement>::const_iterator pmtItr = fPMTs.begin(); pmtItr != fPMTs.end(); ++pmtItr){
+    // Leigh: Don't include veto PMTs in this definition.
+    if((*pmtItr).GetDir() == WCSimGeometryEnums::PMTDirection_t::kVeto){
+      continue;
+    }
 		area += pmtItr->GetPMTConfig().GetArea();
 	}
 	return area;

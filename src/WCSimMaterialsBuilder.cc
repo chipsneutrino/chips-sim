@@ -19,6 +19,7 @@
 static WCSimMaterialsBuilder* fgMaterialsBuilder = 0;
 
 WCSimMaterialsBuilder::WCSimMaterialsBuilder() : fOpWaterBSSurface(NULL),
+                                                 fOpWaterWSSurface(NULL),
 	                                               fOpGlassCathodeSurface(NULL),
                                                  fOpWaterTySurface(NULL),
 						 fOpWaterLCinSurface(NULL),
@@ -251,6 +252,13 @@ void WCSimMaterialsBuilder::BuildMaterials() {
 	G4Material* Blacksheet = new G4Material(name, density, 2);
 	Blacksheet->AddElement(GetElement("Carbon"), 1);
 	Blacksheet->AddElement(GetElement("Hydrogen"), 2);
+	fMaterials.push_back(name);
+
+	density = 0.95 * g / cm3;
+	name = "Whitesheet";
+	G4Material* Whitesheet = new G4Material(name, density, 2);
+	Whitesheet->AddElement(GetElement("Carbon"), 1);
+	Whitesheet->AddElement(GetElement("Hydrogen"), 2);
 	fMaterials.push_back(name);
 
 	density = 0.38 * g / cm3;  //cf. DuPont product handbook
@@ -580,6 +588,11 @@ void WCSimMaterialsBuilder::BuildMaterialPropertiesTable() {
 					* BSRFF, 0.045 * BSRFF, 0.045 * BSRFF, 0.045 * BSRFF, 0.045
 					* BSRFF, 0.045 * BSRFF };
 
+  G4double REFLECTIVITY_whitesheet[NUMENTRIES_water] = {0};
+  for(int i = 0; i < NUMENTRIES_water; ++i){
+    REFLECTIVITY_whitesheet[i] = 0.9; // Make it shiny!
+  }
+
 	//utter fiction at this stage
 	G4double EFFICIENCY[NUMENTRIES_water] = { 0.001 * m };
 
@@ -671,6 +684,12 @@ void WCSimMaterialsBuilder::BuildMaterialPropertiesTable() {
 			NUMENTRIES_water);
 	GetMaterial("Blacksheet")->SetMaterialPropertiesTable(myMPT4);
 
+  // Whitesheet
+	G4MaterialPropertiesTable *whiteMPT1 = new G4MaterialPropertiesTable();
+	whiteMPT1->AddProperty("ABSLENGTH", ENERGY_water, BLACKABS_blacksheet,
+			NUMENTRIES_water);
+	GetMaterial("Whitesheet")->SetMaterialPropertiesTable(whiteMPT1);
+
 	// Glass
 	////////////////
 
@@ -716,6 +735,20 @@ void WCSimMaterialsBuilder::BuildMaterialPropertiesTable() {
 	myST1->AddProperty("EFFICIENCY", ENERGY_water, EFFICIENCY_blacksheet,
 			NUMENTRIES_water);
 	fOpWaterBSSurface->SetMaterialPropertiesTable(myST1);
+
+  // Whitesheet
+  // Mostly the same as blacksheet, just shinier.
+	G4MaterialPropertiesTable *whiteMPT = new G4MaterialPropertiesTable();
+	whiteMPT->AddProperty("RINDEX", ENERGY_water, RINDEX_blacksheet,
+	          NUMENTRIES_water);
+	whiteMPT->AddProperty("SPECULARLOBECONSTANT", PP, SPECULARLOBECONSTANT, NUM);
+	whiteMPT->AddProperty("SPECULARSPIKECONSTANT", PP, SPECULARSPIKECONSTANT, NUM);
+	whiteMPT->AddProperty("BACKSCATTERCONSTANT", PP, BACKSCATTERCONSTANT, NUM);
+	whiteMPT->AddProperty("REFLECTIVITY", ENERGY_water, REFLECTIVITY_whitesheet,
+	          NUMENTRIES_water);
+	whiteMPT->AddProperty("EFFICIENCY", ENERGY_water, EFFICIENCY_blacksheet,
+			      NUMENTRIES_water);
+	fOpWaterWSSurface->SetMaterialPropertiesTable(whiteMPT);
 
 	//Glass to Cathode surface inside PMTs
 	G4double RINDEX_cathode[NUM] = { 1.0, 1.0 };
@@ -796,6 +829,16 @@ void WCSimMaterialsBuilder::BuildSurfaces() {
 		fOpWaterBSSurface->SetFinish(groundfrontpainted);
 		fOpWaterBSSurface->SetSigmaAlpha(0.1);
     fOpticalSurfaces[name] = fOpWaterBSSurface;
+	}
+
+	if (fOpWaterWSSurface == NULL) {
+    G4String name = "WaterWSCellSurface";
+		fOpWaterWSSurface = new G4OpticalSurface(name);
+		fOpWaterWSSurface->SetType(dielectric_dielectric);
+		fOpWaterWSSurface->SetModel(unified);
+		fOpWaterWSSurface->SetFinish(groundfrontpainted);
+		fOpWaterWSSurface->SetSigmaAlpha(0.1);
+    fOpticalSurfaces[name] = fOpWaterWSSurface;
 	}
 
 	if (fOpGlassCathodeSurface == NULL) {

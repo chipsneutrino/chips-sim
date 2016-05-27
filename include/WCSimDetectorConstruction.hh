@@ -100,6 +100,7 @@ public:
   G4int    GetMyConfiguration()   {return myConfiguration;}
   G4double GetGeo_Dm(G4int);
   G4int    GetTotalNumPmts() {return totalNumPMTs;}
+  G4int    GetNumVetoPmts() {return fVetoPMTs;}
   
   G4int    GetPMT_QE_Method(){return PMT_QE_Method;}
   G4int    UsePMT_Coll_Eff(){return PMT_Coll_Eff;}
@@ -347,6 +348,7 @@ protected: // Changed this from private to let WCSimCherenkovBuilder
   std::ofstream geoFile;   // File for text output
 
   G4int totalNumPMTs;      // The number of PMTs for this configuration     
+  G4int fVetoPMTs;      // The number of veto PMTs for this configuration    
   G4double WCCylInfo[3];    // Info for the geometry tree: diameter, diameter & length or mail box, length, width and depth
   G4double WCPMTSize;       // Info for the geometry tree: pmt size
   G4ThreeVector WCOffset;   // Info for the geometry tree: WC center offset

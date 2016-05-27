@@ -18,6 +18,7 @@ WCSimGeoConfig::WCSimGeoConfig(){
 	fInnerHeight = 0.;
 	fNSides = 0;
 	fPercentCoverage = 0.;
+  fVetoSize = 2.0*m;
 }
 
 // Copy constructor
@@ -36,7 +37,7 @@ WCSimGeoConfig::WCSimGeoConfig(const WCSimGeoConfig &rhs){
 	fCurrentRegions = rhs.fCurrentRegions;
 	fCurrentZones = rhs.fCurrentZones;
 
-
+  fVetoSize = rhs.fVetoSize;
 }
 
 // Destructor
@@ -95,6 +96,15 @@ double WCSimGeoConfig::GetCoverage() const{
 
 double WCSimGeoConfig::GetCoverageFraction() const{
 	return fPercentCoverage / 100.;
+}
+
+// Veto Size
+void WCSimGeoConfig::SetVetoSize(double val){
+  fVetoSize = val;
+}
+
+double WCSimGeoConfig::GetVetoSize() const{
+  return fVetoSize;
 }
 
 bool WCSimGeoConfig::IsGood() const{

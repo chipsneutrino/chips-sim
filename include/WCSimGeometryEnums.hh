@@ -148,7 +148,8 @@ namespace WCSimGeometryEnums
 			kAngledDown = 4,
 			kAngledUpstream = 5,
 			kAngledDownstream = 6,
-			kArbitrary = 7
+			kArbitrary = 7,
+      kVeto = 8
 		};
 		Type fType;
 
@@ -156,7 +157,7 @@ namespace WCSimGeometryEnums
 		PMTDirection_t(const PMTDirection_t &ep) : fType(ep.fType) {};
 		operator Type () const { return fType; };
 		bool CanBuildWithoutAngles(){
-			return (fType == kInwards || fType == kOutwards  || fType == kAngledUpstream );
+			return (fType == kInwards || fType == kOutwards  || fType == kAngledUpstream || fType == kVeto );
 		}
 
 		std::string AsString() const{
@@ -172,6 +173,7 @@ namespace WCSimGeometryEnums
 			myVec.push_back(kAngledUpstream);
 			myVec.push_back(kAngledDownstream);
 			myVec.push_back(kArbitrary);
+			myVec.push_back(kVeto);
 			return myVec;
 		}
 		
@@ -197,6 +199,7 @@ namespace WCSimGeometryEnums
 			if( type == kAngledUpstream )  { str = "kAngledUpstream"; }
 			if( type == kAngledDownstream )  { str = "kAngledDownstream"; }
 			if( type == kArbitrary )  { str = "kArbitrary"; }
+			if( type == kVeto )  { str = "kVeto"; }
 			return str;
 		};
 
@@ -211,6 +214,7 @@ namespace WCSimGeometryEnums
 			if( string == "kAngledUpstream" )  { type = kAngledUpstream; }
 			if( string == "kAngledDownstream" )  { type = kAngledDownstream; }
 			if( string == "kArbitrary" )  { type = kArbitrary; }
+			if( string == "kVeto" )  { type = kVeto; }
 			if( type == kUnknown ) { std::cerr << "Error: unknown PMT direction type \"" << string << "\"" << std::endl; assert(0); }
 			return PMTDirection_t(type);
 		}

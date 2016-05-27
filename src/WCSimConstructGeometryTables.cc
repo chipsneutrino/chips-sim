@@ -265,7 +265,24 @@ void WCSimDetectorConstruction::DumpGeometryTableToFile()
   }
   fpmts.clear();
 
+  // Firstly, count the number of vetos. Need to do this so that
+  // we can put them as the final PMTs. This will really help things remain simple in
+  // the reconstruction algorithms.
+  fVetoPMTs = 0;
+  for ( int tubeID = 1; tubeID <= totalNumPMTs; tubeID++){
+    G4Transform3D newTransform = tubeIDMap[tubeID];
+    // Get tube orientation vector
+    G4Vector3D nullOrient = G4Vector3D(0,0,1);
+    G4Vector3D pmtOrientation = newTransform * nullOrient;
+    // Count it if it is a veto
+    if (pmtOrientation*newTransform.getTranslation() > 0){
+      ++fVetoPMTs;
+    }
+  }
+
   // Grab the tube information from the tubeID Map and dump to file.
+  int pmtNo = 0; // Will increment before using so first PMT is 1.
+  int vetoNo = 0;
   for ( int tubeID = 1; tubeID <= totalNumPMTs; tubeID++){
     G4Transform3D newTransform = tubeIDMap[tubeID];
 
@@ -286,8 +303,18 @@ void WCSimDetectorConstruction::DumpGeometryTableToFile()
     else // barrel
     {cylLocation=1;}
     
+    double tubeNumber; 
+    if(cylLocation != 3){
+      ++pmtNo;
+      tubeNumber = pmtNo;
+    }
+    else{
+      ++vetoNo;
+      tubeNumber = totalNumPMTs - fVetoPMTs + vetoNo;
+    }
+
     geoFile.precision(9);
-     geoFile << setw(4) << tubeID 
+     geoFile << setw(4) << tubeNumber 
  	    << " " << setw(8) << newTransform.getTranslation().getX()/cm
  	    << " " << setw(8) << newTransform.getTranslation().getY()/cm
  	    << " " << setw(8) << newTransform.getTranslation().getZ()/cm

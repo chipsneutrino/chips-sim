@@ -42,7 +42,7 @@ private:
  	void ConstructDetectorWrapper(); //< Main function to build the detector
 	void ConstructEnvironment(); //< Build the lake for the detector to sit in
 	void ConstructFrame(); //< The external metal frame
-	void ConstructVeto(); //< The veto region (currently not implemented)
+	void ConstructVeto(); //< The veto region
 	void ConstructInnerDetector(); //< The inner part of the detector
 	void CreatePrism(); //< Build the inner wall (an n-sided prism)
 	void CreatePrismWalls(); //< Split the prism up into n rectangular walls
@@ -114,11 +114,15 @@ private:
 
 	// TODO:  Constants that should be moved into xml files and GeoConfig
 	double fBlacksheetThickness;
+	double fWhitesheetThickness;
 	bool   fDebugMode;
 
 	// Geant objects:
 	G4LogicalVolume* fLakeLogic;
 	G4LogicalVolume* fBarrelLogic;
+  G4LogicalVolume* fVetoLogic; // LEIGH: This is the barrel veto volume
+  G4LogicalVolume* fVetoTopLogic; // LEIGH: This is the top veto volume
+  G4LogicalVolume* fVetoBottomLogic; // LEIGH: This is the bottom veto volume 
 	G4LogicalVolume* fPrismLogic;
 	std::vector<G4LogicalVolume*> fPrismWallLogics;
 	std::vector<G4VPhysicalVolume*> fPrismWallPhysics;
@@ -131,6 +135,13 @@ private:
 	G4LogicalVolume* fCapLogicBottom;
 	G4LogicalVolume* fCapLogicBottomRing;
 
+  // Leigh: Need to store the cap sheet physical volumes to make the boundary surfaces
+	G4VPhysicalVolume* fBarrelPhysics;
+  G4VPhysicalVolume* fCapBSTopPhysics;
+  G4VPhysicalVolume* fCapWSTopPhysics;
+  G4VPhysicalVolume* fCapBSBottomPhysics;
+  G4VPhysicalVolume* fCapWSBottomPhysics;
+
 	// Constants used to specify the geometry
 	G4bool fGotMeasurements;
 
@@ -139,7 +150,12 @@ private:
 	G4double fBarrelHeight;
 	G4double fBarrelLengthForCells;
 
-	// Inside the main barrel lives an n-gon prism
+	// Inside the main barrel lives an n-gon prism veto region
+	G4double fVetoRadiusInside; // Radius is to centre of wall not the vertex
+	G4double fVetoRadiusOutside;
+	G4double fVetoHeight;
+
+	// Inside the main barrel lives an n-gon prism inner detector
 	G4double fPrismRadiusInside; // Radius is to centre of wall not the vertex
 	G4double fPrismRadiusOutside;
 	G4double fPrismHeight;
@@ -160,10 +176,14 @@ private:
 	std::vector<G4double> fPrismRingSegmentHeight;
 	G4double fPrismRingSegmentDPhi;
 
-	// Then we have a layer of blacksheet on each side
+	// Then we have a layer of blacksheet on the inside
 	G4double fPrismRingSegmentBSRadiusInside; // To centre not edge
 	G4double fPrismRingSegmentBSRadiusOutside;
 	std::vector<G4double> fPrismRingSegmentBSHeight;
+
+	// Then we have a layer of whitesheet on the outside side
+	G4double fPrismRingSegmentWSRadiusInside; // To centre not edge
+	G4double fPrismRingSegmentWSRadiusOutside;
 
 	// Now the caps
 	///////////////
@@ -171,6 +191,10 @@ private:
 	// A tubs for the cap volume to sit in
 	G4double fCapAssemblyHeight;
 	G4double fCapAssemblyRadius;
+
+	// A tubs for the veto cap volume to sit in
+	G4double fVetoCapHeight;
+	G4double fVetoCapRadius;
 
 	// We made a whole number of barrel rings to hold PMTs
 	// Here we two extras to plug the hole between the top of those rings and the cap
@@ -189,6 +213,11 @@ private:
 	G4double fCapRingSegmentBSRadiusOutside;
 	G4double fCapRingSegmentBSHeight;
 
+	// And put whitesheet on the edge of them
+	G4double fCapRingSegmentWSRadiusInside;
+	G4double fCapRingSegmentWSRadiusOutside;
+	G4double fCapRingSegmentWSHeight;
+
 	// The actual top/bottom of the detector is a polygon - 
   // we'll make a container that holds the top and edge blacksheet, and the water in the middle
 	G4double fCapPolygonRadius;
@@ -203,9 +232,21 @@ private:
 	G4double fCapPolygonEdgeBSRadiusOutside;
 	G4double fCapPolygonEdgeBSHeight;
 
+	// We put a layer of whitesheet on the edge
+	G4double fCapPolygonEdgeWSRadiusInside;
+	G4double fCapPolygonEdgeWSRadiusOutside;
+	G4double fCapPolygonEdgeWSHeight;
+
 	// And a layer on top
 	G4double fCapPolygonEndBSRadius;
 	G4double fCapPolygonEndBSHeight;
+
+	// And a layer of whitesheet on top
+	G4double fCapPolygonEndWSRadius;
+	G4double fCapPolygonEndWSHeight;
+
+  // Size of the veto layer. Default is 2m.
+  G4double fVetoSize;
 };
 
 #endif /* WCSIMCHERENKOVBUILDER_HH_ */

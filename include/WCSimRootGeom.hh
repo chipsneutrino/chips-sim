@@ -67,6 +67,7 @@ private:
 
   Float_t                fWCPMTRadius; // Radius of PMT
   Int_t                  fWCNumPMT;   // Number of PMTs
+  Int_t                  fWCNumVetoPMT; // Number of veto PMTs
   Float_t                fWCOffset[3]; // Offset of barrel center in global coords
   Int_t                  fOrientation; //Orientation o detector, 0 is 2km horizontal, 1 is Upright
 
@@ -92,6 +93,7 @@ public:
   void SetGeo_Type(Int_t f){fgeo_type = f;}
 
   void  SetWCNumPMT(Int_t i) {fWCNumPMT= i;}
+  void  SetWCNumVetoPMT(Int_t i) {fWCNumVetoPMT= i;}
   void  SetWCPMTRadius(Float_t f) {fWCPMTRadius = f;}
   void  SetWCOffset(Float_t x, Float_t y, Float_t z) 
            {fWCOffset[0]=x; fWCOffset[1]=y; fWCOffset[2] = z;}
@@ -108,6 +110,8 @@ public:
   
 
   Int_t GetWCNumPMT() const {return fWCNumPMT;}
+  Int_t GetWCNumVetoPMT() const {return fWCNumVetoPMT;}
+  Int_t GetWCNumInnerPMT() const {return fWCNumPMT - fWCNumVetoPMT;}
   Float_t GetWCPMTRadius() const {return fWCPMTRadius;}
   Float_t GetWCOffset(Int_t i) const {return (i<3) ? fWCOffset[i] : 0.;}
   Int_t GetOrientation() { return fOrientation; }

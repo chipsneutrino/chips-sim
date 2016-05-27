@@ -30,6 +30,10 @@ public:
 		return fOpWaterBSSurface;
 	}
 
+	G4OpticalSurface* GetOpWaterWsSurface() const {
+		return fOpWaterWSSurface;
+	}
+
 	G4OpticalSurface* GetOpWaterTySurface() const {
 		return fOpWaterTySurface;
 	}
@@ -52,6 +56,7 @@ private:
 	// Surfaces:
 	std::map<G4String, G4OpticalSurface*> fOpticalSurfaces;
 	G4OpticalSurface * fOpWaterBSSurface;
+	G4OpticalSurface * fOpWaterWSSurface;
 	G4OpticalSurface * fOpGlassCathodeSurface;
 	G4OpticalSurface * fOpWaterTySurface;
         G4OpticalSurface * fOpWaterLCinSurface;

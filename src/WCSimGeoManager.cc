@@ -100,6 +100,11 @@ void WCSimGeoManager::FillGeoAttribute(WCSimGeoConfig &geo, rapidxml::xml_attrib
     std::cout << "Setting overall coverage in this geometry to " << coverage * 100.0 << " percent" << std::endl;
     geo.SetOverallCoverage(coverage * 100.0);
   }
+  else if(name == "vetoSize"){
+    double vetoSize = 2.0;
+    ss >> vetoSize;
+    geo.SetVetoSize(vetoSize*m);
+  }
 
 	else{
 		std::cerr << "WCSimGeoManager::FillGeoAttribute: Unexpected parameter " << attr->name() << ", " << attr->value() << std::endl;
