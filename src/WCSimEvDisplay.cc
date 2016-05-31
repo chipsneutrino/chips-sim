@@ -478,6 +478,8 @@ void WCSimEvDisplay::MakeGraphColours(){
   {
     fColours.push_back(startColour+i);
   }
+
+  gStyle->SetNumberContours(nContours);
   
 }
 
@@ -597,6 +599,7 @@ void WCSimEvDisplay::ClearPlots(){
 }
 
 void WCSimEvDisplay::MakePlotsPretty(TH1* h){
+  h->SetTitleSize(0.05,"t");
   h->GetXaxis()->CenterTitle();
   h->GetYaxis()->CenterTitle();
   h->GetZaxis()->CenterTitle();
@@ -1725,6 +1728,7 @@ void WCSimEvDisplay::DrawTruthRing(unsigned int particleNo, int colour){
   }
   TLine* line = new TLine();
   line->SetLineColor(colour);
+  line->SetLineWidth(2);
   fTruthLines.push_back(line);
   fTruthLegend->AddEntry(fTruthLines[fTruthLines.size()-1],legendText.str().c_str(),"l");
   if(pdgCode == 111){
