@@ -107,14 +107,21 @@ WCSimEvDisplay::WCSimEvDisplay(const TGWindow *p,UInt_t w,UInt_t h) : TGMainFram
 	fTimePad = new TPad("fTimePad","",0.5,0.0,1.0,0.2);
   fBarrelPad->SetLeftMargin(0.05);
   fBarrelPad->SetRightMargin(0.075);
+  fBarrelPad->SetBottomMargin(0.12);
   fTopPad->SetRightMargin(0.0);
+  fTopPad->SetBottomMargin(0.12);
   fBottomPad->SetLeftMargin(0.0);
   fBottomPad->SetRightMargin(0.147);
+  fBottomPad->SetBottomMargin(0.12);
 	fBarrelPad->Draw();
 	fTopPad->Draw();
 	fBottomPad->Draw();
 	fChargePad->Draw();
 	fTimePad->Draw();
+  fBarrelPad->SetTicks(1,1);
+  fTopPad->SetTicks(1,1);
+  fBottomPad->SetTicks(1,1);
+
   // Create the truth information pad, but don't draw it
   fTruthPad = new TPad("fTruthPad","",0.0,0.0,1.0,1.0);
   fTruthOverlayPad = new TPad("fTruthOverlayPad","",0.0,0.0,1.0,0.2);
@@ -147,6 +154,7 @@ WCSimEvDisplay::WCSimEvDisplay(const TGWindow *p,UInt_t w,UInt_t h) : TGMainFram
 
 	// By default show the 1D plots
 	fShow1DHists = 1;
+
 }
 
 void WCSimEvDisplay::CreateMainButtonBar(){
@@ -599,12 +607,12 @@ void WCSimEvDisplay::ClearPlots(){
 }
 
 void WCSimEvDisplay::MakePlotsPretty(TH1* h){
-  h->SetTitleSize(0.05,"t");
+
   h->GetXaxis()->CenterTitle();
   h->GetYaxis()->CenterTitle();
   h->GetZaxis()->CenterTitle();
   h->GetXaxis()->SetTitleSize(0.05);
-  h->GetYaxis()->SetTitleSize(0.05);
+  h->GetYaxis()->SetTitleSize(0.05);  
   h->GetZaxis()->SetTitleSize(0.05);
   h->GetXaxis()->SetLabelSize(0.05);
   h->GetYaxis()->SetLabelSize(0.05);
@@ -764,6 +772,7 @@ void WCSimEvDisplay::UpdateCanvases(){
 void WCSimEvDisplay::UpdateRecoPads(){
 
 	this->SetPlotZAxes();
+
   // Set the styles how we want them
   this->MakePlotsPretty(fBarrelHist);
   this->MakePlotsPretty(fTopHist);
@@ -774,6 +783,7 @@ void WCSimEvDisplay::UpdateRecoPads(){
   // Take the plots one by one and draw them.
   fBarrelPad->cd();
   fBarrelHist->Draw("colz");
+  fBarrelTitle->Draw();
   this->DrawHitGraphs(fBarrelGraphs);
   fBarrelPad->Modified();
   fBarrelPad->Update();
@@ -781,12 +791,14 @@ void WCSimEvDisplay::UpdateRecoPads(){
   fTopPad->cd();
 //  fTopHist->Draw("colz");
   fTopHist->Draw();
+  fTopTitle->Draw();
   this->DrawHitGraphs(fTopGraphs);
   fTopPad->Modified();
   fTopPad->Update();
 
   fBottomPad->cd();
   fBottomHist->Draw("colz");
+  fBottomTitle->Draw();
   this->DrawHitGraphs(fBottomGraphs);
   fBottomPad->Modified();
   fBottomPad->Update();
@@ -844,6 +856,7 @@ void WCSimEvDisplay::DrawTruthOverlays(){
   	// Take the plots one by one and draw them.
     fBarrelPad->cd();
   	fBarrelHist->Draw("colz");
+    fBarrelTitle->Draw();
     this->DrawHitGraphs(fBarrelGraphs);
     // Draw the truth rings
     for(unsigned int r = 0; r < fTruthMarkersBarrel.size(); ++r){
@@ -855,6 +868,7 @@ void WCSimEvDisplay::DrawTruthOverlays(){
   	fTopPad->cd();
 //  	fTopHist->Draw("colz");
   	fTopHist->Draw();
+    fTopTitle->Draw();
     this->DrawHitGraphs(fTopGraphs);
     // Draw the truth rings
     for(unsigned int r = 0; r < fTruthMarkersTop.size(); ++r){
@@ -865,6 +879,7 @@ void WCSimEvDisplay::DrawTruthOverlays(){
 
   	fBottomPad->cd();
   	fBottomHist->Draw("colz");
+    fBottomTitle->Draw();
     this->DrawHitGraphs(fBottomGraphs);
     // Draw the truth rings
     for(unsigned int r = 0; r < fTruthMarkersBottom.size(); ++r){
@@ -1067,6 +1082,8 @@ void WCSimEvDisplay::SetStyle(){
 	gStyle->SetTitleFont(kMinosFont,"xyz");
 	gStyle->SetTitleFont(kMinosFont,"");
 	gStyle->SetTextFont(kMinosFont);
+
+  gStyle->SetTitleFontSize(0.05);
 
 //	gROOT->SetStyle("eds");
 	gROOT->ForceStyle();
@@ -1539,28 +1556,29 @@ void WCSimEvDisplay::ResizePlotsFromGeometry(){
 	if(fBarrelHist){
 		delete fBarrelHist;
 	}
-	fBarrelHist = new TH2D("barrelHist","Barrel;#phi = atan(y/x);z (m)",nBinsPhi,phiMin,phiMax,nBinsZ,zMin,zMax);
+	fBarrelHist = new TH2D("barrelHist",";#phi = atan(y/x);z (m)",nBinsPhi,phiMin,phiMax,nBinsZ,zMin,zMax);
 	fBarrelHist->SetDirectory(0);
   fBarrelHist->GetYaxis()->SetTitleOffset(0.5);
+  fBarrelHist->GetYaxis()->SetTickLength(0.013);
 	if(fTopHist){
 		delete fTopHist;
 	}
-	fTopHist = new TH2D("topHist","Top Cap;y (m);x (m)",nBinsX,xMin,xMax,nBinsY,yMin,yMax);
+	fTopHist = new TH2D("topHist",";y (m);x (m)",nBinsX,xMin,xMax,nBinsY,yMin,yMax);
 	fTopHist->SetDirectory(0);
 	if(fBottomHist){
 		delete fBottomHist;
 	}
-	fBottomHist = new TH2D("bottomHist","Bottom Cap;y (m);x (m)",nBinsX,xMin,xMax,nBinsY,yMin,yMax);
+	fBottomHist = new TH2D("bottomHist",";y (m);x (m)",nBinsX,xMin,xMax,nBinsY,yMin,yMax);
 	fBottomHist->SetDirectory(0);
 	if(fChargeHist){
 		delete fChargeHist;
 	}
-	fChargeHist = new TH1D("chargeHist","Charge;Charge (pe)",100,0,25);	
+	fChargeHist = new TH1D("chargeHist",";Charge (pe)",100,0,25);	
 	fChargeHist->SetDirectory(0);
 	if(fTimeHist){
 		delete fTimeHist;
 	}
-	fTimeHist = new TH1D("timeHist","Time;Time (ns)",100,0,10000);	
+	fTimeHist = new TH1D("timeHist",";Time (ns)",100,0,10000);	
 	fTimeHist->SetDirectory(0);
 	// Clean up.
 	delete geo;
@@ -1568,11 +1586,24 @@ void WCSimEvDisplay::ResizePlotsFromGeometry(){
 }
 
 void WCSimEvDisplay::MakeDefaultPlots(){
-	fBarrelHist = new TH2D("barrelHist","Barrel;#phi = atan(y/x);z/cm",1,0,1,1,0,1);
-	fTopHist = new TH2D("topHist","Top Cap;y/cm;x/cm",1,0,1,1,0,1);
-	fBottomHist = new TH2D("BottomHist","Bottom Cap;y/cm;x/cm",1,0,1,1,0,1);
-	fChargeHist = new TH1D("chargeHist","Charge;Charge / PE",1,0,1);	
-	fTimeHist = new TH1D("timeHist","Time;Time / ns",1,0,1);	
+	fBarrelHist = new TH2D("barrelHist",";#phi = atan(y/x);z/cm",1,0,1,1,0,1);
+	fTopHist = new TH2D("topHist",";y/cm;x/cm",1,0,1,1,0,1);
+	fBottomHist = new TH2D("BottomHist",";y/cm;x/cm",1,0,1,1,0,1);
+	fChargeHist = new TH1D("chargeHist",";Charge / PE",1,0,1);	
+	fTimeHist = new TH1D("timeHist",";Time / ns",1,0,1);	
+
+  fBarrelTitle = new TText(0.465,0.915,"Barrel");
+  fTopTitle = new TText(0.49,0.915,"Top Cap");
+  fBottomTitle = new TText(0.35,0.915,"Bottom Cap");
+  this->FormatTitles(fBarrelTitle);
+  this->FormatTitles(fTopTitle);
+  this->FormatTitles(fBottomTitle);
+}
+
+void WCSimEvDisplay::FormatTitles(TText *t){
+  t->SetNDC();
+  t->SetTextFont(42);
+  t->SetTextSize(0.06);
 }
 
 // Draw the truth ring corresponding to primary particle number particleNo

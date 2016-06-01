@@ -27,6 +27,7 @@ class TLegend;
 class TClonesArray;
 class TGraph;
 class WCSimTruthSummary;
+class TText;
 
 class WCSimEvDispPi0 {
 
@@ -123,6 +124,11 @@ protected:
 	TH1D *fChargeHist;
 	TH1D *fTimeHist;
 
+  // Some histogram text titles
+  TText *fBarrelTitle;
+  TText *fTopTitle;
+  TText *fBottomTitle;
+
   // As the PMTs are not uniform, use TGraphs to display the points
   // Store a vector of 10 graphs for each of the 3 regions, with each
   // graph storing a range of charges.
@@ -214,6 +220,7 @@ protected:
 
   // Default construct some plots
   void MakeDefaultPlots();
+  void FormatTitles(TText *t);
 
 	// Function to draw plots from the standard WCSim files
   virtual void FillPlots();
