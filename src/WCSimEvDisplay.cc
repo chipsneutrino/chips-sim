@@ -1279,10 +1279,11 @@ void WCSimEvDisplay::UpdateTruthPave(){
     delete fTruthLegend;
     fTruthLegend = 0x0;
   }
-  fTruthLegend = new TLegend(0.2,0.2,0.8,0.8);
+  fTruthLegend = new TLegend(0.0,0.1,0.5,0.9,"True Particles");
   fTruthLegend->SetFillColor(kWhite);
   fTruthLegend->SetBorderSize(0);
-  
+  fTruthLegend->SetTextSize(0.1);  
+
   // The primary particles list
   if(fTruthSummary->IsNeutrinoEvent()){
     fTruthTextPrimaries->AddText("List of Primary Particles (*** above Cherenkov threshold)");
@@ -1750,12 +1751,24 @@ void WCSimEvDisplay::DrawTruthRing(unsigned int particleNo, int colour){
   std::stringstream legendText;
   std::stringstream legendText2;
   if(pdgCode != 111){
-    if(isOverlayParticle) legendText << "Overlay ";
-    legendText << this->GetParticleName(pdgCode) << " with total energy = " << en << " MeV";
+//    if(isOverlayParticle) legendText << "Overlay ";
+//    legendText << this->GetParticleName(pdgCode) << " with total energy = " << en << " MeV";
+	  legendText << this->GetParticleName(pdgCode) 
+               << " :: vertex = (" << trkVtx.X() << ", " << trkVtx.Y() << ", " << trkVtx.Z() 
+               << ") m, direction = (" << trkDir.X() << ", " << trkDir.Y() << ", " << trkDir.Z() 
+               << ") and energy = " << en << " MeV";
   }
-  else{
-    legendText << "#pi^{0} decay photon with total energy = " << pi0PhotE1 << " MeV";
-    legendText2 << "#pi^{0} decay photon with total energy = " << pi0PhotE2 << " MeV";
+  else{	  
+    legendText << "#pi^{0} decay #gamma"
+               << " :: vertex = (" << trkVtx.X() << ", " << trkVtx.Y() << ", " << trkVtx.Z() 
+               << ") m, direction = (" << trkDir.X() << ", " << trkDir.Y() << ", " << trkDir.Z() 
+               << ") and energy = " << pi0PhotE1 << " MeV";
+    legendText2 << "#pi^{0} decay #gamma"
+               << " :: vertex = (" << trkVtx.X() << ", " << trkVtx.Y() << ", " << trkVtx.Z() 
+               << ") m, direction = (" << trkDir2.X() << ", " << trkDir2.Y() << ", " << trkDir2.Z() 
+               << ") and energy = " << pi0PhotE2 << " MeV";
+//    legendText << "#pi^{0} decay photon with total energy = " << pi0PhotE1 << " MeV";
+//    legendText2 << "#pi^{0} decay photon with total energy = " << pi0PhotE2 << " MeV";
   }
   TLine* line = new TLine();
   line->SetLineColor(colour);
