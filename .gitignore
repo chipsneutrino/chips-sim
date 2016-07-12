@@ -12,9 +12,15 @@
 *.root
 *_.cxx
 *.pyc
-/nbproject/private/
 *~
+
 evDisplay
+WCSim
 geometryHelper
 src/WCSimRootDict.*
 geofile.txt
+setupWCSim.sh
+
+tmp/
+bin/
+/nbproject/private/
