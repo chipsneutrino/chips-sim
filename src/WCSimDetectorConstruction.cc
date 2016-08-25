@@ -22,6 +22,7 @@
 
 std::map<int, G4Transform3D> WCSimDetectorConstruction::tubeIDMap;
 std::map<int, std::string> WCSimDetectorConstruction::tubeNameMap;
+std::map<int, std::string> WCSimDetectorConstruction::tubeTagMap;
 //std::map<int, cyl_location>  WCSimDetectorConstruction::tubeCylLocation;
 hash_map<std::string, int, hash<std::string> > 
 WCSimDetectorConstruction::tubeLocationMap;

@@ -209,6 +209,7 @@ if (aPV->GetName() == "WCPMTGlass"){
     // Put the transform for this tube into the map keyed by its ID
     tubeIDMap[totalNumPMTs] = aTransform;
     tubeNameMap[totalNumPMTs] = tubeName;
+    tubeTagMap[totalNumPMTs] = tubeTag;
    
     // G4cout <<  "depth " << depth.str() << G4endl;
 //     G4cout << "tubeLocationmap[" << tubeTag  << "]= " << tubeLocationMap[tubeTag] << "\n";
@@ -280,6 +281,16 @@ void WCSimDetectorConstruction::DumpGeometryTableToFile()
     }
   }
 
+  // Create the PMT veto with the require number of elements.
+  // We need to do this so that the tube ID will correspond to the index + 1 later on.
+  for(unsigned int i = 0; i < totalNumPMTs; ++i){
+    fpmts.push_back(0x0);
+  }
+
+  // A new hash map to re-order the PMTs. This is needed by
+  // the sensitive detector class later in the simulation.
+  hash_map<std::string, int, hash<std::string> > newLocHashMap;
+
   // Grab the tube information from the tubeID Map and dump to file.
   int pmtNo = 0; // Will increment before using so first PMT is 1.
   int vetoNo = 0;
@@ -312,9 +323,11 @@ void WCSimDetectorConstruction::DumpGeometryTableToFile()
       ++vetoNo;
       tubeNumber = totalNumPMTs - fVetoPMTs + vetoNo;
     }
+    // Fill a new hash map based on the pmt ordering we need.
+    newLocHashMap[tubeTagMap[tubeID]] = tubeNumber;
 
     geoFile.precision(9);
-     geoFile << setw(4) << tubeNumber 
+     geoFile << setw(4) << tubeNumber
  	    << " " << setw(8) << newTransform.getTranslation().getX()/cm
  	    << " " << setw(8) << newTransform.getTranslation().getY()/cm
  	    << " " << setw(8) << newTransform.getTranslation().getZ()/cm
@@ -331,12 +344,13 @@ void WCSimDetectorConstruction::DumpGeometryTableToFile()
 					      pmtOrientation.x(),
 					      pmtOrientation.y(),
 					      pmtOrientation.z(),
-					      tubeID,
+					      tubeNumber, 
                 pmtName);
      
-     fpmts.push_back(new_pmt);
+     fpmts[tubeNumber-1] = new_pmt;
 
   }
+  tubeLocationMap = newLocHashMap;
   geoFile.close();
 
 
