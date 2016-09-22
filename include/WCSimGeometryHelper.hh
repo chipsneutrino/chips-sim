@@ -41,7 +41,7 @@ private:
 	std::string GetNSides();
   std::string GetCoverageType();
   std::string GetCoverage();
-
+  std::string GetVetoSize();
 
 	void SetCapZones(bool isTop, rapidxml::xml_node<> * parentNode);
 	void SetTopZones(rapidxml::xml_node<> * parentNode);

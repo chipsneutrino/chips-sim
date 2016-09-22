@@ -54,6 +54,9 @@ void WCSimGeometryHelper::Run()
 		const char * coverageType = fDoc.allocate_string(GetCoverageType().c_str());
 		rapidxml::xml_attribute<> *coverageTypeAttr = fDoc.allocate_attribute("coverageType", coverageType);
 
+    const char * vetoSize = fDoc.allocate_string(GetVetoSize().c_str());
+    rapidxml::xml_attribute<> *vetoSizeAttr = fDoc.allocate_attribute("vetoSize",vetoSize);
+
 		detector->append_attribute(nameAttr);
 		detector->append_attribute(innerRadiusAttr);
 		detector->append_attribute(innerHeightAttr);
@@ -66,6 +69,7 @@ void WCSimGeometryHelper::Run()
 			rapidxml::xml_attribute<> *coverageAttr = fDoc.allocate_attribute("coverage", coverage);
 			detector->append_attribute(coverageAttr);
 		}
+    detector->append_attribute(vetoSizeAttr);
 		
 		bLRsymmetry=AssumeLRsymmetry()?true:false;
 		bTBsymmetry=AssumeTBsymmetry()?true:false;
@@ -644,6 +648,15 @@ std::string WCSimGeometryHelper::GetCoverage()
 	std::stringstream ss;
 	ss << coverageFrac;
 	return ss.str();
+}
+
+std::string WCSimGeometryHelper::GetVetoSize()
+{
+  std::cout << "How big should the veto volume be (in metres)?" << std::endl;
+  double vetoSize = AskDouble(1,100);
+  std::stringstream ss;
+  ss << vetoSize;
+  return ss.str();
 }
 
 std::string WCSimGeometryHelper::AskString()
