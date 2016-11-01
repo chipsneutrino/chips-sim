@@ -119,76 +119,110 @@ void WCSimTruthSummary::SetInteractionMode(int mode){
 
 // Convenience methods querying the interaction mode
 bool WCSimTruthSummary::IsCCEvent() const{
-  if(fInteractionMode == WCSimTruthSummary::kCCQE) return true;
-  else if(fInteractionMode == WCSimTruthSummary::kCCNuPtoLPPiPlus) return true;
-  else if(fInteractionMode == WCSimTruthSummary::kCCNuNtoLPPiZero) return true;
-  else if(fInteractionMode == WCSimTruthSummary::kCCNuNtoLNPiPlus) return true;
-  else if(fInteractionMode == WCSimTruthSummary::kCCNuBarNtoLNPiMinus) return true;
-  else if(fInteractionMode == WCSimTruthSummary::kCCNuBarPtoLNPiZero) return true;
-  else if(fInteractionMode == WCSimTruthSummary::kCCNuBarPtoLPPiMinus) return true;
-  else if(fInteractionMode == WCSimTruthSummary::kCCDIS) return true;
-  else if(fInteractionMode == WCSimTruthSummary::kCCCoh) return true;
+    return TypeIsCCEvent(fInteractionMode);
+}
+
+bool WCSimTruthSummary::TypeIsCCEvent(int typeCode){
+  if(typeCode == WCSimTruthSummary::kCCQE) return true;
+  else if(typeCode == WCSimTruthSummary::kCCNuPtoLPPiPlus) return true;
+  else if(typeCode == WCSimTruthSummary::kCCNuNtoLPPiZero) return true;
+  else if(typeCode == WCSimTruthSummary::kCCNuNtoLNPiPlus) return true;
+  else if(typeCode == WCSimTruthSummary::kCCNuBarNtoLNPiMinus) return true;
+  else if(typeCode == WCSimTruthSummary::kCCNuBarPtoLNPiZero) return true;
+  else if(typeCode == WCSimTruthSummary::kCCNuBarPtoLPPiMinus) return true;
+  else if(typeCode == WCSimTruthSummary::kCCDIS) return true;
+  else if(typeCode == WCSimTruthSummary::kCCCoh) return true;
   else return false;
 }
 
 bool WCSimTruthSummary::IsNCEvent() const{
-  if(fInteractionMode == WCSimTruthSummary::kNCQE) return true;
-  else if(fInteractionMode == WCSimTruthSummary::kNCNuPtoNuPPiZero) return true;
-  else if(fInteractionMode == WCSimTruthSummary::kNCNuPtoNuNPiPlus) return true;
-  else if(fInteractionMode == WCSimTruthSummary::kNCNuNtoNuNPiZero) return true;
-  else if(fInteractionMode == WCSimTruthSummary::kNCNuNtoNuPPiMinus) return true;
-  else if(fInteractionMode == WCSimTruthSummary::kNCNuBarPtoNuBarPPiZero) return true;
-  else if(fInteractionMode == WCSimTruthSummary::kNCNuBarPtoNuBarNPiPlus) return true;
-  else if(fInteractionMode == WCSimTruthSummary::kNCNuBarNtoNuBarNPiZero) return true;
-  else if(fInteractionMode == WCSimTruthSummary::kNCNuBarNtoNuBarPPiMinus) return true;
-  else if(fInteractionMode == WCSimTruthSummary::kNCDIS) return true;
-  else if(fInteractionMode == WCSimTruthSummary::kNCCoh) return true;
+    return TypeIsNCEvent(fInteractionMode);
+}
+
+bool WCSimTruthSummary::TypeIsNCEvent(int typeCode){
+  if(typeCode == WCSimTruthSummary::kNCQE) return true;
+  else if(typeCode == WCSimTruthSummary::kNCNuPtoNuPPiZero) return true;
+  else if(typeCode == WCSimTruthSummary::kNCNuPtoNuNPiPlus) return true;
+  else if(typeCode == WCSimTruthSummary::kNCNuNtoNuNPiZero) return true;
+  else if(typeCode == WCSimTruthSummary::kNCNuNtoNuPPiMinus) return true;
+  else if(typeCode == WCSimTruthSummary::kNCNuBarPtoNuBarPPiZero) return true;
+  else if(typeCode == WCSimTruthSummary::kNCNuBarPtoNuBarNPiPlus) return true;
+  else if(typeCode == WCSimTruthSummary::kNCNuBarNtoNuBarNPiZero) return true;
+  else if(typeCode == WCSimTruthSummary::kNCNuBarNtoNuBarPPiMinus) return true;
+  else if(typeCode == WCSimTruthSummary::kNCDIS) return true;
+  else if(typeCode == WCSimTruthSummary::kNCCoh) return true;
   else return false;
 }
 
 bool WCSimTruthSummary::IsQEEvent() const{
-  if(fInteractionMode == WCSimTruthSummary::kCCQE) return true;
-  else if(fInteractionMode == WCSimTruthSummary::kNCQE) return true;
+    return TypeIsQEEvent(fInteractionMode);
+}
+
+bool WCSimTruthSummary::TypeIsQEEvent(int typeCode){
+  if(typeCode == WCSimTruthSummary::kCCQE) return true;
+  else if(typeCode == WCSimTruthSummary::kNCQE) return true;
   else return false;
 }
 
 bool WCSimTruthSummary::IsResEvent() const{
-  if(fInteractionMode == WCSimTruthSummary::kCCNuPtoLPPiPlus) return true;
-  else if(fInteractionMode == WCSimTruthSummary::kCCNuNtoLPPiZero) return true;
-  else if(fInteractionMode == WCSimTruthSummary::kCCNuNtoLNPiPlus) return true;
-  else if(fInteractionMode == WCSimTruthSummary::kCCNuBarNtoLNPiMinus) return true;
-  else if(fInteractionMode == WCSimTruthSummary::kCCNuBarPtoLNPiZero) return true;
-  else if(fInteractionMode == WCSimTruthSummary::kCCNuBarPtoLPPiMinus) return true;
-  else if(fInteractionMode == WCSimTruthSummary::kNCNuPtoNuPPiZero) return true;
-  else if(fInteractionMode == WCSimTruthSummary::kNCNuPtoNuNPiPlus) return true;
-  else if(fInteractionMode == WCSimTruthSummary::kNCNuNtoNuNPiZero) return true;
-  else if(fInteractionMode == WCSimTruthSummary::kNCNuNtoNuPPiMinus) return true;
-  else if(fInteractionMode == WCSimTruthSummary::kNCNuBarPtoNuBarPPiZero) return true;
-  else if(fInteractionMode == WCSimTruthSummary::kNCNuBarPtoNuBarNPiPlus) return true;
-  else if(fInteractionMode == WCSimTruthSummary::kNCNuBarNtoNuBarNPiZero) return true;
-  else if(fInteractionMode == WCSimTruthSummary::kNCNuBarNtoNuBarPPiMinus) return true;
+    return TypeIsResEvent(fInteractionMode);
+}
+
+
+bool WCSimTruthSummary::TypeIsResEvent(int typeCode){
+  if(typeCode == WCSimTruthSummary::kCCNuPtoLPPiPlus) return true;
+  else if(typeCode == WCSimTruthSummary::kCCNuNtoLPPiZero) return true;
+  else if(typeCode == WCSimTruthSummary::kCCNuNtoLNPiPlus) return true;
+  else if(typeCode == WCSimTruthSummary::kCCNuBarNtoLNPiMinus) return true;
+  else if(typeCode == WCSimTruthSummary::kCCNuBarPtoLNPiZero) return true;
+  else if(typeCode == WCSimTruthSummary::kCCNuBarPtoLPPiMinus) return true;
+  else if(typeCode == WCSimTruthSummary::kNCNuPtoNuPPiZero) return true;
+  else if(typeCode == WCSimTruthSummary::kNCNuPtoNuNPiPlus) return true;
+  else if(typeCode == WCSimTruthSummary::kNCNuNtoNuNPiZero) return true;
+  else if(typeCode == WCSimTruthSummary::kNCNuNtoNuPPiMinus) return true;
+  else if(typeCode == WCSimTruthSummary::kNCNuBarPtoNuBarPPiZero) return true;
+  else if(typeCode == WCSimTruthSummary::kNCNuBarPtoNuBarNPiPlus) return true;
+  else if(typeCode == WCSimTruthSummary::kNCNuBarNtoNuBarNPiZero) return true;
+  else if(typeCode == WCSimTruthSummary::kNCNuBarNtoNuBarPPiMinus) return true;
   else return false;
 }
 
 bool WCSimTruthSummary::IsDISEvent() const{
-  if(fInteractionMode == WCSimTruthSummary::kCCDIS) return true;
-  else if(fInteractionMode == WCSimTruthSummary::kNCDIS) return true;
+    return TypeIsDISEvent(fInteractionMode);
+}
+
+bool WCSimTruthSummary::TypeIsDISEvent(int typeCode){
+  if(typeCode == WCSimTruthSummary::kCCDIS) return true;
+  else if(typeCode == WCSimTruthSummary::kNCDIS) return true;
   else return false;
 }
 
 bool WCSimTruthSummary::IsCohEvent() const{
-  if(fInteractionMode == WCSimTruthSummary::kCCCoh) return true;
-  else if(fInteractionMode == WCSimTruthSummary::kNCCoh) return true;
+    return TypeIsCohEvent(fInteractionMode);
+}
+
+bool WCSimTruthSummary::TypeIsCohEvent(int typeCode){
+  if(typeCode == WCSimTruthSummary::kCCCoh) return true;
+  else if(typeCode == WCSimTruthSummary::kNCCoh) return true;
   else return false;
 }
 
 bool WCSimTruthSummary::IsNueElectronElasticEvent() const{
-  if(fInteractionMode == WCSimTruthSummary::kElastic) return true;
+    return TypeIsNueElectronElasticEvent(fInteractionMode);
+}
+
+
+bool WCSimTruthSummary::TypeIsNueElectronElasticEvent(int typeCode){
+  if(typeCode == WCSimTruthSummary::kElastic) return true;
   else return false; 
 }
 
 bool WCSimTruthSummary::IsInverseMuonDecayEvent() const{
-  if(fInteractionMode == WCSimTruthSummary::kInverseMuDecay) return true;
+    return TypeIsInverseMuonDecayEvent(fInteractionMode);
+}
+
+bool WCSimTruthSummary::TypeIsInverseMuonDecayEvent(int typeCode){
+  if(typeCode == WCSimTruthSummary::kInverseMuDecay) return true;
   else return false; 
 }
 

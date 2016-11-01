@@ -72,6 +72,14 @@ public:
   void SetInteractionMode(int mode);
 
   // A few convenience methods for querying the interaction type
+  static bool TypeIsCCEvent(int typeCode);
+  static bool TypeIsNCEvent(int typeCode);
+  static bool TypeIsQEEvent(int typeCode);
+  static bool TypeIsResEvent(int typeCode);
+  static bool TypeIsDISEvent(int typeCode);
+  static bool TypeIsCohEvent(int typeCode);
+  static bool TypeIsNueElectronElasticEvent(int typeCode);
+  static bool TypeIsInverseMuonDecayEvent(int typeCode);
   bool IsCCEvent() const;
   bool IsNCEvent() const;
   bool IsQEEvent() const;
