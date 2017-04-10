@@ -1,6 +1,6 @@
 ## Select the geometry
 ## Current default is CHIPS-10 with 10inch tubes
-/WCSim/WCgeom CHIPS_10kton_10inch_HQE_10perCent
+/WCSim/WCgeom CHIPS_10kton_3inch_HQE_6perCent
 
 # Uncomment to use Leigh's pmt simulation
 #/WCSim/PMTSim chips
