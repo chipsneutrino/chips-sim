@@ -474,7 +474,8 @@ G4ThreeVector WCSimPrimaryGeneratorAction::GenerateRandomVertex() const{
   // Genie events are generates at (0,0,0) - we want to place them randomly in a 
   // box or cylinder
   G4ThreeVector rdmVtx;
-  double border = fFidBorder * m;
+  double border = (fFidBorder * m) / 10;
+
   if( myDetector->GetIsMailbox() )
   {
     G4double xMax = myDetector->GetWCCylInfo(0) - 2*border;
@@ -488,8 +489,8 @@ G4ThreeVector WCSimPrimaryGeneratorAction::GenerateRandomVertex() const{
   else
   {
     double rRand,thetaRand,zRand;
-    rRand = sqrt(G4UniformRand()) * 0.5 * (myDetector->GetWCCylInfo(0)-border) * cm;
-    zRand = (G4UniformRand() - 0.5) * (myDetector->GetWCCylInfo(2)-2*border) * cm;
+    rRand = sqrt(G4UniformRand()) * 0.5 * (myDetector->GetWCCylInfo(0)-(2*border)) * cm;
+    zRand = (G4UniformRand() - 0.5) * (myDetector->GetWCCylInfo(2)-(2*border)) * cm;
     thetaRand = (G4UniformRand()) * 2.0 * M_PI;
     rdmVtx = G4ThreeVector(rRand*cos(thetaRand),rRand*sin(thetaRand),zRand); 
   }
