@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+0;95;0c<?xml version="1.0" encoding="utf-8"?>
 
 <!-- The time constant is measured in nano-seconds, and related to the 
 time resolution by WCSimWCDigitizer in the following way:
@@ -370,11 +370,11 @@ qe19="660 0.0000"
 
 
 
-<!-- French 3-Inch  PMT (R6091) -  26% max QE -->
+<!-- French 3-Inch  PMT (R6091) -  ~12% max QE -->
 <pmtDef
    name="R6091"
-   radius="0.03450"
-   exposeHeight="0.01"
+   radius="0.03250"
+   exposeHeight="0.008"
    glassThickness="0.002"
         timeConstant="2.0"
    qe0="280 0.0000"
@@ -403,11 +403,11 @@ qe19="660 0.0000"
 
 
 
-<!-- French 3-Inch  PMT (R6091) -  26% max QE - with Light Cone form Tom's optimisation -->
+<!-- French 3-Inch  PMT (R6091) -  ~12% max QE - with Light Cone form Tom's optimisation -->
 <pmtDef
    name="R6091_LC_v1"
-   radius="0.03450"
-   exposeHeight="0.01"
+   radius="0.03250"
+   exposeHeight="0.008"
    glassThickness="0.002"
         timeConstant="2.0"
         lightCollector = "R6091_LC_v1"
