@@ -13,6 +13,7 @@
 // Default constructor
 WCSimGeoConfig::WCSimGeoConfig(){
   fPMTLimit = WCSimGeometryEnums::PhotodetectorLimit_t::kUnknown;
+  fPMTSupport = WCSimGeometryEnums::PMTSupport_t::kUnknown;
 	fGeoName = "";
 	fOuterRadius = 0.;
 	fInnerHeight = 0.;
@@ -32,6 +33,8 @@ WCSimGeoConfig::WCSimGeoConfig(const WCSimGeoConfig &rhs){
 
   fPMTLimit = rhs.fPMTLimit;
   fZoneMap = rhs.fZoneMap;
+
+  fPMTSupport = rhs.fPMTSupport;
 
 	fPMTNamesUsed = rhs.GetPMTNamesUsed();
 	fCurrentRegions = rhs.fCurrentRegions;
@@ -754,6 +757,30 @@ void WCSimGeoConfig::SetCoverageType(
 		assert(0);
 	}
 }
+
+
+void WCSimGeoConfig::SetPMTSupport(std::string supportName)
+{
+	WCSimGeometryEnums::PMTSupport_t support = WCSimGeometryEnums::PMTSupport_t(supportName);
+	SetPMTSupport(support);
+
+}
+
+void WCSimGeoConfig::SetPMTSupport(WCSimGeometryEnums::PMTSupport_t support){
+
+  // std::cout << "Setting PMT Support type to " << suport.AsString() << std::endl;
+        if(support == WCSimGeometryEnums::PMTSupport_t::kUnknown)  {  
+	  std::cerr << "Error: unknown PMT Support type: " << support.AsString() << std::endl;
+	  assert(0);
+	} else  {   fPMTSupport = support;   }
+	 
+}
+
+bool WCSimGeoConfig::UsePMTSupport(WCSimGeometryEnums::PMTSupport_t support){
+
+  return ( fPMTSupport == support );
+}
+
 
 void WCSimGeoConfig::CreateMissingZone(
 		WCSimGeometryEnums::DetectorRegion_t region, int zone)

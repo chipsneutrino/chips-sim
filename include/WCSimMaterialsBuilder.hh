@@ -61,6 +61,8 @@ private:
 	G4OpticalSurface * fOpWaterTySurface;
         G4OpticalSurface * fOpWaterLCinSurface;
         G4OpticalSurface * fOpWaterLCoutSurface;
+        G4OpticalSurface * fOpWaterPlanePipeSurface;
+        G4OpticalSurface * fOpWaterPMTBackSurface;
 };
 
 #endif /* WCSIMMATERIALSBUILDER_HH_ */

@@ -163,8 +163,10 @@ G4bool WCSimWCSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
   // Get the tube ID from the tubeTag
   G4int replicaNumber = WCSimDetectorConstruction::GetTubeID(tubeTag.str());
     
-  G4float collection_angle[10]={0,10,20,30,40,50,60,70,80,90};
-  G4float collection_eff[10]={100,100,99,95,90,85,80,69,35,13};
+  //  G4float collection_angle[10]={0,10,20,30,40,50,60,70,80,90};
+  //  G4float collection_eff[10]={100,100,99,95,90,85,80,69,35,13};
+  G4float collection_angle[10]={0,10,20,30,40,50,60,70,74,90};
+  G4float collection_eff[10]={100,100,100,100,100,100,100,100,100,20};
   
   G4float theta_angle;
   G4float effectiveAngularEfficiency;

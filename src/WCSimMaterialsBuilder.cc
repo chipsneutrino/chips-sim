@@ -23,7 +23,9 @@ WCSimMaterialsBuilder::WCSimMaterialsBuilder() : fOpWaterBSSurface(NULL),
 	                                               fOpGlassCathodeSurface(NULL),
                                                  fOpWaterTySurface(NULL),
 						 fOpWaterLCinSurface(NULL),
-						 fOpWaterLCoutSurface(NULL)
+						 fOpWaterLCoutSurface(NULL),
+                                                 fOpWaterPlanePipeSurface(NULL),
+                                                 fOpWaterPMTBackSurface(NULL)
 {
 	BuildVacuum();
 	BuildElements();
@@ -121,6 +123,11 @@ void WCSimMaterialsBuilder::BuildElements() {
 	name = "Sulphur";
 	G4Element * elS = new G4Element(name, "S", 16., a);
 	fElements[name] = elS;
+
+        a = 35.453 * g / mole;
+        name = "Chlorine";
+        G4Element * elCl = new G4Element(name, "Cl", 17., a);
+	fElements[name] = elCl;
 
 	a = 39.948 * g / mole;
 	name = "Argon";
@@ -240,6 +247,14 @@ void WCSimMaterialsBuilder::BuildMaterials() {
 	Plastic->AddElement(GetElement("Carbon"), 1);
 	Plastic->AddElement(GetElement("Hydrogen"), 2);
 	fMaterials.push_back(name);
+
+        density = 1.4 * g / cm3;
+        name = "PVC";
+        G4Material* PVC = new G4Material(name, density, 3);
+	PVC->AddElement(GetElement("Carbon"),   2);
+	PVC->AddElement(GetElement("Hydrogen"), 3);
+	PVC->AddElement(GetElement("Chlorine"), 1);
+        fMaterials.push_back(name);
 
 	density = 2.7 * g / cm3;
 	name = "Aluminum";
@@ -676,6 +691,10 @@ void WCSimMaterialsBuilder::BuildMaterialPropertiesTable() {
 			NUMENTRIES_water);
 	GetMaterial("Plastic")->SetMaterialPropertiesTable(myMPT3);
 
+        // Set PVC with same properties as Plastic, Water/PVC optical surface defined below
+        GetMaterial("PVC")->SetMaterialPropertiesTable(myMPT3);
+
+
 	// Blacksheet
 	/////////////////////
 
@@ -798,6 +817,20 @@ void WCSimMaterialsBuilder::BuildMaterialPropertiesTable() {
         // Give Light Collector Outer Surface same properties as Blak Sheet (myST1) 
         fOpWaterLCoutSurface->SetMaterialPropertiesTable(myST1);
 
+	G4double ENERGY_PVC[NUM]           = {1.7e-9 * GeV,  6.2e-9 * GeV } ;
+	G4double PVCREFLECTIVITY[NUM]      = { 0.75, 0.75 }; // Constant for the moment (probably needs some refinemnet)
+        ///G4double PVCREFLECTIVITY[NUM]      = { 0.15, 0.15 }; // Constant for the moment (probably needs some refinemnet)  || form Karan Measurmensts
+	G4MaterialPropertiesTable *myST5 = new G4MaterialPropertiesTable();
+	myST5->AddProperty("REFLECTIVITY", ENERGY_PVC, PVCREFLECTIVITY,NUM);
+        fOpWaterPlanePipeSurface->SetMaterialPropertiesTable(myST5);
+
+        G4double ENERGY_PMTBACK[NUM]           = {1.7e-9 * GeV,  6.2e-9 * GeV };
+        G4double PMTBACKREFLECTIVITY[NUM]      = { 0.0,           0.0         }; 
+	G4double PMTBACKABSLEN[NUM]            = { 1.0e-9 * cm, 1.0e-9 * cm   };
+        G4MaterialPropertiesTable *myST6 = new G4MaterialPropertiesTable();
+        myST6->AddProperty("REFLECTIVITY", ENERGY_PMTBACK, PMTBACKREFLECTIVITY, NUM);
+	myST6->AddProperty("ABSLENGTH",    ENERGY_PMTBACK, PMTBACKABSLEN,       NUM);
+        fOpWaterPMTBackSurface->SetMaterialPropertiesTable(myST6);
 
 }
 
@@ -891,5 +924,32 @@ void WCSimMaterialsBuilder::BuildSurfaces() {
           fOpticalSurfaces[name] = fOpWaterLCoutSurface;
 
         }
+
+        // --------- Plane Pipes  Surface
+        if (fOpWaterPlanePipeSurface == NULL) {
+
+          G4String name = "WaterPlanePipeSurface";
+
+          fOpWaterPlanePipeSurface = new G4OpticalSurface(name);
+          fOpWaterPlanePipeSurface->SetType(dielectric_dielectric);
+          fOpWaterPlanePipeSurface->SetModel(unified);
+          fOpWaterPlanePipeSurface->SetFinish(groundfrontpainted);
+          fOpWaterPlanePipeSurface->SetSigmaAlpha(0.1);
+          fOpticalSurfaces[name] = fOpWaterPlanePipeSurface;
+        }
+
+	// --------- PMT Back  Surface
+	if (fOpWaterPMTBackSurface == NULL) {
+
+          G4String name = "WaterPMTBackSurface";
+
+          fOpWaterPMTBackSurface = new G4OpticalSurface(name);
+          fOpWaterPMTBackSurface->SetType(dielectric_dielectric);
+          fOpWaterPMTBackSurface->SetModel(unified);
+          fOpWaterPMTBackSurface->SetFinish(groundfrontpainted);
+          fOpWaterPMTBackSurface->SetSigmaAlpha(0.1);
+          fOpticalSurfaces[name] = fOpWaterPMTBackSurface;
+        }
+
 }
 

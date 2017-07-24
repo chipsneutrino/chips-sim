@@ -9,6 +9,7 @@
 #include "WCSimPMTConfig.hh"
 #include "WCSimWCSD.hh"
 #include "G4Box.hh"
+#include "G4Tubs.hh"
 #include "G4LogicalBorderSurface.hh"
 #include "G4LogicalSkinSurface.hh"
 #include "G4LogicalVolume.hh"
@@ -103,12 +104,14 @@ void WCSimPMTBuilder::ConstructPMT(WCSimPMTConfig config) {
 	// Don't recreate if it already exists:
 	if(fPMTLogicalVolumes.find(config.GetPMTName()) != fPMTLogicalVolumes.end()){ return; }
 
-	double tmpRadius = config.GetRadius();
-	double tmpExpose = config.GetExposeHeight();
-	double sphereRadius = (tmpExpose*tmpExpose + tmpRadius*tmpRadius)/(2*tmpExpose);
+        double tmpRadius = config.GetRadius();
+        double pmtExpose = config.GetExposeHeight();
+        double unsensitiveHeight = config.GetUnsensitiveHeight();
+        double sphereRadius = (pmtExpose*pmtExpose + tmpRadius*tmpRadius)/(2*pmtExpose);
+        double tmpExpose = pmtExpose + unsensitiveHeight;
+
+        double PMTCut    =  sphereRadius - pmtExpose;
 	double PMTOffset =  sphereRadius - tmpExpose;
-
-
 
 	// Light   Collector 
 	int lcPoints = (config.GetLCConfig()).GetNShapePoints();
@@ -157,7 +160,7 @@ void WCSimPMTBuilder::ConstructPMT(WCSimPMTConfig config) {
 	logicWCPMT->SetVisAttributes(WCPMTVisAtt);
 
 	//Need a volume to cut away excess behind blacksheet
-	G4Box* solidCutOffTubs = new G4Box("cutOffTubs", sphereRadius+1.*cm, sphereRadius+1.*cm, PMTOffset);
+	G4Box* solidCutOffTubs = new G4Box("cutOffTubs", sphereRadius+1.*cm, sphereRadius+1.*cm, PMTCut);
 
 	//Create PMT Interior
 	G4Sphere* tmpSolidInteriorWCPMT = new G4Sphere("tmpInteriorWCPMT",
@@ -202,6 +205,31 @@ void WCSimPMTBuilder::ConstructPMT(WCSimPMTConfig config) {
 	                                    																		 physiGlassFaceWCPMT,
 	                                    																		 physiInteriorWCPMT,
 	                                    																		 OpGlassCathodeSurface);
+
+
+
+        //Need a volume to the back of the PMT galss and photocathode, to shield back reflections
+        if(unsensitiveHeight>0.1*cm){
+
+          G4Tubs* solidBackTubs = new G4Tubs("backTubs", 0, config.GetRadius(), 0.05*cm, 0*deg, 360*deg);
+
+          G4Material *blacksheet = WCSimMaterialsBuilder::Instance()->GetMaterial("Blacksheet");
+
+          G4LogicalVolume * logicPMTBack = new G4LogicalVolume(solidBackTubs, glass,    "PMTBack", 0, 0, 0);
+
+	  G4VPhysicalVolume* physiPMTBack =   new G4PVPlacement(0,
+								G4ThreeVector(0, 0, unsensitiveHeight-0.05*cm),
+								logicPMTBack, ("PMTBack"+pmtName).c_str(),
+								logicWCPMT,   false, 0);
+
+          //Add Optical Surfaces
+          G4SurfaceProperty * OpWaterPMTBackSurface = (G4SurfaceProperty*)(WCSimMaterialsBuilder::Instance()->GetOpticalSurface("WaterPMTBackSurface"));
+
+          G4LogicalSkinSurface* WaterPMTBackSurface = new G4LogicalSkinSurface(
+									       "WaterPMTBackSurface",
+									       logicPMTBack,
+									       OpWaterPMTBackSurface);
+        }
 
 
 	// Light Collector 

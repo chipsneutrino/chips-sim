@@ -29,6 +29,9 @@ public:
 	double GetExposeHeight() const;
 	void SetExposeHeight(double height);
 
+        double GetUnsensitiveHeight() const;
+        void SetUnsensitiveHeight(double height);
+
 	double GetGlassThickness() const;
 	void SetGlassThickness(double thick);
 
@@ -63,6 +66,7 @@ private:
 
 	double fRadius;
 	double fExposeHeight;
+        double fUnsensitiveHeight;
 	double fGlassThickness;
 	double fTimeConstant;
 	// Efficency stored in a pair of <wavelength,efficiency>

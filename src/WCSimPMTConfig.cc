@@ -15,6 +15,7 @@ WCSimPMTConfig::WCSimPMTConfig(){
 
 	fRadius = 0.;
 	fExposeHeight = 0.;
+	fUnsensitiveHeight = 0.;
 	fGlassThickness = 0.;
 	fEffBins = 0;
 	fMaxEff = 0;
@@ -28,6 +29,7 @@ WCSimPMTConfig::WCSimPMTConfig(const WCSimPMTConfig &rhs){
 
 	fRadius = rhs.GetRadius();
 	fExposeHeight = rhs.GetExposeHeight();
+	fUnsensitiveHeight = rhs.GetUnsensitiveHeight();
 	fGlassThickness = rhs.GetGlassThickness();
 	this->SetEfficiencyVector(rhs.GetEfficiencyVector());
 	fPMTName = rhs.GetPMTName();
@@ -57,7 +59,7 @@ double WCSimPMTConfig::GetArea() const{
   return M_PI * fRadius * fRadius;
 }
 
-// Exposed height 
+// Exposed (sensitive) height 
 
 double WCSimPMTConfig::GetExposeHeight() const{
 	return fExposeHeight;
@@ -65,6 +67,16 @@ double WCSimPMTConfig::GetExposeHeight() const{
 
 void WCSimPMTConfig::SetExposeHeight(double height){
 	fExposeHeight = height;
+}
+
+// Unsensitive height
+
+double WCSimPMTConfig::GetUnsensitiveHeight() const{
+  return fUnsensitiveHeight;
+}
+
+void WCSimPMTConfig::SetUnsensitiveHeight(double height){
+  fUnsensitiveHeight = height;
 }
 
 // Glass Thickness
@@ -134,7 +146,7 @@ double WCSimPMTConfig::GetMaxRadius() const{
 // Max Exposed height between PMT and Light Cone 
 
 double WCSimPMTConfig::GetMaxExposeHeight() const{
-  return std::max(fExposeHeight, fLCConfig.GetExposeHeight());
+  return std::max(fExposeHeight+fUnsensitiveHeight, fLCConfig.GetExposeHeight());
 }
 
 std::string WCSimPMTConfig::GetLCName() const{
@@ -163,6 +175,7 @@ void WCSimPMTConfig::Print() const{
 	std::cout << "\tName = " << this->GetPMTName() << std::endl;
 	std::cout << "\tRadius = " << this->GetRadius()/m << "m" << std::endl;
 	std::cout << "\tExpose Height = " << this->GetExposeHeight()/m << "m" << std::endl;
+	std::cout << "\tUnsensitive Height = " << this->GetUnsensitiveHeight()/m << "m" << std::endl;
 	std::cout << "\tGlass Thickness = " << this->GetGlassThickness()/m << "m" << std::endl;
 	if(this->GetLCName() != "") 
 	  std::cout << "\tLight Collector = " << this->GetLCName() << std::endl;

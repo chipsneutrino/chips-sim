@@ -56,6 +56,10 @@ public:
 	double GetZonalCoverageFraction(WCSimGeometryEnums::DetectorRegion_t region, int zone) const;
 	void SetZonalCoverage( WCSimGeometryEnums::DetectorRegion_t region, int zone, double coverage );
 	void SetZonalCoverage(double coverage);
+        
+        void SetPMTSupport(std::string supportName);
+	void SetPMTSupport(WCSimGeometryEnums::PMTSupport_t support);
+        bool UsePMTSupport(WCSimGeometryEnums::PMTSupport_t support);
 
   void SetVetoSize(double val);
   double GetVetoSize() const;
@@ -130,6 +134,8 @@ private:
 
 	WCSimGeometryEnums::PhotodetectorLimit_t fPMTLimit;
 	std::map<std::string, int> fPMTLimitMap;
+
+        WCSimGeometryEnums::PMTSupport_t fPMTSupport;
 
 	std::string fGeoName;
 	double fOuterRadius;

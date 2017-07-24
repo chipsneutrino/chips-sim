@@ -49,6 +49,11 @@ WCSimCherenkovBuilder::WCSimCherenkovBuilder(G4int DetConfig) :
 
 	fBlacksheetThickness = 5 * mm;
 	fWhitesheetThickness = fBlacksheetThickness;
+
+	fPMTHolderLength = 154.8 * mm;
+        fPlanePipeRadius = 19.05 * mm;  // 1.5 Inch Pipes
+        fPlanePipeStep   = 1850  * mm; // Approximate POM Length
+
 	fDebugMode 			 = true;
 
   fPMTManager = new WCSimPMTManager();
@@ -700,6 +705,12 @@ void WCSimCherenkovBuilder::PlaceBarrelPMTs()
 
 	for(unsigned int iZone = 0; iZone < fGeoConfig->GetNumZones(WCSimGeometryEnums::DetectorRegion_t::kWall); ++iZone)
 	{
+
+
+	        // Clear vectors with extreme PMT positions used to compute Plane Pipes length (zone dependent)
+                fBarrelExtremePMTPos_Min.clear();
+		fBarrelExtremePMTPos_Max.clear();
+
 		G4double widthPerCell = segmentWidth / fWallCellsX.at(iZone);
 		G4double heightPerCell = GetBarrelLengthForCells() / fWallCellsZ.at(iZone);
 		std::cout << "segment width = " << segmentWidth << std::endl;
@@ -765,6 +776,10 @@ void WCSimCherenkovBuilder::PlaceBarrelPMTs()
 				      *tmpWCPMTRotation *= GetArbitraryPMTFaceRotation( pmtFaceTheta.at(nPMT), pmtFacePhi.at(nPMT));
 				else  *tmpWCPMTRotation *= GetBarrelPMTFaceRotation(    pmtFaceType.at(nPMT),  iZone);
 
+
+	//Stefano : Plane Pipes
+	double pomD = ( fGeoConfig->UsePMTSupport( WCSimGeometryEnums::PMTSupport_t::kPOM ) ) ? 2*fPlanePipeRadius + fPMTHolderLength + 5*mm : 0;
+	 
         // Leigh: Veto specialities.
         G4ThreeVector vetoShift;
         if(pmtFaceType.at(nPMT) == WCSimGeometryEnums::PMTDirection_t::kVeto){
@@ -772,16 +787,21 @@ void WCSimCherenkovBuilder::PlaceBarrelPMTs()
           rotation.rotateZ(180.*deg);
           *tmpWCPMTRotation *= rotation;
           vetoShift.setX(fBlacksheetThickness + fWhitesheetThickness);
+
+	  pomD = 0;
         }	
-        PMTPosition += vetoShift;
+
+       PMTPosition += vetoShift;
+
 
 				//	double radius = std::max((config.GetLCConfig()).GetMaxRadius(), config.GetRadius()       );			
 				double radius = config.GetMaxRadius();			
 				double dTheta = fabs( tmpWCPMTRotation->thetaY()/deg -90 );
 				double dR     = radius*sin(dTheta*deg);
-				
-				G4ThreeVector PMTShift( -dR, 0, 0);
-				PMTPosition += PMTShift;
+			
+                                // Shift PMT postion for Roation and Plane Pipes, shift should be zero if not needed
+                                G4ThreeVector PMTShift( -dR -pomD, 0, 0);
+                                PMTPosition += PMTShift;
 				// <<----                               <---------
 				
 				// G4VPhysicalVolume* physiWCBarrelPMT =
@@ -797,10 +817,42 @@ void WCSimCherenkovBuilder::PlaceBarrelPMTs()
 				// logicWCPMT->GetDaughter(0),physiCapPMT is the glass face. If you add more
 				// daugter volumes to the PMTs (e.g. a acryl cover) you have to check, if
 				// this is still the case.
+
+                                //Stefano: Plane Pipes
+
+                                // loop over Z pos: only need one min and maz per Z
+                                G4ThreeVector PipeBackShift( pomD/2-fPlanePipeRadius, 0, 0);
+                                bool isNewZ = true;
+                                int iZ = -1;
+                                for(int zit = 0; zit< fBarrelExtremePMTPos_Max.size(); ++zit){
+                                  if( PMTPosition.z() == (fBarrelExtremePMTPos_Max.at(zit)).z() ){
+
+                                    isNewZ = false;
+                                    iZ = zit;
+
+                                  }  // if zit.Z
+				}// for zit
+
+                                if(isNewZ) {
+				  // std::cout << "Plane Pipe : New Position! " << std::endl;
+                                  fBarrelExtremePMTPos_Max.push_back(PMTPosition+PipeBackShift);
+                                  fBarrelExtremePMTPos_Min.push_back(PMTPosition+PipeBackShift);
+                                } else if( PMTPosition.y() < (fBarrelExtremePMTPos_Min.at(iZ)).y() ){
+				  // std::cout << "Plane Pipe : New Min Y! " << std::endl;
+                                  fBarrelExtremePMTPos_Min[iZ] = PMTPosition+PipeBackShift;
+                                } else if( PMTPosition.y() > (fBarrelExtremePMTPos_Max.at(iZ)).y() ){
+				  // std::cout << "Plane Pipe : New Max Y! " << std::endl;
+                                  fBarrelExtremePMTPos_Max[iZ] = PMTPosition+PipeBackShift;
+                                }// if isNewZ
+
 			}
 		}
 		std::cout << "PMTs placed on walls!" << std::endl;
-	}
+
+		/// Plane Pipes placement needs to be just after the corresponding PMT placement
+		if( fGeoConfig->UsePMTSupport( WCSimGeometryEnums::PMTSupport_t::kPOM  ) )  PlaceBarrelPlanePipes(iZone);
+
+	} // for iZone
 }
 
 WCSimGeoConfig * WCSimCherenkovBuilder::GetGeoConfig() const {
@@ -820,7 +872,7 @@ void WCSimCherenkovBuilder::GetMeasurements()
     fBarrelLengthForCells = fGeoConfig->GetInnerHeight() - 2.0 * GetMaxCapExposeHeight();
 
     fPrismRadiusInside = fGeoConfig->GetInnerRadius() - epsilon;
-    fPrismRadiusOutside = fGeoConfig->GetInnerRadius() + fBlacksheetThickness + fWhitesheetThickness + 2*GetMaxBarrelExposeHeight() + nEpsilons * epsilon;
+    fPrismRadiusOutside = fGeoConfig->GetInnerRadius() + fBlacksheetThickness + fWhitesheetThickness + 2*GetMaxBarrelExposeHeight() + (2*fPlanePipeRadius + fPMTHolderLength + 5*mm) + nEpsilons * epsilon;   
     fPrismHeight = fBarrelLengthForCells;
 
     // Leigh: Veto considerations
@@ -855,7 +907,7 @@ void WCSimCherenkovBuilder::GetMeasurements()
     fPrismRingSegmentDPhi = 360*deg / fGeoConfig->GetNSides();
 
     assert(--nEpsilons > 0);
-    fPrismRingSegmentBSRadiusInside = fPrismRingSegmentRadiusInside + GetMaxBarrelExposeHeight();
+    fPrismRingSegmentBSRadiusInside = fPrismRingSegmentRadiusInside + GetMaxBarrelExposeHeight() + (2*fPlanePipeRadius + fPMTHolderLength + 5*mm);  // make room for pmt/LC  and  pipes
     fPrismRingSegmentBSRadiusOutside = fPrismRingSegmentBSRadiusInside + fBlacksheetThickness - epsilon;
 
     assert(--nEpsilons > 0);
@@ -1870,6 +1922,10 @@ void WCSimCherenkovBuilder::PlaceEndCapPMTs(G4int zflip){
       std::cout << "Placing zone " << iZone << std::endl;
       placedTop.push_back(0);
 
+      // Clear vecotors with PMT extreme positions used to compute Plane Pipes lenght and position (zone dependent)
+      fEndCapExtremePMTPos_Min.clear();
+      fEndCapExtremePMTPos_Max.clear();
+
 		// Angled walls mean squares don't tile very well
 		// We'll consider their positions, but we only need to get these vectors once
 		// if they live outside the loop.;
@@ -1962,6 +2018,10 @@ void WCSimCherenkovBuilder::PlaceEndCapPMTs(G4int zflip){
 						G4ThreeVector PMTPosition(topLeftCell.x() + pmtCellPosition.x(),
 								topLeftCell.y() - pmtCellPosition.y(), zflip*(dZ+fBlacksheetThickness));//(dZ+(-0.5 * fCapAssemblyHeight + 0.5 * fCapPolygonHeight + fBlacksheetThickness)));	
 
+	     //Stefano : Plane Pipes
+	     double pomD = ( fGeoConfig->UsePMTSupport( WCSimGeometryEnums::PMTSupport_t::kPOM ) ) ? 2*fPlanePipeRadius + fPMTHolderLength + 5*mm : 0;
+
+
             // Leigh: Veto specialities.
             G4ThreeVector vetoShift;
             if(pmtFaceType.at(iPMT) == WCSimGeometryEnums::PMTDirection_t::kVeto){
@@ -1970,7 +2030,11 @@ void WCSimCherenkovBuilder::PlaceEndCapPMTs(G4int zflip){
               *tmpWCCapPMTRotation *= rotation;
               vetoShift.setZ(-1*(fBlacksheetThickness + fWhitesheetThickness)*zflip);
             }	
-            PMTPosition += vetoShift;
+
+	    G4ThreeVector pomShift( 0, 0, -1*zflip*pomD);
+	    G4ThreeVector PipeBackShift( 0, 0, zflip*(pomD/2-fPlanePipeRadius));
+
+            PMTPosition += vetoShift + pomShift;
 
 //            std::cout << " PMT POSITION = " << PMTPosition.x() << ", " << PMTPosition.y() << ", " << PMTPosition.z() << " :: " << zflip << std::endl;
 
@@ -1992,9 +2056,41 @@ void WCSimCherenkovBuilder::PlaceEndCapPMTs(G4int zflip){
 						}
 						fNumPMTs++;
             placedTop.at(iZone)++;
-						// logicWCPMT->GetDaughter(0),physiCapPMT is the glass face. If you add more
-						// daughter volumes to the PMTs (e.g. a acryl cover) you have to check, if
-						// this is still the case.
+	    
+	    // logicWCPMT->GetDaughter(0),physiCapPMT is the glass face. If you add more
+	    // daughter volumes to the PMTs (e.g. a acryl cover) you have to check, if
+	    // this is still the case.
+
+	    if(pmtFaceType.at(iPMT) != WCSimGeometryEnums::PMTDirection_t::kVeto){ // check PMT position for Plane Pipes only for non Veto PMT
+
+	      // Check PMT postion along beam axis :X direction.
+	      // WARNING !!!! This may not work as expected if axis orientation is significantly changed (like beam along Z as usual in HEP)
+	      bool isNewX = true;
+	      int iX = -1;
+	      for(int xit = 0; xit< fEndCapExtremePMTPos_Max.size(); ++xit){
+
+		if( PMTPosition.x() == (fEndCapExtremePMTPos_Max.at(xit)).x() ){
+
+		  isNewX = false;
+		  iX = xit;
+
+		}  // if xit.X
+	      }// for xit
+
+	      if(isNewX) {
+		// std::cout << "Endcap Plane Pipe : New Position! " << std::endl;
+		fEndCapExtremePMTPos_Max.push_back(PMTPosition+PipeBackShift);
+		fEndCapExtremePMTPos_Min.push_back(PMTPosition+PipeBackShift);
+	      } else if( PMTPosition.y() < (fEndCapExtremePMTPos_Min.at(iX)).y() ){
+		// std::cout << "Plane Pipe : New Min Y! " << std::endl;
+		fEndCapExtremePMTPos_Min[iX] = PMTPosition;
+	      } else if( PMTPosition.y() > (fEndCapExtremePMTPos_Max.at(iX)).y() ){
+		// std::cout << "Plane Pipe : New Max Y! " << std::endl;
+		fEndCapExtremePMTPos_Max[iX] = PMTPosition;
+	      }// if isNewX
+
+	    }// if not kVeto
+
 					}
 				}
 
@@ -2002,7 +2098,9 @@ void WCSimCherenkovBuilder::PlaceEndCapPMTs(G4int zflip){
 			}
 			xPos = xPos + cellSide;
 		}
-
+		
+                /// Plane Pipes placement needs to be just after the corresponding PMT placement
+		if( fGeoConfig->UsePMTSupport( WCSimGeometryEnums::PMTSupport_t::kPOM ) ) PlaceEndCapPlanePipes(zflip, iZone);
     }
       
     for (unsigned int i = 0; i < placedTop.size(); ++i)
@@ -2010,6 +2108,283 @@ void WCSimCherenkovBuilder::PlaceEndCapPMTs(G4int zflip){
       std::cout << region.AsString() << ": placed " << placedTop.at(i) << " pmts in zone " << i << std::endl;
     }
 }
+
+
+
+
+void WCSimCherenkovBuilder::PlaceEndCapPlanePipes(G4int zflip, G4int zone){
+
+  // Check Position Vectors size is the same
+  if(fEndCapExtremePMTPos_Max.size() != fEndCapExtremePMTPos_Min.size() ){
+    
+    std::cerr << "Error: mismatch in PMT array positions for Endcap  Plane Pipes - bailing out" << std::endl;
+    assert(0);
+
+  } // if vector size
+
+  G4LogicalVolume * capLogic = NULL;  
+  WCSimGeometryEnums::DetectorRegion_t region;
+  // Top PMTs point downwards
+  if( zflip == -1 )
+    {
+      capLogic = fCapLogicTop;
+      region = WCSimGeometryEnums::DetectorRegion_t::kTop;
+    }
+  else
+    {
+      capLogic = fCapLogicBottom;
+      region = WCSimGeometryEnums::DetectorRegion_t::kBottom;
+    }
+
+  G4Material *PVC = WCSimMaterialsBuilder::Instance()->GetMaterial("PVC");
+
+  G4RotationMatrix* PlanePipeRotation = new G4RotationMatrix;
+  PlanePipeRotation->rotateX( 90 * deg );
+
+
+  G4RotationMatrix* PlanePipeShortRotation = new G4RotationMatrix;
+  PlanePipeShortRotation->rotateX( 90 * deg );
+  PlanePipeShortRotation->rotateY( 90 * deg );
+
+  for(int xit = 0; xit< fEndCapExtremePMTPos_Max.size(); ++xit){  
+
+    double  pipeLength = (fEndCapExtremePMTPos_Max.at(xit) - fEndCapExtremePMTPos_Min.at(xit)).mag();
+
+    if(pipeLength <= 0 ) continue;  // No pipe if min and max extreme position are identical
+
+    //    std::cout << " Pipe Length " << pipeLength << fEndCapExtremePMTPos_Max.at(xit) << " " <<  fEndCapExtremePMTPos_Min.at(xit) << std::endl;
+    std::stringstream ss;
+    ss << "EndCapPlanePipe" << zone << "_" << xit;
+    G4String name = ss.str();
+    
+    G4Tubs *planePipeTube = new G4Tubs(name,
+				       0,     fPlanePipeRadius,
+				       pipeLength/2,
+				       0 * deg,  360 * deg);
+
+
+
+  
+    fPlanePipeLogics.push_back(new G4LogicalVolume( planePipeTube, PVC, name ));
+    int iLogicPipe = fPlanePipeLogics.size() -1;
+
+
+    G4SurfaceProperty * OpWaterPlanePipeSurface = (G4SurfaceProperty*)(WCSimMaterialsBuilder::Instance()->GetOpticalSurface("WaterPlanePipeSurface"));
+
+    ss << "EndCapWaterPlanePipeSurface" << zone << "_" << xit;
+    G4String sname = ss.str();
+    G4LogicalSkinSurface* EcpWaterPlanePipeSurface = new G4LogicalSkinSurface(
+									      sname,
+									      fPlanePipeLogics.at(iLogicPipe),
+									      OpWaterPlanePipeSurface);
+    
+
+    
+    fPlanePipePhysics.push_back( new G4PVPlacement(PlanePipeRotation,
+						  (fEndCapExtremePMTPos_Max.at(xit) + fEndCapExtremePMTPos_Min.at(xit))/2,
+						   fPlanePipeLogics.at(iLogicPipe), name,
+						   capLogic,   false, 0) );
+
+
+    if(xit<fEndCapExtremePMTPos_Max.size()-1){
+
+      double  shortPipeLength = ( (fEndCapExtremePMTPos_Max.at(xit+1))[0] - (fEndCapExtremePMTPos_Min.at(xit))[0] )
+	- 2* fPlanePipeRadius -0.1*mm;  // Distance between Parallel Pipes (alon X dir)
+
+      if(shortPipeLength <= 0) continue;
+
+      int nPlanes =  int(pipeLength/fPlanePipeStep) +1 ;
+
+      double  shortPipeExcess = pipeLength - fPlanePipeStep*(nPlanes-1);
+
+      ss << "EndCapPlanePipeShort" << zone << "_" << xit;
+      name = ss.str();
+
+      G4Tubs *shortPlanePipeTube = new G4Tubs(name,
+					      0,     fPlanePipeRadius,
+					      shortPipeLength/2,
+					      0 * deg,  360 * deg);
+
+
+
+      fPlanePipeLogics.push_back(new G4LogicalVolume( shortPlanePipeTube, PVC, name ));
+      iLogicPipe = fPlanePipeLogics.size() -1;
+      
+      ss << "EndCapWaterPlanePipeShortSurface" << zone << "_" << xit;
+      sname = ss.str();
+      G4LogicalSkinSurface* EcpWaterPlanePipeShortSurface = new G4LogicalSkinSurface(
+										     sname,
+										     fPlanePipeLogics.at(iLogicPipe),
+										     OpWaterPlanePipeSurface);
+     
+      G4ThreeVector deltaShift(0,0,0);
+      int nPipes = 0;
+      for(int sit=0; sit<nPlanes; ++sit){	
+
+	G4ThreeVector shortShift( ((fEndCapExtremePMTPos_Max.at(xit+1))[0] - (fEndCapExtremePMTPos_Min.at(xit))[0]), shortPipeExcess/2 + sit*fPlanePipeStep, 0);
+
+	if( (fEndCapExtremePMTPos_Max.at(xit+1))[1] < (fEndCapExtremePMTPos_Min.at(xit)+shortShift)[1]) break;
+
+	if(sit>0 && sit<nPlanes-1 )  deltaShift = G4ThreeVector(0, -2*fPlanePipeRadius, 0);
+	 
+	fPlanePipePhysics.push_back( new G4PVPlacement(PlanePipeShortRotation,
+						       (fEndCapExtremePMTPos_Min.at(xit)+shortShift+deltaShift),
+						       fPlanePipeLogics.at(iLogicPipe), name,
+						       capLogic,   false, nPipes ) );
+
+	nPipes++;
+				     
+	if(sit>0 && sit<nPlanes-1 ) {
+	  deltaShift = G4ThreeVector(0, 2*fPlanePipeRadius, 0);
+	  fPlanePipePhysics.push_back( new G4PVPlacement(PlanePipeShortRotation,
+							 (fEndCapExtremePMTPos_Min.at(xit)+shortShift+deltaShift),
+							 fPlanePipeLogics.at(iLogicPipe), name,
+							 capLogic,   false, nPipes ));
+	  nPipes++;
+	}
+      } // for sit
+    }// if xit
+  }// for xit
+
+} // PlaceEndCapPlanePipes
+
+
+
+void WCSimCherenkovBuilder::PlaceBarrelPlanePipes(G4int zone){
+
+  // Check Position Vectors size is the same
+  if(fBarrelExtremePMTPos_Max.size() != fBarrelExtremePMTPos_Min.size() ){
+    
+    std::cerr << "Error: mismatch in PMT array positions for Plane Pipes - bailing out" << std::endl;
+    assert(0);
+
+  } // if vector size
+    
+  double  pipeLength = (fBarrelExtremePMTPos_Max.at(0) - fBarrelExtremePMTPos_Min.at(0)).mag();
+  
+  if(pipeLength <= 0) {
+    std::cout << " WARNING - No POM pipes placed for Barrel zone " << zone << std::endl;
+    return;
+  }
+ 
+  std::stringstream ss;
+  ss << "BrlPlanePipe" << zone;
+  G4String name = ss.str();
+ 
+  G4Tubs *planePipeTube = new G4Tubs(name,
+				     0,     fPlanePipeRadius,
+				     pipeLength/2,
+				     0 * deg,  360 * deg);
+
+
+  G4Material *PVC = WCSimMaterialsBuilder::Instance()->GetMaterial("PVC");
+  
+  fPlanePipeLogics.push_back(new G4LogicalVolume( planePipeTube, PVC, name ));
+  int iLogicPipe = fPlanePipeLogics.size() -1;
+
+
+  G4SurfaceProperty * OpWaterPlanePipeSurface = (G4SurfaceProperty*)(WCSimMaterialsBuilder::Instance()->GetOpticalSurface("WaterPlanePipeSurface"));
+
+  ss << "BrlWaterPlanePipeSurface" << zone;
+  G4String sname = ss.str();
+  G4LogicalSkinSurface* BrlWaterPlanePipeSurface = new G4LogicalSkinSurface(
+									    sname,
+									    fPlanePipeLogics.at(iLogicPipe),
+									    OpWaterPlanePipeSurface);
+
+  G4RotationMatrix* PlanePipeRotation = new G4RotationMatrix;
+  PlanePipeRotation->rotateX( 90 * deg ); // 
+
+  G4RotationMatrix* PlanePipeShortRotation = new G4RotationMatrix;
+  PlanePipeShortRotation->rotateZ( 90 * deg );
+  
+  for(int zit = 0; zit< fBarrelExtremePMTPos_Max.size(); ++zit){  
+    
+    double checkPipeLength = (fBarrelExtremePMTPos_Max.at(zit) - fBarrelExtremePMTPos_Min.at(zit)).mag();
+    
+    // Check Pipe Length is always the same inside the same Zone
+    assert(checkPipeLength == pipeLength);
+
+    fPlanePipePhysics.push_back( new G4PVPlacement(PlanePipeRotation,
+						   (fBarrelExtremePMTPos_Max.at(zit) + fBarrelExtremePMTPos_Min.at(zit))/2,
+						   fPlanePipeLogics.at(iLogicPipe), name,
+						   fSegmentLogics.at(zone),   false, zit) );
+    
+
+    double wallSide         = 2.0 * fPrismRingSegmentBSRadiusInside * sin(M_PI / fGeoConfig->GetNSides()); // Side length of walls (copyed from above ... )
+    double shortPipeLength  = (wallSide / fWallCellsX.at(zone) ) /2  - fPlanePipeRadius - 0.1*mm;
+
+
+    if(shortPipeLength <= 0)  continue;
+
+
+    int nPlanes =  int(pipeLength/fPlanePipeStep) +1 ;
+
+
+    double  shortPipeExcess = pipeLength - fPlanePipeStep*(nPlanes-1);
+
+    ss << "BarrelPlanePipeShort" << zone << "_" << zit;
+    name = ss.str();
+   
+    G4Tubs *shortPlanePipeTube = new G4Tubs(name,
+					    0,     fPlanePipeRadius,
+					      shortPipeLength/2,
+					      0 * deg,  360 * deg);
+
+    
+
+    fPlanePipeLogics.push_back(new G4LogicalVolume( shortPlanePipeTube, PVC, name ));
+    iLogicPipe = fPlanePipeLogics.size() -1;
+    
+    ss << "BarrelWaterPlanePipeShortSurface" << zone << "_" << zit;
+    sname = ss.str();
+    G4LogicalSkinSurface* BrlWaterPlanePipeShortSurface = new G4LogicalSkinSurface(
+										     sname,
+										     fPlanePipeLogics.at(iLogicPipe),
+										     OpWaterPlanePipeSurface);
+     
+    G4ThreeVector deltaShift(0,0,0);
+    int nPipes = 0;
+    for(int sit=0; sit<nPlanes; ++sit){	
+      
+      G4ThreeVector shortShift1(  0,  shortPipeExcess/2 + sit*fPlanePipeStep,  shortPipeLength/2 + fPlanePipeRadius + 0.1*mm);
+      G4ThreeVector shortShift2(  0,  shortPipeExcess/2 + sit*fPlanePipeStep, -shortPipeLength/2 - fPlanePipeRadius - 0.1*mm);
+      
+      deltaShift = G4ThreeVector(0, -2*fPlanePipeRadius, 0);
+	 
+      fPlanePipePhysics.push_back( new G4PVPlacement(PlanePipeShortRotation,
+						     (fBarrelExtremePMTPos_Min.at(zit)+shortShift1+deltaShift),
+						     fPlanePipeLogics.at(iLogicPipe), name,
+						     fSegmentLogics.at(zone),   false, nPipes ) );
+      
+      nPipes++;
+      
+      fPlanePipePhysics.push_back( new G4PVPlacement(PlanePipeShortRotation,
+						     (fBarrelExtremePMTPos_Min.at(zit)+shortShift2+deltaShift),
+						       fPlanePipeLogics.at(iLogicPipe), name,
+						     fSegmentLogics.at(zone),   false, nPipes ) );
+      
+      nPipes++;
+
+      deltaShift = G4ThreeVector(0, 2*fPlanePipeRadius, 0);
+      fPlanePipePhysics.push_back( new G4PVPlacement(PlanePipeShortRotation,
+						     (fBarrelExtremePMTPos_Min.at(zit)+shortShift1+deltaShift),
+						     fPlanePipeLogics.at(iLogicPipe), name,
+						     fSegmentLogics.at(zone),   false, nPipes ));
+      nPipes++;
+      
+      fPlanePipePhysics.push_back( new G4PVPlacement(PlanePipeShortRotation,
+						     (fBarrelExtremePMTPos_Min.at(zit)+shortShift2+deltaShift),
+						     fPlanePipeLogics.at(iLogicPipe), name,
+						     fSegmentLogics.at(zone),   false, nPipes ));
+      nPipes++;
+
+    }// for sit    
+  }// for zit
+}
+
+
+
 
 void WCSimCherenkovBuilder::ConstructEndCapPhysicalVolumes(){
   // std::cout << "mainAnnulusHeight = " << mainAnnulusHeight << " (in m = " << mainAnnulusHeight/m << ")" << std::endl;
@@ -2133,6 +2508,17 @@ void WCSimCherenkovBuilder::SetPositions()
 
 void WCSimCherenkovBuilder::Update() {
   std::cout << " *** WCSimCherenkovBuilder::Update *** " << std::endl;
+
+        for(unsigned int iPipe = 0; iPipe < fPlanePipeLogics.size(); ++iPipe)
+	  {
+	    // std::cout << "Deleting Pipe " << iPipe << std::endl;
+	    if( fPlanePipeLogics.at(iPipe) != NULL ){  delete fPlanePipeLogics.at(iPipe); }
+	  }
+	fPlanePipeLogics.clear();
+	fPlanePipePhysics.clear();
+	// std::cout << "All Pipes  -  deleted! " << std::endl;
+
+
 	for(unsigned int iCell = 0; iCell < fWallUnitCells.size(); ++iCell)
 	{
 		delete fWallUnitCells.at(iCell);

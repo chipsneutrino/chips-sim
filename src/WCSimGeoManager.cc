@@ -104,7 +104,11 @@ void WCSimGeoManager::FillGeoAttribute(WCSimGeoConfig &geo, rapidxml::xml_attrib
     double vetoSize = 2.0;
     ss >> vetoSize;
     geo.SetVetoSize(vetoSize*m);
+
+  } else if(name == "pmtSupport"){
+    geo.SetPMTSupport(ss.str());
   }
+
 
 	else{
 		std::cerr << "WCSimGeoManager::FillGeoAttribute: Unexpected parameter " << attr->name() << ", " << attr->value() << std::endl;

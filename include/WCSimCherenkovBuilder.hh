@@ -63,6 +63,10 @@ private:
 	void PlaceEndCapPMTs(G4int zflip);
   void PlaceBarrelPMTs();
 
+  // Stefano Place plane pipes (underneath shifted PMTs)
+  void PlaceEndCapPlanePipes(G4int zflip, G4int zone);
+  void PlaceBarrelPlanePipes(G4int zone);
+
 	void CreateSensitiveDetector(); //< Make the photocathodes responsive
 
   void GetMeasurements();
@@ -117,6 +121,11 @@ private:
 	double fWhitesheetThickness;
 	bool   fDebugMode;
 
+        /// Stefano: Plane Pipe radius, to be moved into xml files ...
+        double fPMTHolderLength;
+        double fPlanePipeRadius;
+        double fPlanePipeStep;
+
 	// Geant objects:
 	G4LogicalVolume* fLakeLogic;
 	G4LogicalVolume* fBarrelLogic;
@@ -130,6 +139,10 @@ private:
 	std::vector<G4VPhysicalVolume*> fPrismRingPhysics;
 	std::vector<G4LogicalVolume*> fSegmentLogics;
 	std::vector<G4VPhysicalVolume*> fSegmentPhysics;
+
+        std::vector<G4LogicalVolume*> fPlanePipeLogics;
+        std::vector<G4VPhysicalVolume*> fPlanePipePhysics;
+
 	G4LogicalVolume* fCapLogicTop;
 	G4LogicalVolume* fCapLogicTopRing;
 	G4LogicalVolume* fCapLogicBottom;
@@ -141,6 +154,12 @@ private:
   G4VPhysicalVolume* fCapWSTopPhysics;
   G4VPhysicalVolume* fCapBSBottomPhysics;
   G4VPhysicalVolume* fCapWSBottomPhysics;
+
+  //Setafno: Store PMT extreme positions in Sector to create Plane Pipes
+  std::vector<G4ThreeVector> fBarrelExtremePMTPos_Max;
+  std::vector<G4ThreeVector> fBarrelExtremePMTPos_Min;
+  std::vector<G4ThreeVector> fEndCapExtremePMTPos_Max;
+  std::vector<G4ThreeVector> fEndCapExtremePMTPos_Min;
 
 	// Constants used to specify the geometry
 	G4bool fGotMeasurements;

@@ -76,6 +76,11 @@ void WCSimPMTManager::FillPMTAttribute(WCSimPMTConfig &pmt, const std::string &a
 		ss >> tempVal;
 		pmt.SetExposeHeight(tempVal*m);
 	}
+        else if(attrName == "unsensitiveHeight"){
+	  double tempVal;
+	  ss >> tempVal;
+	  pmt.SetUnsensitiveHeight(tempVal*m);
+        }
 	else if(attrName == "glassThickness"){
 		double tempVal;
 		ss >> tempVal;

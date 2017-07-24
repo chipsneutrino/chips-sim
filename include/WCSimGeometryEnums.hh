@@ -220,6 +220,78 @@ namespace WCSimGeometryEnums
 		}
 	};
 
+
+
+        struct PMTSupport_t
+	{
+		enum Type{
+			kUnknown = 0,
+			kNone = 1,
+			kPOM = 2
+		};
+		Type fType;
+
+		PMTSupport_t(Type t = kUnknown) : fType(t){}
+		PMTSupport_t(const PMTSupport_t &ep) : fType(ep.fType) {};
+	        PMTSupport_t(const std::string typeName) : fType(kUnknown) {
+
+			if( typeName == "kUnknown" )  { fType = kUnknown; }
+			else if( typeName == "kNone" ){ fType = kNone; }
+			else if( typeName == "kPOM" ){ fType = kPOM; }
+			else{ fType = kUnknown; }
+			if( fType == kUnknown )
+			{
+				std::cerr << "Error: Unknown PMT Support type: \"" << typeName << "\"" << std::endl;
+				assert(0);
+			}
+		}
+
+		operator Type () const { return fType; };
+
+		std::string AsString() const{
+			return AsString(fType);
+		}
+
+		static std::vector<PMTSupport_t> GetAllTypes(){
+			std::vector<PMTSupport_t> myVec;
+			myVec.push_back(kNone);
+			myVec.push_back(kPOM);
+			return myVec;
+		}
+		
+    static std::vector<std::string> GetAllTypeNames(){
+			std::vector<std::string> myVec;
+      std::vector<PMTSupport_t> pmtVec = GetAllTypes();
+      std::vector<PMTSupport_t>::const_iterator pmtIter = pmtVec.begin();
+      while(pmtIter != pmtVec.end())
+      {
+        myVec.push_back(pmtIter->AsString());
+        ++pmtIter;
+      }
+			return myVec;
+		}
+
+		static std::string AsString(Type type){
+		        std::string str("");
+			if( type == kUnknown )  { str = "kUnknown"; }
+			if( type == kNone    )  { str = "kNone"; }
+			if( type == kPOM     )  { str = "kPOM"; }
+			return str;
+		};
+
+		static PMTSupport_t FromString(std::string string)
+		{
+			Type type = kUnknown;
+			if( string == "kUnknown" )  { type = kUnknown; }
+			if( string == "kNone"    )  { type = kNone;    }
+			if( string == "kPOM"     )  { type = kPOM;     }
+			if( type == kUnknown     )  { std::cerr << "Error: unknown PMT support type \"" << string << "\"" << std::endl; assert(0); }
+			return PMTSupport_t(type);
+		}
+	};
+
+
+
 }
 
 
