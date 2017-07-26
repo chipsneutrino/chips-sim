@@ -49,8 +49,8 @@ WCSimCherenkovBuilder::WCSimCherenkovBuilder(G4int DetConfig) :
 
 	fBlacksheetThickness = 5 * mm;
 	fWhitesheetThickness = fBlacksheetThickness;
-
 	fPMTHolderLength = 154.8 * mm;
+	//	fPMTHolderLength = 15.48 * mm;
         fPlanePipeRadius = 19.05 * mm;  // 1.5 Inch Pipes
         fPlanePipeStep   = 1850  * mm; // Approximate POM Length
 
@@ -1053,6 +1053,10 @@ double WCSimCherenkovBuilder::GetMaxCapExposeHeight() {
 		double expHeight2 = cell2->GetCellExposeHeight();
 		if(expHeight2 > maxHeight) { maxHeight = expHeight2; }
 	}
+
+	//Stefano: make room for pipes and PMT holder
+	if(fGeoConfig->UsePMTSupport( WCSimGeometryEnums::PMTSupport_t::kPOM ) ) maxHeight += 2*fPlanePipeRadius + fPMTHolderLength;
+
 	return maxHeight;
 }
 
