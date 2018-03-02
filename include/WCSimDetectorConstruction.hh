@@ -260,6 +260,7 @@ protected: // Changed this from private to let WCSimCherenkovBuilder
 	// Leigh: Flag to decide which PMT simulation to use
 	// - 0 = WCSim default method
 	// - 1 = CHIPS PMT simulation based on IceCube PMTs
+    // - 2 = TOT PMT Simulation
 	G4int PMTSim_Method;
 
     // Andy: Flag to decide which method to use for setting

@@ -266,6 +266,9 @@ void WCSimDetectorMessenger::SetNewValue(G4UIcommand* command,G4String newValue)
 		else if (newValue == "CHIPS" || newValue == "chips"){
 			WCSimDetector->SetPMTSim(1);
 		}
+		else if (newValue == "TOT" || newValue == "tot"){
+			WCSimDetector->SetPMTSim(2);
+		}
 		else{
 			G4cout << "That PMT Sim value does not exist." << std::endl;
 		}
