@@ -162,16 +162,22 @@ G4bool WCSimWCSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 
   // Get the tube ID from the tubeTag
   G4int replicaNumber = WCSimDetectorConstruction::GetTubeID(tubeTag.str());
-    
-  //  G4float collection_angle[10]={0,10,20,30,40,50,60,70,80,90};
-  //  G4float collection_eff[10]={100,100,99,95,90,85,80,69,35,13};
+
+  // 100% angular collection efficiency everywhere, for testing
+  //G4float collection_angle[10]={0,10,20,30,40,50,60,70,74,90};
+  //G4float collection_eff[10]={100,100,100,100,100,100,100,100,100,100};
+
+  // Collection efficiency as suggested by Paul
   G4float collection_angle[10]={0,10,20,30,40,50,60,70,74,90};
   G4float collection_eff[10]={100,100,100,100,100,100,100,100,100,20};
-  
+    
+  // The old one we used
+  //G4float collection_angle[10]={0,10,20,30,40,50,60,70,80,90};
+  //G4float collection_eff[10]={100,100,99,95,90,85,80,69,35,13};
+
+
   G4float theta_angle;
   G4float effectiveAngularEfficiency;
-
-
   
   G4float ratio = 1.;
   G4float maxQE;
@@ -188,8 +194,6 @@ G4bool WCSimWCSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
     photonQE = fdet->GetPMTQE(wavelength,1,240,660,ratio);
   }
   
-  
-
   if (G4UniformRand() <= photonQE){
     
      G4double local_x = localPosition.x();
@@ -198,8 +202,6 @@ G4bool WCSimWCSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
      theta_angle = acos(fabs(local_z)/sqrt(pow(local_x,2)+pow(local_y,2)+pow(local_z,2)))/3.1415926*180.;
      effectiveAngularEfficiency = Interpolate_func(theta_angle,10,collection_angle,collection_eff)/100.;
      if (G4UniformRand() <= effectiveAngularEfficiency || fdet->UsePMT_Coll_Eff()==0){
-
-      
 
        // If this tube hasn't been hit add it to the collection
        if (PMTHitMap[replicaNumber] == 0)
@@ -229,8 +231,8 @@ G4bool WCSimWCSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
        else {
 	 (*hitsCollection)[PMTHitMap[replicaNumber]-1]->AddPe(hitTime);
 	 (*hitsCollection)[PMTHitMap[replicaNumber]-1]->AddParentID(primParentID);
-	 
        }
+
      }
   }
 
