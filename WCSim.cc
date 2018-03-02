@@ -28,8 +28,8 @@ int main(int argc,char** argv)
 {
   // Check to see if we need to use a custom geometry setup macfile
   // Means we can submit batch jobs with different geometries concurrently
-  G4String geoMacFile("geoSetup.mac");
-  G4String macFile("vis.mac");
+  G4String geoMacFile("example/geoSetup.mac");
+  G4String macFile("example/generic_chips.mac");
   if(argc > 1){
   	for(int i = 1; i < argc; ++i){
       std::string dash("-");
@@ -70,7 +70,7 @@ int main(int argc,char** argv)
 
   // Get the tuning parameters
   WCSimTuningParameters::Instance();
-  UI->ApplyCommand("/control/execute tuning_parameters.mac");
+  UI->ApplyCommand("/control/execute config/tuning_parameters.mac");
 
   // define random number generator parameters
   WCSimRandomParameters *randomparameters = new WCSimRandomParameters();
@@ -91,7 +91,7 @@ int main(int argc,char** argv)
   WCSimPhysicsListFactory *physFactory = new WCSimPhysicsListFactory();
 
   // Currently, default model is set to BINARY
-  UI->ApplyCommand("/control/execute jobOptions.mac");
+  UI->ApplyCommand("/control/execute config/jobOptions.mac");
 
   // Initialize the physics factory to register the selected physics.
   physFactory->InitializeList();
@@ -107,7 +107,7 @@ int main(int argc,char** argv)
   // by the program BEFORE the runManager is initialized.
   // If file does not exist, default model will be used.
   // Currently, default model is set to BINARY.
-  UI->ApplyCommand("/control/execute jobOptions2.mac");
+  UI->ApplyCommand("/control/execute config/jobOptions2.mac");
 
   // Visualization
   G4VisManager* visManager = new WCSimVisManager;
@@ -134,14 +134,14 @@ int main(int argc,char** argv)
   runManager->Initialize();
 
 
-  if (macFile.compare("vis.mac") ==0)   // Define UI terminal for interactive mode  
+  if (macFile.compare("example/generic_chips_vis.mac") == 0)   // Define UI terminal for interactive mode
   { 
 
     // Start UI Session
     G4UIsession* session =  new G4UIterminal(new G4UItcsh);
 
     // Visualization Macro
-    UI->ApplyCommand("/control/execute vis.mac");
+    UI->ApplyCommand("/control/execute example/generic_chips_vis.mac");
 
     // Start Interactive Mode
     session->SessionStart();

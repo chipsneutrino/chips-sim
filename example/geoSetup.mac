@@ -4,6 +4,7 @@
 
 # Uncomment to use Leigh's pmt simulation
 #/WCSim/PMTSim chips
+#/WCSim/PMTSim tot
 
 # Should we use the first or mean photon hit time for the time recorded by the PMT?
 # Options: first (default), mean (unphysical but helpful for debugging)
@@ -27,3 +28,6 @@
 #/WCSim/PMTQEMethod     Stacking_Only 
 /WCSim/PMTQEMethod     Stacking_And_SensitiveDetector
 #/WCSim/PMTQEMethod     SensitiveDetector_Only
+
+# turn on or off the collection efficiency (05/27/11 XQ)
+/WCSim/PMTCollEff on
