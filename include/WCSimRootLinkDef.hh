@@ -16,6 +16,7 @@
 #pragma link C++ class WCSimRootPMT+;
 #pragma link C++ class WCSimPmtInfo+;
 #pragma link C++ class WCSimCHIPSPMT+;
+#pragma link C++ class WCSimSK1pePMT+;
 #pragma link C++ class WCSimEvDisplay+;
 #pragma link C++ class WCSimTruthSummary+;
 #pragma link C++ class WCSimLCConfig+;

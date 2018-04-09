@@ -3,7 +3,7 @@
 // GEANT headers
 #include "globals.hh"
 // Root headers
-#include "TRandom.h"
+#include "TRandom3.h"
 // WCSim headers
 #include "WCSimCHIPSPMT.hh"
 
@@ -48,6 +48,8 @@ WCSimCHIPSPMT::WCSimCHIPSPMT(){
 
 	fProbCathodeSkip = 0.0;
 	fProbDynode1Skip = 0.0;
+
+	fRand = TRandom3(0);
 }
 
 WCSimCHIPSPMT::WCSimCHIPSPMT(const WCSimCHIPSPMT& rhs){
@@ -131,7 +133,7 @@ double WCSimCHIPSPMT::GetChargeRandom(double pe){
 	double poisRand = 0;
 
 	// Use Poisson for low pe, and Gaussian for higher values.
-	if(pe < 50.) poisRand = fRand.Poisson(pe);
+	if(pe < 50.) poisRand = fRand.PoissonD(pe);
 	else poisRand = fRand.Gaus(pe,sqrt(pe));
 
 	return poisRand;
