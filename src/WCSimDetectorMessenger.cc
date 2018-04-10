@@ -101,9 +101,9 @@ WCSimDetectorMessenger::WCSimDetectorMessenger(WCSimDetectorConstruction* WCSimD
 
   PMTSim = new G4UIcmdWithAString("/WCSim/PMTSim", this);
   PMTSim->SetGuidance("Set the PMT Simulation required");
-  PMTSim->SetGuidance("Available options are:\n default (SuperK) \n CHIPS (based on IceCube PMTs)");
+  PMTSim->SetGuidance("Available options are:\n default (SuperK) \n CHIPS (based on IceCube PMTs) \n TOT (tries to replicate TOT)");
   PMTSim->SetParameterName("PMTSim",false);
-  PMTSim->SetCandidates("default CHIPS chips");
+  PMTSim->SetCandidates("default CHIPS chips TOT tot");
   PMTSim->AvailableForStates(G4State_PreInit, G4State_Idle);
 
   PMTTime = new G4UIcmdWithAString("/WCSim/PMTTime", this);

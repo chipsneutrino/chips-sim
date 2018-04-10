@@ -12,6 +12,7 @@
 class WCSimDetectorConstruction;
 class WCSimCHIPSPMT;
 class WCSimSK1pePMT;
+class WCSimTOTPMT;
 
 class WCSimWCDigitizer : public G4VDigitizerModule
 {
@@ -59,6 +60,7 @@ class WCSimWCDigitizer : public G4VDigitizerModule
 		WCSimDetectorConstruction* fDet;
 		WCSimCHIPSPMT* fPMTSim;
 		WCSimSK1pePMT* fSK1peSim;
+		WCSimTOTPMT* fTOTSim;
 };
 
 #endif

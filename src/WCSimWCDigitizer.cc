@@ -13,6 +13,7 @@
 #include "WCSimPMTConfig.hh"
 #include "WCSimCHIPSPMT.hh"
 #include "WCSimSK1pePMT.hh"
+#include "WCSimTOTPMT.hh"
 
 #include <vector>
 // for memset
@@ -46,11 +47,13 @@ extern "C" void skrn1pe_(float* );
 	fDet = myDet;
 	fPMTSim = new WCSimCHIPSPMT();
 	fSK1peSim = new WCSimSK1pePMT();
+	fTOTSim = new WCSimTOTPMT();
 }
 
 WCSimWCDigitizer::~WCSimWCDigitizer() {
 	delete fPMTSim;
 	delete fSK1peSim;
+	delete fTOTSim;
 }
 
 void WCSimWCDigitizer::Digitize()
@@ -235,13 +238,23 @@ void WCSimWCDigitizer::DigitizeGate(WCSimWCHitsCollection* WCHC,G4int G)
 
 		// CHIPS method based on a simulation of the IceCube PMTs, takes account
 		// of non-linearity and saturation.
-		else{
+		else if(fDet->GetPMTSim() == 1){
 			// Firstly, we need to get the time spread of the photon arrival times.
 			double minTime = trueHitTime;
 			double maxTime = -1e20;
 			if(totalPe == 1) maxTime = minTime;
 			else maxTime = (*WCHC)[i]->GetLastHitTimeInGate(lowerbound,upperbound);
 			peSmeared = fPMTSim->CalculateCharge(totalPe,minTime,maxTime);
+		}
+
+		// Time over threshold method.
+		else if(fDet->GetPMTSim() == 2){
+			peSmeared = fTOTSim->CalculateCharge(totalPe, (*WCHC)[i]->GetTubeName());
+		}
+
+		else{
+			std::cout << "Digi method not recognised!" << std::endl;
+			peSmeared = 0.0;
 		}
 
 		// Once we have the smeared PE apply the time resolution smearing and save to the digi hit collection
