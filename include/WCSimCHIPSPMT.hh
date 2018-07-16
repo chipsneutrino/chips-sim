@@ -1,7 +1,7 @@
 #include <iostream>
 #include "TRandom3.h"
 
-class WCSimCHIPSPMT{
+class WCSimCHIPSPMT {
 
 	public:
 		// Constructors / Destructor
@@ -14,13 +14,25 @@ class WCSimCHIPSPMT{
 		double CalculateCharge(int pe, double start, double end);
 
 		// Getter functions
-		double GetTotalGain() const {return fTotalGain;};
+		double GetTotalGain() const {
+			return fTotalGain;
+		}
 		double GetDynodeGain(int dynode) const;
-		int GetDynodeStages() const {return fDynodeStages;};
-		double GetDynodeGainMod(int dynode) const {return fDynodeGainMod[dynode];};
-		double GetDamping() const {return fDamping;};
-		double GetProbCathodeSkip() const {return fProbCathodeSkip;};
-		double GetProbDynode1Skip() const {return fProbDynode1Skip;};
+		int GetDynodeStages() const {
+			return fDynodeStages;
+		}
+		double GetDynodeGainMod(int dynode) const {
+			return fDynodeGainMod[dynode];
+		}
+		double GetDamping() const {
+			return fDamping;
+		}
+		double GetProbCathodeSkip() const {
+			return fProbCathodeSkip;
+		}
+		double GetProbDynode1Skip() const {
+			return fProbDynode1Skip;
+		}
 
 	private:
 		// Calculate the damping term due to non linearity

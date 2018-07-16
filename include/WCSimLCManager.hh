@@ -8,7 +8,7 @@
 // This is a class that builds a list of defined LC types and
 // provides the access interface to them.
 
-class WCSimLCManager : public TObject {
+class WCSimLCManager: public TObject {
 
 	public:
 
@@ -33,10 +33,9 @@ class WCSimLCManager : public TObject {
 		std::vector<WCSimLCConfig> fLCVector;
 
 		// Temporary shape Z-R vector. Filled and used for each LC in turn.
-		std::vector<std::pair<double,double> > fTempShapeVec;
+		std::vector<std::pair<double, double> > fTempShapeVec;
 
-		std::string fConfigFile;
-    ClassDef(WCSimLCManager,1)
+		std::string fConfigFile;ClassDef(WCSimLCManager,1)
 };
 
 #endif

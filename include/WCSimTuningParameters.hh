@@ -4,78 +4,78 @@
 #include "globals.hh"
 
 class WCSimTuningParameters {
-public:
-	static WCSimTuningParameters * Instance();
-	// Setters and getters
-	G4double GetRayff() {
-		return rayff;
-	}
-	void SetRayff(G4double rparam) {
-		rayff = rparam;
-	}
+	public:
+		static WCSimTuningParameters * Instance();
+		// Setters and getters
+		G4double GetRayff() {
+			return rayff;
+		}
+		void SetRayff(G4double rparam) {
+			rayff = rparam;
+		}
 
-	G4double GetBsrff() {
-		return bsrff;
-	}
-	void SetBsrff(G4double rparam) {
-		bsrff = rparam;
-	}
+		G4double GetBsrff() {
+			return bsrff;
+		}
+		void SetBsrff(G4double rparam) {
+			bsrff = rparam;
+		}
 
-	G4double GetAbwff() {
-		return abwff;
-	}
-	void SetAbwff(G4double rparam) {
-		abwff = rparam;
-	}
+		G4double GetAbwff() {
+			return abwff;
+		}
+		void SetAbwff(G4double rparam) {
+			abwff = rparam;
+		}
 
-	G4double GetRgcff() {
-		return rgcff;
-	}
-	void SetRgcff(G4double rparam) {
-		rgcff = rparam;
-	}
+		G4double GetRgcff() {
+			return rgcff;
+		}
+		void SetRgcff(G4double rparam) {
+			rgcff = rparam;
+		}
 
-	G4double GetMieff() {
-		return mieff;
-	}
-	void SetMieff(G4double rparam) {
-		mieff = rparam;
-	}
+		G4double GetMieff() {
+			return mieff;
+		}
+		void SetMieff(G4double rparam) {
+			mieff = rparam;
+		}
 
-	//For Top Veto - jl145
-	G4double GetTVSpacing() {
-		return tvspacing;
-	}
-	void SetTVSpacing(G4double tparam) {
-		tvspacing = tparam;
-	}
+		//For Top Veto - jl145
+		G4double GetTVSpacing() {
+			return tvspacing;
+		}
+		void SetTVSpacing(G4double tparam) {
+			tvspacing = tparam;
+		}
 
-	G4bool GetTopVeto() {
-		return topveto;
-	}
-	void SetTopVeto(G4double tparam) {
-		topveto = tparam;
-	}
-private:
+		G4bool GetTopVeto() {
+			return topveto;
+		}
+		void SetTopVeto(G4double tparam) {
+			topveto = tparam;
+		}
+	private:
 
-	WCSimTuningParameters();
-	~WCSimTuningParameters();
+		WCSimTuningParameters();
+		~WCSimTuningParameters();
 
-	// The messenger
-	WCSimTuningMessenger* TuningMessenger;
+		// The messenger
+		WCSimTuningMessenger* TuningMessenger;
 
-	// The parameters that need to be set before WCSimDetectorConstruction
-	// is created
+		// The parameters that need to be set before WCSimDetectorConstruction
+		// is created
 
-	G4double rayff;
-	G4double bsrff;
-	G4double abwff;
-	G4double rgcff;
-	G4double mieff;
+		G4double rayff;
+		G4double bsrff;
+		G4double abwff;
+		G4double rgcff;
+		G4double mieff;
 
-	//For Top Veto - jl145
-	G4double tvspacing;
-	G4bool topveto;
+		//For Top Veto - jl145
+		G4double tvspacing;
+		G4bool topveto;
 
 };
 

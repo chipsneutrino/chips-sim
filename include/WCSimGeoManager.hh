@@ -18,7 +18,7 @@ class WCSimGeoManager {
 		~WCSimGeoManager();
 
 		WCSimGeoConfig GetGeometryByName(std::string name) const;
-    bool GeometryExists( std::string name ) const;
+		bool GeometryExists(std::string name) const;
 	private:
 
 		// Read the list of geometry types from the config file
@@ -30,7 +30,7 @@ class WCSimGeoManager {
 		// Fill geometry object attribute for a subregion of the detector from the xml file
 		void FillRegion(WCSimGeoConfig &geo, rapidxml::xml_node<> *node);
 
-    // Fill unit cell object attribute from xml file
+		// Fill unit cell object attribute from xml file
 		void FillCell(WCSimGeoConfig &geo, rapidxml::xml_node<> *node);
 
 		// Fill geometry object corresponding to a limit on available PMTs
@@ -39,7 +39,7 @@ class WCSimGeoManager {
 		bool MeansYes(std::string str);
 		bool MeansNo(std::string str);
 
-    double ConvertAngle(const WCSimGeoConfig &geo, const double &angle);
+		double ConvertAngle(const WCSimGeoConfig &geo, const double &angle);
 
 		// Vector to store the requested geometry types
 		std::vector<WCSimGeoConfig> fGeoVector;

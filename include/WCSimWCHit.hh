@@ -38,185 +38,204 @@ using __gnu_cxx::subtractive_rng;
 using __gnu_cxx::mem_fun1;
 using __gnu_cxx::mem_fun1_ref;
 
+class WCSimWCHit: public G4VHit {
+	public:
 
+		WCSimWCHit();
+		~WCSimWCHit();
+		WCSimWCHit(const WCSimWCHit&);
+		const WCSimWCHit& operator=(const WCSimWCHit&);
+		G4int operator==(const WCSimWCHit&) const;
 
-class WCSimWCHit : public G4VHit
-{
- public:
-  
-  WCSimWCHit();
-  ~WCSimWCHit();
-  WCSimWCHit(const WCSimWCHit&);
-  const WCSimWCHit& operator=(const WCSimWCHit&);
-  G4int operator==(const WCSimWCHit&) const;
-  
-  inline void* operator new(size_t);
-  inline void  operator delete(void*);
-  
-  void Draw();
-  void Print();
-  
- public:
-  
-  void SetTubeID       (G4int tube)                 { tubeID = tube; };
-  void SetTubeName(std::string name){fTubeName = name;};
-  void SetTrackID      (G4int track)                { trackID = track; };
-  void SetEdep         (G4double de)                { edep = de; };
-  void SetPos          (G4ThreeVector xyz)          { pos = xyz; };
-  void SetRot          (G4RotationMatrix rotMatrix) { rot = rotMatrix; };
-  void SetLogicalVolume(G4LogicalVolume* logV)      { pLogV = logV;}
-  void AddParentID     (G4int primParentID)
-  { primaryParentID.push_back(primParentID); }
+		inline void* operator new(size_t);
+		inline void operator delete(void*);
 
-  // This is temporarily used for the drawing scale
-  void SetMaxPe(G4int number = 0)  {maxPe   = number;};
+		void Draw();
+		void Print();
 
-  void AddPe(G4float hitTime)  
-  {
-    // First increment the totalPe number
-    totalPe++; 
+	public:
 
-    if (totalPe > maxPe) 
-      maxPe = totalPe;
+		void SetTubeID(G4int tube) {
+			tubeID = tube;
+		}
 
-    time.push_back(hitTime);
-  }
- 
-  std::string GetTubeName(){return fTubeName;};
-  G4int         GetTubeID()     { return tubeID; };
-  G4int         GetTrackID()    { return trackID; };
-  G4ThreeVector GetPos()        { return pos; };
-  G4int         GetTotalPe()    { return totalPe;};
-  G4float       GetTime(int i)  { return time[i];};
-  G4int         GetParentID(int i) { return primaryParentID[i];};
-  
-  void SortHitTimes() {   sort(time.begin(),time.end()); }
+		void SetTubeName(std::string name) {
+			fTubeName = name;
+		}
 
+		void SetTrackID(G4int track) {
+			trackID = track;
+		}
 
-  // low is the trigger time, up is trigger+950ns (end of event)
-  G4float GetFirstHitTimeInGate(G4float low,G4float upevent)
-  {
-    G4float firsttime;
-    std::vector<G4float>::iterator tfirst = time.begin();
-    std::vector<G4float>::iterator tlast = time.end();
-  
-    std::vector<G4float>::iterator found = 
-      std::find_if(tfirst,tlast,
-		   compose2(std::logical_and<bool>(),
-			    std::bind2nd(std::greater_equal<G4float>(),low),
-			    std::bind2nd(std::less_equal<G4float>(),upevent)
-			    )
-		   );
-    if ( found != tlast ) {
-      firsttime = *found; // first hit time
-    }
-    else {
-      firsttime = -10000.; //error code.
-    }
-    //G4cout << "firsthit time " << firsttime << "\n";
-    return firsttime;
-  }
+		void SetEdep(G4double de) {
+			edep = de;
+		}
 
-  // low is the trigger time, up is trigger+950ns (end of event)
-  G4float GetLastHitTimeInGate(G4float low,G4float upevent)
-  {
-    G4float lasttime;
-    std::vector<G4float>::reverse_iterator tfirst = time.rbegin();
-    std::vector<G4float>::reverse_iterator tlast = time.rend();
-  
-    std::vector<G4float>::reverse_iterator found = 
-      std::find_if(tlast,tfirst,
-		   compose2(std::logical_and<bool>(),
-			    std::bind2nd(std::greater_equal<G4float>(),low),
-			    std::bind2nd(std::less_equal<G4float>(),upevent)
-			    )
-		   );
-    if ( found != tlast ) {
-      lasttime = *found; // last hit time
-    }
-    else {
-      lasttime = -10000.; //error code.
-    }
-    return lasttime;
-  }
-  
-  // low is the trigger time, up is trigger+950ns (end of event)
-  G4float GetMeanHitTimeInGate(G4float low,G4float upevent)
-  {
-    G4float meantime;
-    std::vector<G4float>::reverse_iterator tfirst = time.rbegin();
-    std::vector<G4float>::reverse_iterator tlast = time.rend();
-  
+		void SetPos(G4ThreeVector xyz) {
+			pos = xyz;
+		}
 
-    if( time.size() > 0 ){
-        meantime = std::accumulate(time.begin(), time.end(), 0.0) / time.size();
-    }
-    else {
-      meantime = -10000.; //error code.
-    }
-    return meantime;
-  }
+		void SetRot(G4RotationMatrix rotMatrix) {
+			rot = rotMatrix;
+		}
 
-  // pmtgate  and evgate are durations, ie not absolute times
+		void SetLogicalVolume(G4LogicalVolume* logV) {
+			pLogV = logV;
+		}
+		void AddParentID(G4int primParentID) {
+			primaryParentID.push_back(primParentID);
+		}
 
-  G4int GetPeInGate(double low, double pmtgate,double evgate) {
-    // M Fechner; april 2005
-    // assumes that time has already been sorted
-    std::vector<G4float>::iterator tfirst = time.begin();
-    std::vector<G4float>::iterator tlast = time.end();
-    // select min time
-    G4float mintime = (pmtgate < evgate) ? pmtgate : evgate;
-    
-    // return number of hits in the time window...
-    
-    G4int number = std::count_if(tfirst,tlast,
-				 compose2(std::logical_and<bool>(),
-					  std::bind2nd(std::greater_equal<G4float>(),low),
-					  std::bind2nd(std::less_equal<G4float>(),mintime)
-					  )
-				 );
-    
-    totalPeInGate = number;
-    //    G4cout << "numer = " <<  number <<"\n";
-    return number;
-  }
+		// This is temporarily used for the drawing scale
+		void SetMaxPe(G4int number = 0) {
+			maxPe = number;
+		}
 
+		void AddPe(G4float hitTime) {
+			// First increment the totalPe number
+			totalPe++;
 
- private:
-  
-  std::string fTubeName;
-  G4int            tubeID;
-  G4int            trackID;
-  G4double         edep;
-  G4ThreeVector    pos;
-  G4RotationMatrix rot;
-  G4LogicalVolume* pLogV;
+			if (totalPe > maxPe)
+				maxPe = totalPe;
 
-  // This is temporarily used for the drawing scale
-  // Since its static *every* WChit sees the same value for this.
+			time.push_back(hitTime);
+		}
 
-  static G4int     maxPe;
+		std::string GetTubeName() {
+			return fTubeName;
+		}
 
-  G4int                 totalPe;
-  std::vector<G4float>  time;
-  std::vector<G4int>    primaryParentID;
-  G4int                 totalPeInGate;
+		G4int GetTubeID() {
+			return tubeID;
+		}
+
+		G4int GetTrackID() {
+			return trackID;
+		}
+
+		G4ThreeVector GetPos() {
+			return pos;
+		}
+
+		G4int GetTotalPe() {
+			return totalPe;
+		}
+
+		G4float GetTime(int i) {
+			return time[i];
+		}
+
+		G4int GetParentID(int i) {
+			return primaryParentID[i];
+		}
+
+		void SortHitTimes() {
+			sort(time.begin(), time.end());
+		}
+
+		// low is the trigger time, up is trigger+950ns (end of event)
+		G4float GetFirstHitTimeInGate(G4float low, G4float upevent) {
+			G4float firsttime;
+			std::vector<G4float>::iterator tfirst = time.begin();
+			std::vector<G4float>::iterator tlast = time.end();
+
+			std::vector<G4float>::iterator found = std::find_if(tfirst, tlast,
+					compose2(std::logical_and<bool>(), std::bind2nd(std::greater_equal<G4float>(), low),
+							std::bind2nd(std::less_equal<G4float>(), upevent)));
+			if (found != tlast) {
+				firsttime = *found; // first hit time
+			} else {
+				firsttime = -10000.; //error code.
+			}
+			//G4cout << "firsthit time " << firsttime << "\n";
+			return firsttime;
+		}
+
+		// low is the trigger time, up is trigger+950ns (end of event)
+		G4float GetLastHitTimeInGate(G4float low, G4float upevent) {
+			G4float lasttime;
+			std::vector<G4float>::reverse_iterator tfirst = time.rbegin();
+			std::vector<G4float>::reverse_iterator tlast = time.rend();
+
+			std::vector<G4float>::reverse_iterator found = std::find_if(tlast, tfirst,
+					compose2(std::logical_and<bool>(), std::bind2nd(std::greater_equal<G4float>(), low),
+							std::bind2nd(std::less_equal<G4float>(), upevent)));
+			if (found != tlast) {
+				lasttime = *found; // last hit time
+			} else {
+				lasttime = -10000.; //error code.
+			}
+			return lasttime;
+		}
+
+		// low is the trigger time, up is trigger+950ns (end of event)
+		G4float GetMeanHitTimeInGate(G4float low, G4float upevent) {
+			G4float meantime;
+			std::vector<G4float>::reverse_iterator tfirst = time.rbegin();
+			std::vector<G4float>::reverse_iterator tlast = time.rend();
+
+			if (time.size() > 0) {
+				meantime = std::accumulate(time.begin(), time.end(), 0.0) / time.size();
+			} else {
+				meantime = -10000.; //error code.
+			}
+			return meantime;
+		}
+
+		// pmtgate  and evgate are durations, ie not absolute times
+
+		G4int GetPeInGate(double low, double pmtgate, double evgate) {
+			// M Fechner; april 2005
+			// assumes that time has already been sorted
+			std::vector<G4float>::iterator tfirst = time.begin();
+			std::vector<G4float>::iterator tlast = time.end();
+			// select min time
+			G4float mintime = (pmtgate < evgate) ? pmtgate : evgate;
+
+			// return number of hits in the time window...
+
+			G4int number = std::count_if(tfirst, tlast,
+					compose2(std::logical_and<bool>(), std::bind2nd(std::greater_equal<G4float>(), low),
+							std::bind2nd(std::less_equal<G4float>(), mintime)));
+
+			totalPeInGate = number;
+			//    G4cout << "numer = " <<  number <<"\n";
+			return number;
+		}
+
+	private:
+
+		std::string fTubeName;
+		G4int tubeID;
+		G4int trackID;
+		G4double edep;
+		G4ThreeVector pos;
+		G4RotationMatrix rot;
+		G4LogicalVolume* pLogV;
+
+		// This is temporarily used for the drawing scale
+		// Since its static *every* WChit sees the same value for this.
+
+		static G4int maxPe;
+
+		G4int totalPe;
+		std::vector<G4float> time;
+		std::vector<G4int> primaryParentID;
+		G4int totalPeInGate;
 };
 
 typedef G4THitsCollection<WCSimWCHit> WCSimWCHitsCollection;
 
 extern G4Allocator<WCSimWCHit> WCSimWCHitAllocator;
 
-inline void* WCSimWCHit::operator new(size_t)
-{
-  void *aHit;
-  aHit = (void *) WCSimWCHitAllocator.MallocSingle();
-  return aHit;
+inline void* WCSimWCHit::operator new(size_t) {
+	void *aHit;
+	aHit = (void *) WCSimWCHitAllocator.MallocSingle();
+	return aHit;
 }
 
-inline void WCSimWCHit::operator delete(void *aHit)
-{
-  WCSimWCHitAllocator.FreeSingle((WCSimWCHit*) aHit);
+inline void WCSimWCHit::operator delete(void *aHit) {
+	WCSimWCHitAllocator.FreeSingle((WCSimWCHit*) aHit);
 }
 
 #endif

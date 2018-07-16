@@ -1,7 +1,7 @@
 #include <iostream>
 #include "TRandom3.h"
 
-class WCSimTOTPMT{
+class WCSimTOTPMT {
 
 	public:
 		// Constructors / Destructor
@@ -9,7 +9,7 @@ class WCSimTOTPMT{
 		~WCSimTOTPMT();
 
 		// Calculate the charge from pe photoelectrons on the cathode
-		double CalculateCharge(int pe, std::string PMTName);
+		double CalculateCharge(double totalPe, std::string PMTName);
 
 	private:
 		TRandom3 fRand;

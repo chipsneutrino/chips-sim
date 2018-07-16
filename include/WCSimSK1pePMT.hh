@@ -1,7 +1,7 @@
 #include <iostream>
 #include "TRandom3.h"
 
-class WCSimSK1pePMT{
+class WCSimSK1pePMT {
 
 	public:
 		// Constructors / Destructor

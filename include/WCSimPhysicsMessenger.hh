@@ -9,19 +9,18 @@ class G4UIdirectory;
 class G4UIcommand;
 class G4UIcmdWithAString;
 
-class WCSimPhysicsMessenger: public G4UImessenger
-{
-public:
-  WCSimPhysicsMessenger(WCSimPhysicsList*);
-  ~WCSimPhysicsMessenger();
+class WCSimPhysicsMessenger: public G4UImessenger {
+	public:
+		WCSimPhysicsMessenger(WCSimPhysicsList*);
+		~WCSimPhysicsMessenger();
 
-  void SetNewValue(G4UIcommand* command, G4String newValue);
+		void SetNewValue(G4UIcommand* command, G4String newValue);
 
-private:
-  WCSimPhysicsList* WCSimPhysics;
+	private:
+		WCSimPhysicsList* WCSimPhysics;
 
-  G4UIdirectory*      WCSimDir;
-  G4UIcmdWithAString* hadmodelCmd;
+		G4UIdirectory* WCSimDir;
+		G4UIcmdWithAString* hadmodelCmd;
 
 };
 

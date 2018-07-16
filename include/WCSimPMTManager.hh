@@ -6,7 +6,7 @@
 #include <TObject.h>
 // This is a class that builds a list of defined PMT types and
 // provides the access interface to them.
-class WCSimPMTManager : public TObject{
+class WCSimPMTManager: public TObject {
 
 	public:
 
@@ -31,10 +31,9 @@ class WCSimPMTManager : public TObject{
 		std::vector<WCSimPMTConfig> fPMTVector;
 
 		// Temporary efficiency vector. Filled and used for each PMT in turn.
-		std::vector<std::pair<double,double> > fTempEffVec;
+		std::vector<std::pair<double, double> > fTempEffVec;
 
-		std::string fConfigFile;
-    ClassDef(WCSimPMTManager,1);
+		std::string fConfigFile;ClassDef(WCSimPMTManager,1);
 };
 
 #endif

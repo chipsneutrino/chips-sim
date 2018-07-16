@@ -1,6 +1,4 @@
 
-
-
 #ifndef WCSimVisManager_h
 #define WCSimVisManager_h 1
 
@@ -8,19 +6,17 @@
 
 #include "G4VisManager.hh"
 
-
 class WCSimVisManager: public G4VisManager {
 
-public:
+	public:
 
-  WCSimVisManager ();
+	WCSimVisManager ();
 
-private:
+	private:
 
-  void RegisterGraphicsSystems ();
+	void RegisterGraphicsSystems ();
 
 };
-
 
 #endif
 

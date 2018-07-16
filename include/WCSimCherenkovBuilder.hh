@@ -19,253 +19,250 @@ class WCSimUnitCell;
 class G4LogicalVolume;
 class G4PhysicalVolume;
 
-class WCSimCherenkovBuilder : public WCSimDetectorConstruction{
-public:
-	WCSimCherenkovBuilder(G4int DetConfig);
-	virtual ~WCSimCherenkovBuilder();
-	WCSimGeoConfig * GetGeoConfig() const;
-	G4LogicalVolume * ConstructDetector(); //< Main function to build the detector - has to return a pointer for compatibility with old code
+class WCSimCherenkovBuilder: public WCSimDetectorConstruction {
+	public:
+		WCSimCherenkovBuilder(G4int DetConfig);
+		virtual ~WCSimCherenkovBuilder();
+		WCSimGeoConfig * GetGeoConfig() const;
+		G4LogicalVolume * ConstructDetector(); //< Main function to build the detector - has to return a pointer for compatibility with old code
 
-protected:
-  void Update(); //< Reset a bunch of things if we change the geometry to avoid pointer awkwardness
+	protected:
+		void Update(); //< Reset a bunch of things if we change the geometry to avoid pointer awkwardness
 
-private:
-  void SetCustomDetectorName(); //< Overload virtual function from DetectorConstruction 
-  void SetCustomGeometry(); //< Read the GeoManager and set up the chosen geometry using fDetectorName
+	private:
+		void SetCustomDetectorName(); //< Overload virtual function from DetectorConstruction
+		void SetCustomGeometry(); //< Read the GeoManager and set up the chosen geometry using fDetectorName
 
-  //G4VPhysicalVolume* Construct(); //< Overload this for now TODO: reorganise
-  G4LogicalVolume* ConstructWC(); //< Overload from WCSimConstructWC TODO: reorganise
-  void SetPositions(); /*< Sets a bunch of physical constants in the parent WCSimDetectorContruction
-                        * object.  Has to run before making any geometry objects TODO: reorganise */
+		//G4VPhysicalVolume* Construct(); //< Overload this for now TODO: reorganise
+		G4LogicalVolume* ConstructWC(); //< Overload from WCSimConstructWC TODO: reorganise
+		void SetPositions(); /*< Sets a bunch of physical constants in the parent WCSimDetectorContruction
+		 * object.  Has to run before making any geometry objects TODO: reorganise */
 
+		void ConstructDetectorWrapper(); //< Main function to build the detector
+		void ConstructEnvironment(); //< Build the lake for the detector to sit in
+		void ConstructFrame(); //< The external metal frame
+		void ConstructVeto(); //< The veto region
+		void ConstructInnerDetector(); //< The inner part of the detector
+		void CreatePrism(); //< Build the inner wall (an n-sided prism)
+		void CreatePrismWalls(); //< Split the prism up into n rectangular walls
+		void CreatePrismRings(); //< Divide the walls into slices along the long axis
+		void CreateRingSegments(); //< Divide each slice into n segments
+		void CreateSegmentCells(); //< Fill each segment with WCSimUnitCells
 
- 	void ConstructDetectorWrapper(); //< Main function to build the detector
-	void ConstructEnvironment(); //< Build the lake for the detector to sit in
-	void ConstructFrame(); //< The external metal frame
-	void ConstructVeto(); //< The veto region
-	void ConstructInnerDetector(); //< The inner part of the detector
-	void CreatePrism(); //< Build the inner wall (an n-sided prism)
-	void CreatePrismWalls(); //< Split the prism up into n rectangular walls
-	void CreatePrismRings(); //< Divide the walls into slices along the long axis
-	void CreateRingSegments(); //< Divide each slice into n segments
-	void CreateSegmentCells(); //< Fill each segment with WCSimUnitCells
+		void ConstructEndCaps(); //< Build the top and bottom caps of the detector
+		void ConstructEndCap(G4int zflip); //< Construct top (zflip = true) and bottom (false) caps
+		void ConstructEndCapFrame(G4int zflip);
+		void ConstructEndCapRings(G4int zflip);
+		void ConstructEndCapRingSegments(G4int zflip);
+		void ConstructEndCapSurfaces(G4int zflip);
+		void ConstructEndCapPhysicalVolumes();
 
+		void PlacePMTs(); //< Put the PMTs into each unit cell
+		void PlaceEndCapPMTs(G4int zflip);
+		void PlaceBarrelPMTs();
 
-	void ConstructEndCaps(); //< Build the top and bottom caps of the detector
-	void ConstructEndCap(G4int zflip); //< Construct top (zflip = true) and bottom (false) caps
-	void ConstructEndCapFrame(G4int zflip);
-	void ConstructEndCapRings( G4int zflip );
-	void ConstructEndCapRingSegments( G4int zflip );
-	void ConstructEndCapSurfaces(G4int zflip);
-  void ConstructEndCapPhysicalVolumes();
+		// Stefano Place plane pipes (underneath shifted PMTs)
+		void PlaceEndCapPlanePipes(G4int zflip, G4int zone);
+		void PlaceBarrelPlanePipes(G4int zone);
 
-  void PlacePMTs(); //< Put the PMTs into each unit cell
-	void PlaceEndCapPMTs(G4int zflip);
-  void PlaceBarrelPMTs();
+		void CreateSensitiveDetector(); //< Make the photocathodes responsive
 
-  // Stefano Place plane pipes (underneath shifted PMTs)
-  void PlaceEndCapPlanePipes(G4int zflip, G4int zone);
-  void PlaceBarrelPlanePipes(G4int zone);
+		void GetMeasurements();
+		double GetBarrelLengthForCells(); //< Work out much of the barrel wall can hold PMTs without overlapping the top
+		double GetMaxCapExposeHeight(); //< Work out how far PMTs extend down from the top cap
+		double GetMaxBarrelExposeHeight(); //< Work out how far PMTs extend inwars from the blacksheet of the walls
 
-	void CreateSensitiveDetector(); //< Make the photocathodes responsive
+		// n.b. Close packing algorithms are tricky.  These methods are quick and simple but certainly not optimal
+		void CalculateCellSizes(); //< Optimise the sizes of the unit cells on the cap and walls to get close to the desired coverage
+		double GetOptimalTopCellSize(int zoneNum); //< Optimise the cell placement on the endcaps
+		double GetOptimalBottomCellSize(int zoneNum); //< Optimise the cell placement on the endcaps
+		double GetOptimalEndcapCellSize(WCSimGeometryEnums::DetectorRegion_t region, int zoneNum); //< Optimise the cell placement on the endcaps
+		double GetOptimalWallCellSize(int zoneNum); //< Optimise the cell placement on the detector walls
 
-  void GetMeasurements();
-	double GetBarrelLengthForCells(); //< Work out much of the barrel wall can hold PMTs without overlapping the top
-	double GetMaxCapExposeHeight(); //< Work out how far PMTs extend down from the top cap
-	double GetMaxBarrelExposeHeight(); //< Work out how far PMTs extend inwars from the blacksheet of the walls
+		void CalculateZoneCoverages(); //< Work out what fraction of each zone should be covered
+		double GetZoneCoverage(WCSimGeometryEnums::DetectorRegion_t region, int zone); //< Get the fraction of a given zone that should be covered
 
-	// n.b. Close packing algorithms are tricky.  These methods are quick and simple but certainly not optimal
-	void CalculateCellSizes(); //< Optimise the sizes of the unit cells on the cap and walls to get close to the desired coverage
-	double GetOptimalTopCellSize(int zoneNum); //< Optimise the cell placement on the endcaps
-	double GetOptimalBottomCellSize(int zoneNum); //< Optimise the cell placement on the endcaps
-	double GetOptimalEndcapCellSize(WCSimGeometryEnums::DetectorRegion_t region, int zoneNum); //< Optimise the cell placement on the endcaps
-	double GetOptimalWallCellSize(int zoneNum); //< Optimise the cell placement on the detector walls
+		G4RotationMatrix GetArbitraryPMTFaceRotation(double theta, double phi);
+		G4RotationMatrix GetEndcapPMTFaceRotation(WCSimGeometryEnums::PMTDirection_t type, G4int zflip);
+		G4RotationMatrix GetBarrelPMTFaceRotation(WCSimGeometryEnums::PMTDirection_t type, G4int zone);
 
-	void CalculateZoneCoverages(); //< Work out what fraction of each zone should be covered
-	double GetZoneCoverage(WCSimGeometryEnums::DetectorRegion_t region, int zone); //< Get the fraction of a given zone that should be covered
+		void ConstructUnitCells(); //< Construct the unit cell objects specified in the geometry config
+		WCSimUnitCell * GetUnitCell(WCSimGeometryEnums::DetectorRegion_t region, int zone);
+		WCSimUnitCell * GetTopUnitCell(int zone); //< For now we only have one type all over the detector
+		WCSimUnitCell * GetBottomUnitCell(int zone); //< For now we only have one type all over the detector
+		WCSimUnitCell * GetWallUnitCell(int zone); //< For now we only have one type all over the detector
 
-        G4RotationMatrix  GetArbitraryPMTFaceRotation(double theta, double phi);
-        G4RotationMatrix  GetEndcapPMTFaceRotation(WCSimGeometryEnums::PMTDirection_t type, G4int zflip);
-        G4RotationMatrix  GetBarrelPMTFaceRotation(WCSimGeometryEnums::PMTDirection_t type, G4int zone);
+		void ConstructPMTs();
 
+		bool fConstructed;
+		std::vector<double> fWallCellSize;
+		std::vector<double> fTopCellSize;
+		std::vector<double> fBottomCellSize;
+		int fNumPMTs;
 
-	void ConstructUnitCells(); //< Construct the unit cell objects specified in the geometry config
-	WCSimUnitCell * GetUnitCell(WCSimGeometryEnums::DetectorRegion_t region, int zone);
-	WCSimUnitCell * GetTopUnitCell(int zone); //< For now we only have one type all over the detector
-	WCSimUnitCell * GetBottomUnitCell(int zone); //< For now we only have one type all over the detector
-	WCSimUnitCell * GetWallUnitCell(int zone); //< For now we only have one type all over the detector
+		WCSimGeoConfig * fGeoConfig;
+		WCSimPMTManager * fPMTManager;
+		std::vector<WCSimUnitCell*> fWallUnitCells;
+		std::vector<WCSimUnitCell*> fTopUnitCells;
+		std::vector<WCSimUnitCell*> fBottomUnitCells;
+		std::vector<double> fWallZoneCoverage;
+		std::vector<double> fTopZoneCoverage;
+		std::vector<double> fBottomZoneCoverage;
 
-	void ConstructPMTs();
+		std::vector<double> fWallCellLength;  //< Size length of a unit cell on the detector wall
+		std::vector<int> fWallCellsX;         //< Number of unit cells fitting across the wall
+		std::vector<int> fWallCellsZ;         //< Number of unit cells fitting vertically along the wall
 
-	bool fConstructed;
-	std::vector<double> fWallCellSize;
-	std::vector<double> fTopCellSize;
-	std::vector<double> fBottomCellSize;
-	int fNumPMTs;
+		// TODO:  Constants that should be moved into xml files and GeoConfig
+		double fBlacksheetThickness;
+		double fWhitesheetThickness;
+		bool fDebugMode;
 
-	WCSimGeoConfig * fGeoConfig;
-	WCSimPMTManager * fPMTManager;
-	std::vector<WCSimUnitCell*> fWallUnitCells;
-	std::vector<WCSimUnitCell*> fTopUnitCells;
-	std::vector<WCSimUnitCell*> fBottomUnitCells;
-	std::vector<double> fWallZoneCoverage;
-	std::vector<double> fTopZoneCoverage;
-	std::vector<double> fBottomZoneCoverage;
+		/// Stefano: Plane Pipe radius, to be moved into xml files ...
+		double fPMTHolderLength;
+		double fPlanePipeRadius;
+		double fPlanePipeStep;
 
-	std::vector<double> fWallCellLength;  //< Size length of a unit cell on the detector wall
-	std::vector<int> fWallCellsX;         //< Number of unit cells fitting across the wall
-	std::vector<int> fWallCellsZ;         //< Number of unit cells fitting vertically along the wall
+		// Geant objects:
+		G4LogicalVolume* fLakeLogic;
+		G4LogicalVolume* fBarrelLogic;
+		G4LogicalVolume* fVetoLogic; // LEIGH: This is the barrel veto volume
+		G4LogicalVolume* fVetoTopLogic; // LEIGH: This is the top veto volume
+		G4LogicalVolume* fVetoBottomLogic; // LEIGH: This is the bottom veto volume
+		G4LogicalVolume* fPrismLogic;
+		std::vector<G4LogicalVolume*> fPrismWallLogics;
+		std::vector<G4VPhysicalVolume*> fPrismWallPhysics;
+		std::vector<G4LogicalVolume*> fPrismRingLogics;
+		std::vector<G4VPhysicalVolume*> fPrismRingPhysics;
+		std::vector<G4LogicalVolume*> fSegmentLogics;
+		std::vector<G4VPhysicalVolume*> fSegmentPhysics;
 
-	// TODO:  Constants that should be moved into xml files and GeoConfig
-	double fBlacksheetThickness;
-	double fWhitesheetThickness;
-	bool   fDebugMode;
+		std::vector<G4LogicalVolume*> fPlanePipeLogics;
+		std::vector<G4VPhysicalVolume*> fPlanePipePhysics;
 
-        /// Stefano: Plane Pipe radius, to be moved into xml files ...
-        double fPMTHolderLength;
-        double fPlanePipeRadius;
-        double fPlanePipeStep;
+		G4LogicalVolume* fCapLogicTop;
+		G4LogicalVolume* fCapLogicTopRing;
+		G4LogicalVolume* fCapLogicBottom;
+		G4LogicalVolume* fCapLogicBottomRing;
 
-	// Geant objects:
-	G4LogicalVolume* fLakeLogic;
-	G4LogicalVolume* fBarrelLogic;
-  G4LogicalVolume* fVetoLogic; // LEIGH: This is the barrel veto volume
-  G4LogicalVolume* fVetoTopLogic; // LEIGH: This is the top veto volume
-  G4LogicalVolume* fVetoBottomLogic; // LEIGH: This is the bottom veto volume 
-	G4LogicalVolume* fPrismLogic;
-	std::vector<G4LogicalVolume*> fPrismWallLogics;
-	std::vector<G4VPhysicalVolume*> fPrismWallPhysics;
-	std::vector<G4LogicalVolume*> fPrismRingLogics;
-	std::vector<G4VPhysicalVolume*> fPrismRingPhysics;
-	std::vector<G4LogicalVolume*> fSegmentLogics;
-	std::vector<G4VPhysicalVolume*> fSegmentPhysics;
+		// Leigh: Need to store the cap sheet physical volumes to make the boundary surfaces
+		G4VPhysicalVolume* fBarrelPhysics;
+		G4VPhysicalVolume* fCapBSTopPhysics;
+		G4VPhysicalVolume* fCapWSTopPhysics;
+		G4VPhysicalVolume* fCapBSBottomPhysics;
+		G4VPhysicalVolume* fCapWSBottomPhysics;
 
-        std::vector<G4LogicalVolume*> fPlanePipeLogics;
-        std::vector<G4VPhysicalVolume*> fPlanePipePhysics;
+		//Setafno: Store PMT extreme positions in Sector to create Plane Pipes
+		std::vector<G4ThreeVector> fBarrelExtremePMTPos_Max;
+		std::vector<G4ThreeVector> fBarrelExtremePMTPos_Min;
+		std::vector<G4ThreeVector> fEndCapExtremePMTPos_Max;
+		std::vector<G4ThreeVector> fEndCapExtremePMTPos_Min;
 
-	G4LogicalVolume* fCapLogicTop;
-	G4LogicalVolume* fCapLogicTopRing;
-	G4LogicalVolume* fCapLogicBottom;
-	G4LogicalVolume* fCapLogicBottomRing;
+		// Constants used to specify the geometry
+		G4bool fGotMeasurements;
 
-  // Leigh: Need to store the cap sheet physical volumes to make the boundary surfaces
-	G4VPhysicalVolume* fBarrelPhysics;
-  G4VPhysicalVolume* fCapBSTopPhysics;
-  G4VPhysicalVolume* fCapWSTopPhysics;
-  G4VPhysicalVolume* fCapBSBottomPhysics;
-  G4VPhysicalVolume* fCapWSBottomPhysics;
+		// First the main barrel of the detector
+		G4double fBarrelRadius; // Barrel is a cylinder - this is its actual radius
+		G4double fBarrelHeight;
+		G4double fBarrelLengthForCells;
 
-  //Setafno: Store PMT extreme positions in Sector to create Plane Pipes
-  std::vector<G4ThreeVector> fBarrelExtremePMTPos_Max;
-  std::vector<G4ThreeVector> fBarrelExtremePMTPos_Min;
-  std::vector<G4ThreeVector> fEndCapExtremePMTPos_Max;
-  std::vector<G4ThreeVector> fEndCapExtremePMTPos_Min;
+		// Inside the main barrel lives an n-gon prism veto region
+		G4double fVetoRadiusInside; // Radius is to centre of wall not the vertex
+		G4double fVetoRadiusOutside;
+		G4double fVetoHeight;
 
-	// Constants used to specify the geometry
-	G4bool fGotMeasurements;
+		// Inside the main barrel lives an n-gon prism inner detector
+		G4double fPrismRadiusInside; // Radius is to centre of wall not the vertex
+		G4double fPrismRadiusOutside;
+		G4double fPrismHeight;
 
-	// First the main barrel of the detector
-	G4double fBarrelRadius; // Barrel is a cylinder - this is its actual radius
-	G4double fBarrelHeight;
-	G4double fBarrelLengthForCells;
+		// Divide the prism into individual walls
+		G4double fPrismWallRadiusInside; // Radius is to centre of wall not the vertex
+		G4double fPrismWallRadiusOutside;
+		G4double fPrismWallHeight;
 
-	// Inside the main barrel lives an n-gon prism veto region
-	G4double fVetoRadiusInside; // Radius is to centre of wall not the vertex
-	G4double fVetoRadiusOutside;
-	G4double fVetoHeight;
+		// We chop the prism into a whole number of rings
+		G4double fPrismRingRadiusInside; // Radius is to centre of wall not the vertex
+		G4double fPrismRingRadiusOutside;
+		std::vector<G4double> fPrismRingHeight;
 
-	// Inside the main barrel lives an n-gon prism inner detector
-	G4double fPrismRadiusInside; // Radius is to centre of wall not the vertex
-	G4double fPrismRadiusOutside;
-	G4double fPrismHeight;
+		// And chop each n-gon ring into n flat sides
+		G4double fPrismRingSegmentRadiusInside; // To centre of segment not edge
+		G4double fPrismRingSegmentRadiusOutside;
+		std::vector<G4double> fPrismRingSegmentHeight;
+		G4double fPrismRingSegmentDPhi;
 
-	// Divide the prism into individual walls
-	G4double fPrismWallRadiusInside; // Radius is to centre of wall not the vertex
-	G4double fPrismWallRadiusOutside;
-	G4double fPrismWallHeight;
+		// Then we have a layer of blacksheet on the inside
+		G4double fPrismRingSegmentBSRadiusInside; // To centre not edge
+		G4double fPrismRingSegmentBSRadiusOutside;
+		std::vector<G4double> fPrismRingSegmentBSHeight;
 
-	// We chop the prism into a whole number of rings
-	G4double fPrismRingRadiusInside; // Radius is to centre of wall not the vertex
-	G4double fPrismRingRadiusOutside;
-	std::vector<G4double> fPrismRingHeight;
+		// Then we have a layer of whitesheet on the outside side
+		G4double fPrismRingSegmentWSRadiusInside; // To centre not edge
+		G4double fPrismRingSegmentWSRadiusOutside;
 
-	// And chop each n-gon ring into n flat sides
-	G4double fPrismRingSegmentRadiusInside; // To centre of segment not edge
-	G4double fPrismRingSegmentRadiusOutside;
-	std::vector<G4double> fPrismRingSegmentHeight;
-	G4double fPrismRingSegmentDPhi;
+		// Now the caps
+		///////////////
 
-	// Then we have a layer of blacksheet on the inside
-	G4double fPrismRingSegmentBSRadiusInside; // To centre not edge
-	G4double fPrismRingSegmentBSRadiusOutside;
-	std::vector<G4double> fPrismRingSegmentBSHeight;
+		// A tubs for the cap volume to sit in
+		G4double fCapAssemblyHeight;
+		G4double fCapAssemblyRadius;
 
-	// Then we have a layer of whitesheet on the outside side
-	G4double fPrismRingSegmentWSRadiusInside; // To centre not edge
-	G4double fPrismRingSegmentWSRadiusOutside;
+		// A tubs for the veto cap volume to sit in
+		G4double fVetoCapHeight;
+		G4double fVetoCapRadius;
 
-	// Now the caps
-	///////////////
+		// We made a whole number of barrel rings to hold PMTs
+		// Here we two extras to plug the hole between the top of those rings and the cap
+		G4double fCapRingRadiusInside;
+		G4double fCapRingRadiusOutside;
+		G4double fCapRingHeight;
 
-	// A tubs for the cap volume to sit in
-	G4double fCapAssemblyHeight;
-	G4double fCapAssemblyRadius;
+		// We break the extra rings into n flat sides again
+		G4double fCapRingSegmentDPhi;
+		G4double fCapRingSegmentRadiusInside;
+		G4double fCapRingSegmentRadiusOutside;
+		G4double fCapRingSegmentHeight;
 
-	// A tubs for the veto cap volume to sit in
-	G4double fVetoCapHeight;
-	G4double fVetoCapRadius;
+		// And put blacksheet on the edge of them
+		G4double fCapRingSegmentBSRadiusInside;
+		G4double fCapRingSegmentBSRadiusOutside;
+		G4double fCapRingSegmentBSHeight;
 
-	// We made a whole number of barrel rings to hold PMTs
-	// Here we two extras to plug the hole between the top of those rings and the cap
-	G4double fCapRingRadiusInside;
-	G4double fCapRingRadiusOutside;
-	G4double fCapRingHeight;
+		// And put whitesheet on the edge of them
+		G4double fCapRingSegmentWSRadiusInside;
+		G4double fCapRingSegmentWSRadiusOutside;
+		G4double fCapRingSegmentWSHeight;
 
-	// We break the extra rings into n flat sides again
-	G4double fCapRingSegmentDPhi;
-	G4double fCapRingSegmentRadiusInside;
-	G4double fCapRingSegmentRadiusOutside;
-	G4double fCapRingSegmentHeight;
+		// The actual top/bottom of the detector is a polygon -
+		// we'll make a container that holds the top and edge blacksheet, and the water in the middle
+		G4double fCapPolygonRadius;
+		G4double fCapPolygonHeight;
 
-	// And put blacksheet on the edge of them
-	G4double fCapRingSegmentBSRadiusInside;
-	G4double fCapRingSegmentBSRadiusOutside;
-	G4double fCapRingSegmentBSHeight;
+		// Here's the centre section
+		G4double fCapPolygonCentreRadius;
+		G4double fCapPolygonCentreHeight;
 
-	// And put whitesheet on the edge of them
-	G4double fCapRingSegmentWSRadiusInside;
-	G4double fCapRingSegmentWSRadiusOutside;
-	G4double fCapRingSegmentWSHeight;
+		// We put a layer of blacksheet on the edge
+		G4double fCapPolygonEdgeBSRadiusInside;
+		G4double fCapPolygonEdgeBSRadiusOutside;
+		G4double fCapPolygonEdgeBSHeight;
 
-	// The actual top/bottom of the detector is a polygon - 
-  // we'll make a container that holds the top and edge blacksheet, and the water in the middle
-	G4double fCapPolygonRadius;
-	G4double fCapPolygonHeight;
+		// We put a layer of whitesheet on the edge
+		G4double fCapPolygonEdgeWSRadiusInside;
+		G4double fCapPolygonEdgeWSRadiusOutside;
+		G4double fCapPolygonEdgeWSHeight;
 
-  // Here's the centre section
-  G4double fCapPolygonCentreRadius;
-  G4double fCapPolygonCentreHeight;
+		// And a layer on top
+		G4double fCapPolygonEndBSRadius;
+		G4double fCapPolygonEndBSHeight;
 
-	// We put a layer of blacksheet on the edge
-	G4double fCapPolygonEdgeBSRadiusInside;
-	G4double fCapPolygonEdgeBSRadiusOutside;
-	G4double fCapPolygonEdgeBSHeight;
+		// And a layer of whitesheet on top
+		G4double fCapPolygonEndWSRadius;
+		G4double fCapPolygonEndWSHeight;
 
-	// We put a layer of whitesheet on the edge
-	G4double fCapPolygonEdgeWSRadiusInside;
-	G4double fCapPolygonEdgeWSRadiusOutside;
-	G4double fCapPolygonEdgeWSHeight;
-
-	// And a layer on top
-	G4double fCapPolygonEndBSRadius;
-	G4double fCapPolygonEndBSHeight;
-
-	// And a layer of whitesheet on top
-	G4double fCapPolygonEndWSRadius;
-	G4double fCapPolygonEndWSHeight;
-
-  // Size of the veto layer. Default is 2m.
-  G4double fVetoSize;
+		// Size of the veto layer. Default is 2m.
+		G4double fVetoSize;
 };
 
 #endif /* WCSIMCHERENKOVBUILDER_HH_ */

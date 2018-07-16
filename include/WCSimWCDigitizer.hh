@@ -14,29 +14,45 @@ class WCSimCHIPSPMT;
 class WCSimSK1pePMT;
 class WCSimTOTPMT;
 
-class WCSimWCDigitizer : public G4VDigitizerModule
-{
+class WCSimWCDigitizer: public G4VDigitizerModule {
 	public:
 		// Constructors / Destructor
 		WCSimWCDigitizer(G4String name, WCSimDetectorConstruction* myDet);
 		~WCSimWCDigitizer();
 
-		void SetPMTSize(G4float inputSize) {PMTSize = inputSize;}
-		void ReInitialize() { DigiHitMap.clear(); TriggerTimes.clear(); }
-		int NumberOfGatesInThisEvent() { return TriggerTimes.size(); }
+		void SetPMTSize(G4float inputSize) {
+			PMTSize = inputSize;
+		}
+		void ReInitialize() {
+			DigiHitMap.clear();
+			TriggerTimes.clear();
+		}
+		int NumberOfGatesInThisEvent() {
+			return TriggerTimes.size();
+		}
 
 	public:
 		void MakeHitsHistogram(WCSimWCHitsCollection*);
 		void FindNumberOfGatesFast();
-		void FindTriggerWindows(WCSimWCHitsCollection* hits ); // Leigh, new simple function to find trigger windows.
-		void DigitizeGate(WCSimWCHitsCollection* WCHC,G4int G);
+		void FindTriggerWindows(WCSimWCHitsCollection* hits); // Leigh, new simple function to find trigger windows.
+		void DigitizeGate(WCSimWCHitsCollection* WCHC, G4int G);
 		void Digitize();
-		G4double GetTriggerTime(int i) { return TriggerTimes[i];}
+		G4double GetTriggerTime(int i) {
+			return TriggerTimes[i];
+		}
 
-		static G4double GetLongTime() { return LongTime;}
-		static G4double GetPMTDarkRate() { return PMTDarkRate;}
-		static G4double GetEventGateDown() { return eventgatedown;}
-		static G4double GetEventGateUp() { return eventgateup;}
+		static G4double GetLongTime() {
+			return LongTime;
+		}
+		static G4double GetPMTDarkRate() {
+			return PMTDarkRate;
+		}
+		static G4double GetEventGateDown() {
+			return eventgatedown;
+		}
+		static G4double GetEventGateUp() {
+			return eventgateup;
+		}
 
 	private:
 		static const double offset; // hit time offset
@@ -53,9 +69,9 @@ class WCSimWCDigitizer : public G4VDigitizerModule
 
 		std::vector<G4double> TriggerTimes;
 		std::map<G4int, G4int> GateMap;
-		std::map<int,int> DigiHitMap; // need to check if a hit already exists..
+		std::map<int, int> DigiHitMap; // need to check if a hit already exists..
 
-		WCSimWCDigitsCollection*  DigitsCollection;
+		WCSimWCDigitsCollection* DigitsCollection;
 
 		WCSimDetectorConstruction* fDet;
 		WCSimCHIPSPMT* fPMTSim;
@@ -64,11 +80,4 @@ class WCSimWCDigitizer : public G4VDigitizerModule
 };
 
 #endif
-
-
-
-
-
-
-
 

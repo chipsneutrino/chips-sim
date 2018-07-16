@@ -12,27 +12,26 @@
 
 //class WCSimPhysicsList;
 
-class WCSimPhysicsListFactory : public G4VModularPhysicsList
-{
-  public:
-    WCSimPhysicsListFactory();
-    ~WCSimPhysicsListFactory();
+class WCSimPhysicsListFactory: public G4VModularPhysicsList {
+	public:
+		WCSimPhysicsListFactory();
+		~WCSimPhysicsListFactory();
 
-    void SetList(G4String newvalue);  // called by messenger
-    void InitializeList();
+		void SetList(G4String newvalue);  // called by messenger
+		void InitializeList();
 
-    //G4String GetPhysicsListName() {return PhysicsListName;}
+		//G4String GetPhysicsListName() {return PhysicsListName;}
 
-    void ConstructParticle();
-    void ConstructProcess();
-    void SetCuts();
-  private:
+		void ConstructParticle();
+		void ConstructProcess();
+		void SetCuts();
+	private:
 
-    G4String PhysicsListName;
-    G4String ValidListsString;
+		G4String PhysicsListName;
+		G4String ValidListsString;
 
-    WCSimPhysicsListFactoryMessenger* PhysicsMessenger;
-    G4PhysListFactory* factory;
+		WCSimPhysicsListFactoryMessenger* PhysicsMessenger;
+		G4PhysListFactory* factory;
 };
 
 #endif
