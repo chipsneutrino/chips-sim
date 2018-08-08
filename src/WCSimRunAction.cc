@@ -201,8 +201,9 @@ void WCSimRunAction::FillGeoTree() {
 		std::string pmtName = pmt->Get_name();
 		WCSimPMTConfig config = pmtManager->GetPMTByName(pmtName);
 		double pmtRadius = config.GetRadius();
-//    std::cout << "About to add PMT with name " << pmtName << " and radius " << pmtRadius << std::endl;
-		wcsimrootgeom->SetPMT(i, tubeNo, cylLoc, rot, pos, pmtRadius, pmtName);
+		double maxRadius = config.GetMaxRadius();
+		//std::cout << "About to add PMT with name " << pmtName << " and radius " << pmtRadius << std::endl;
+		wcsimrootgeom->SetPMT(i, tubeNo, cylLoc, rot, pos, pmtRadius, maxRadius, pmtName);
 	}
 	if (fpmts->size() != numpmt) {
 		G4cout << "Mismatch between number of pmts and pmt list in geofile.txt!!" << G4endl;

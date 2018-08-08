@@ -25,12 +25,13 @@ class WCSimRootPMT: public TObject {
 		Float_t fOrientation[3];
 		Float_t fPosition[3];
 		Float_t fRadius; // In mm
+		Float_t fMaxRadius; // in mm
 		TString fPMTName;
 
 	public:
 		WCSimRootPMT();
 		WCSimRootPMT(Int_t tubeNo, Int_t cylLoc, Float_t orientation[3], Float_t position[3], Float_t rad,
-				TString pmtName);
+				Float_t maxRad, TString pmtName);
 		virtual ~WCSimRootPMT();
 
 		void SetTubeNo(Int_t i) {
@@ -48,12 +49,13 @@ class WCSimRootPMT: public TObject {
 		void SetRadius(Float_t rad) {
 			fRadius = rad;
 		}
-		;
+		void SetMaxRadius(Float_t maxRad) {
+			fMaxRadius = maxRad;
+		}
+
 		void SetPMTName(TString name) {
 			fPMTName = name;
 		}
-		;
-
 		Int_t GetTubeNo() const {
 			return fTubeNo;
 		}
@@ -69,11 +71,12 @@ class WCSimRootPMT: public TObject {
 		Float_t GetRadius() {
 			return fRadius;
 		}
-		;
+		Float_t GetMaxRadius() {
+			return fMaxRadius;
+		}
 		TString GetPMTName() {
 			return fPMTName;
 		}
-		;
 
 		ClassDef(WCSimRootPMT,1)
 		//WCSimPMT structure
@@ -147,8 +150,8 @@ class WCSimRootGeom: public TObject {
 			fWCOffset[1] = y;
 			fWCOffset[2] = z;
 		}
-		void SetPMT(Int_t i, Int_t tubeno, Int_t cyl_loc, Float_t rot[3], Float_t pos[3], Float_t rad, TString pmtName,
-				bool expand = true);
+		void SetPMT(Int_t i, Int_t tubeno, Int_t cyl_loc, Float_t rot[3], Float_t pos[3], Float_t rad, Float_t maxRad,
+				TString pmtName, bool expand = true);
 		void SetOrientation(Int_t o) {
 			fOrientation = o;
 		}

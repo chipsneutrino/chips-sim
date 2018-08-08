@@ -78,5 +78,5 @@
 /vis/scene/endOfEventAction accumulate
 
 ## Number of events to generate
-/run/beamOn 10
+/run/beamOn 1
 #exit
