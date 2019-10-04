@@ -200,9 +200,15 @@ class WCSimRootGeom: public TObject {
 		WCSimRootPMT GetPMTFromTubeID(Int_t tubeid) {
 			return *(WCSimRootPMT*) (*fPMTArray)[tubeid - 1];
 		}
+
+		WCSimRootPMT* GetPMTPointerFromArray(Int_t index) {
+			(WCSimRootPMT*) (*fPMTArray)[index];
+		}
+
 		WCSimRootPMT GetPMT(Int_t i) {
 			return this->GetPMTFromArray(i);
 		}
+
 		WCSimRootPMT GetPMTFromArray(Int_t index) {
 			return *(WCSimRootPMT*) (*fPMTArray)[index];
 		}

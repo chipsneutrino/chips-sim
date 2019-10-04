@@ -13,6 +13,7 @@
 *_.cxx
 *.pyc
 *~
+geoSetup*
 
 evDisplay
 WCSim

@@ -23,5 +23,7 @@
 #pragma link C++ class WCSimLCConfig+;
 #pragma link C++ class WCSimLCManager+;
 #pragma link C++ class WCSimPMTConfig+;
+#pragma link C++ class WCSimRootPMT+;
+#pragma link C++ class vector<WCSimRootPMT>+;
 #pragma link C++ class WCSimPMTManager+;
 #endif
