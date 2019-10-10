@@ -265,144 +265,151 @@ void WCSimEvDisplay::FillPlotsFromWCSimEvent() {
 		std::cout << "Null pointer :( " << std::endl;
 	WCSimRootTrigger* wcSimTrigger = wcSimEvt->GetTrigger(0);
 
-	// Get the truth information
-	if (fTruthSummary != 0x0) {
-		delete fTruthSummary;
-		fTruthSummary = 0x0;
-	}
-	fTruthSummary = new WCSimTruthSummary(wcSimEvt->GetTruthSummary());
-	this->ClearPi0Vector();
+	std::cout << "HITS-> " << wcSimTrigger->GetNcherenkovhits() << std::endl;
 
-	// Quick check for pi zeroes and their decay photons
-	if (fTruthSummary->IsPrimaryPiZero()) {
-		std::vector<double> pi0EnVec = fTruthSummary->GetPiZeroEnergies();
-		for (unsigned int p = 0; p < pi0EnVec.size(); ++p) {
-			this->SearchForPi0Photons(pi0EnVec[p], wcSimTrigger->GetTracks());
+	if(wcSimTrigger->GetNcherenkovhits() > 0) {
+		// Lets plot this event...
+		// Get the truth information
+		if (fTruthSummary != 0x0) {
+			delete fTruthSummary;
+			fTruthSummary = 0x0;
 		}
-	}
-	// If we have a pi-zero gun, make sure we treat it properly.
-	else if (fTruthSummary->GetBeamPDG() == 111) {
-		this->SearchForPi0Photons(fTruthSummary->GetBeamEnergy(), wcSimTrigger->GetTracks());
-	}
+		fTruthSummary = new WCSimTruthSummary(wcSimEvt->GetTruthSummary());
+		this->ClearPi0Vector();
 
-	// Update the truth view
-	this->UpdateTruthPave();
-
-	int nDigiHits = wcSimTrigger->GetNcherenkovdigihits();
-	std::cout << "Number of PMTs hit: " << nDigiHits << std::endl;
-
-	// Need to loop through the hits once to find the charge and time ranges
-	fQMin = 1e10;
-	fQMax = -1e10;
-	fTMin = 1e10;
-	fTMax = -1e10;
-	for (int i = 0; i < nDigiHits; ++i) {
-		TObject *element = (wcSimTrigger->GetCherenkovDigiHits())->At(i);
-		WCSimRootCherenkovDigiHit *hit = dynamic_cast<WCSimRootCherenkovDigiHit*>(element);
-		if (fViewVeto) {
-			if (geo->GetPMTFromTubeID(hit->GetTubeId()).GetCylLoc() != 3)
-				continue;
-		} else {
-			if (geo->GetPMTFromTubeID(hit->GetTubeId()).GetCylLoc() == 3)
-				continue;
-		}
-		double q = hit->GetQ();
-		double t = hit->GetT();
-		if (q < fQMin)
-			fQMin = q;
-		if (q > fQMax)
-			fQMax = q;
-		if (t < fTMin)
-			fTMin = t;
-		if (t > fTMax)
-			fTMax = t;
-	}
-	// For now, always want charge to start at 0.
-	fQMin = 0;
-	this->CalculateChargeAndTimeBins();
-	this->ResetGraphs();
-
-	// Now loop through again and fill things
-	for (int i = 0; i < nDigiHits; i++) {
-		// Loop through elements in the TClonesArray of WCSimRootCherenkovDigHits
-		TObject *element = (wcSimTrigger->GetCherenkovDigiHits())->At(i);
-
-		WCSimRootCherenkovDigiHit *wcSimDigiHit = dynamic_cast<WCSimRootCherenkovDigiHit*>(element);
-
-		WCSimRootPMT pmt = geo->GetPMTFromTubeID(wcSimDigiHit->GetTubeId());
-		if (fViewVeto) {
-			if (geo->GetPMTFromTubeID(wcSimDigiHit->GetTubeId()).GetCylLoc() != 3)
-				continue;
-		} else {
-			if (geo->GetPMTFromTubeID(wcSimDigiHit->GetTubeId()).GetCylLoc() == 3)
-				continue;
-		}
-
-		double pmtX = pmt.GetPosition(0) * 0.01; // convert to m
-		double pmtY = pmt.GetPosition(1) * 0.01; // convert to m
-		double pmtZ = pmt.GetPosition(2) * 0.01; // convert to m
-		double pmtPhi = TMath::ATan2(pmtY, pmtX);
-		double pmtQ = wcSimDigiHit->GetQ();
-		double pmtT = wcSimDigiHit->GetT();
-		// Set the z-axis to be charge or time.
-		double colourAxis = pmtQ;
-
-		fBarrelHist->GetZaxis()->SetTitle("Charge (p.e.)");
-		fTopHist->GetZaxis()->SetTitle("Charge (p.e.)");
-		fBottomHist->GetZaxis()->SetTitle("Charge (p.e.)");
-		if (fViewType == 1) {
-			colourAxis = pmtT;
-			fBarrelHist->GetZaxis()->SetTitle("Time (ns)");
-			fTopHist->GetZaxis()->SetTitle("Time (ns)");
-			fBottomHist->GetZaxis()->SetTitle("Time (ns)");
-		}
-
-		// Make sure we pass the charge cut
-		if (pmtQ > fChargeCut) {
-			unsigned int bin;
-			if (fViewType == 0)
-				bin = this->GetChargeBin(pmtQ);
-			else
-				bin = this->GetTimeBin(pmtT);
-
-			// Set the underflow bin of the histograms to make sure the colour axis shows
-			fTopHist->SetBinContent(0, 1);
-			fBarrelHist->SetBinContent(0, 1);
-			fBottomHist->SetBinContent(0, 1);
-
-			// Top cap
-			if (pmt.GetCylLoc() == 0) {
-//  			fTopHist->Fill(pmtY,pmtX,colourAxis);
-				fTopGraphs[bin]->SetPoint(fTopGraphs[bin]->GetN(), pmtY, pmtX);
+		// Quick check for pi zeroes and their decay photons
+		if (fTruthSummary->IsPrimaryPiZero()) {
+			std::vector<double> pi0EnVec = fTruthSummary->GetPiZeroEnergies();
+			for (unsigned int p = 0; p < pi0EnVec.size(); ++p) {
+				this->SearchForPi0Photons(pi0EnVec[p], wcSimTrigger->GetTracks());
 			}
-			// Bottom cap
-			else if (pmt.GetCylLoc() == 2) {
-//  			fBottomHist->Fill(pmtY,pmtX,colourAxis);
-				fBottomGraphs[bin]->SetPoint(fBottomGraphs[bin]->GetN(), pmtY, pmtX);
+		}
+		// If we have a pi-zero gun, make sure we treat it properly.
+		else if (fTruthSummary->GetBeamPDG() == 111) {
+			this->SearchForPi0Photons(fTruthSummary->GetBeamEnergy(), wcSimTrigger->GetTracks());
+		}
+
+		// Update the truth view
+		this->UpdateTruthPave();
+
+		int nDigiHits = wcSimTrigger->GetNcherenkovdigihits();
+		std::cout << "Number of PMTs hit: " << nDigiHits << std::endl;
+
+		// Need to loop through the hits once to find the charge and time ranges
+		fQMin = 1e10;
+		fQMax = -1e10;
+		fTMin = 1e10;
+		fTMax = -1e10;
+		for (int i = 0; i < nDigiHits; ++i) {
+			TObject *element = (wcSimTrigger->GetCherenkovDigiHits())->At(i);
+			WCSimRootCherenkovDigiHit *hit = dynamic_cast<WCSimRootCherenkovDigiHit*>(element);
+			if (fViewVeto) {
+				if (geo->GetPMTFromTubeID(hit->GetTubeId()).GetCylLoc() != 3)
+					continue;
+			} else {
+				if (geo->GetPMTFromTubeID(hit->GetTubeId()).GetCylLoc() == 3)
+					continue;
 			}
-			// Barrel
-			else if (pmt.GetCylLoc() == 1) {
-//  			fBarrelHist->Fill(pmtPhi,pmtZ,colourAxis);
-				fBarrelGraphs[bin]->SetPoint(fBarrelGraphs[bin]->GetN(), pmtPhi, pmtZ);
+			double q = hit->GetQ();
+			double t = hit->GetT();
+			if (q < fQMin)
+				fQMin = q;
+			if (q > fQMax)
+				fQMax = q;
+			if (t < fTMin)
+				fTMin = t;
+			if (t > fTMax)
+				fTMax = t;
+		}
+		// For now, always want charge to start at 0.
+		fQMin = 0;
+		this->CalculateChargeAndTimeBins();
+		this->ResetGraphs();
+
+		// Now loop through again and fill things
+		for (int i = 0; i < nDigiHits; i++) {
+			// Loop through elements in the TClonesArray of WCSimRootCherenkovDigHits
+			TObject *element = (wcSimTrigger->GetCherenkovDigiHits())->At(i);
+
+			WCSimRootCherenkovDigiHit *wcSimDigiHit = dynamic_cast<WCSimRootCherenkovDigiHit*>(element);
+
+			WCSimRootPMT pmt = geo->GetPMTFromTubeID(wcSimDigiHit->GetTubeId());
+			if (fViewVeto) {
+				if (geo->GetPMTFromTubeID(wcSimDigiHit->GetTubeId()).GetCylLoc() != 3)
+					continue;
+			} else {
+				if (geo->GetPMTFromTubeID(wcSimDigiHit->GetTubeId()).GetCylLoc() == 3)
+					continue;
 			}
-			// Otherwise these are veto PMTs. Don't display, but say stuff for now.
-			else {
-//        std::cout << "Veto PMT hit: " <<  pmtX << ", " << pmtY << ", " << pmtZ << " :: " << pmtPhi << ", " << pmtQ << ", " << pmtT << std::endl;
-				if (pmt.GetOrientation(2) > 0.99) {
+
+			double pmtX = pmt.GetPosition(0) * 0.01; // convert to m
+			double pmtY = pmt.GetPosition(1) * 0.01; // convert to m
+			double pmtZ = pmt.GetPosition(2) * 0.01; // convert to m
+			double pmtPhi = TMath::ATan2(pmtY, pmtX);
+			double pmtQ = wcSimDigiHit->GetQ();
+			double pmtT = wcSimDigiHit->GetT();
+			// Set the z-axis to be charge or time.
+			double colourAxis = pmtQ;
+
+			fBarrelHist->GetZaxis()->SetTitle("Charge (p.e.)");
+			fTopHist->GetZaxis()->SetTitle("Charge (p.e.)");
+			fBottomHist->GetZaxis()->SetTitle("Charge (p.e.)");
+			if (fViewType == 1) {
+				colourAxis = pmtT;
+				fBarrelHist->GetZaxis()->SetTitle("Time (ns)");
+				fTopHist->GetZaxis()->SetTitle("Time (ns)");
+				fBottomHist->GetZaxis()->SetTitle("Time (ns)");
+			}
+
+			// Make sure we pass the charge cut
+			if (pmtQ > fChargeCut) {
+				unsigned int bin;
+				if (fViewType == 0)
+					bin = this->GetChargeBin(pmtQ);
+				else
+					bin = this->GetTimeBin(pmtT);
+
+				// Set the underflow bin of the histograms to make sure the colour axis shows
+				fTopHist->SetBinContent(0, 1);
+				fBarrelHist->SetBinContent(0, 1);
+				fBottomHist->SetBinContent(0, 1);
+
+				// Top cap
+				if (pmt.GetCylLoc() == 0) {
+	//  			fTopHist->Fill(pmtY,pmtX,colourAxis);
 					fTopGraphs[bin]->SetPoint(fTopGraphs[bin]->GetN(), pmtY, pmtX);
-				} else if (pmt.GetOrientation(2) < -0.99) {
+				}
+				// Bottom cap
+				else if (pmt.GetCylLoc() == 2) {
+	//  			fBottomHist->Fill(pmtY,pmtX,colourAxis);
 					fBottomGraphs[bin]->SetPoint(fBottomGraphs[bin]->GetN(), pmtY, pmtX);
-				} else {
+				}
+				// Barrel
+				else if (pmt.GetCylLoc() == 1) {
+	//  			fBarrelHist->Fill(pmtPhi,pmtZ,colourAxis);
 					fBarrelGraphs[bin]->SetPoint(fBarrelGraphs[bin]->GetN(), pmtPhi, pmtZ);
 				}
+				// Otherwise these are veto PMTs. Don't display, but say stuff for now.
+				else {
+	//        std::cout << "Veto PMT hit: " <<  pmtX << ", " << pmtY << ", " << pmtZ << " :: " << pmtPhi << ", " << pmtQ << ", " << pmtT << std::endl;
+					if (pmt.GetOrientation(2) > 0.99) {
+						fTopGraphs[bin]->SetPoint(fTopGraphs[bin]->GetN(), pmtY, pmtX);
+					} else if (pmt.GetOrientation(2) < -0.99) {
+						fBottomGraphs[bin]->SetPoint(fBottomGraphs[bin]->GetN(), pmtY, pmtX);
+					} else {
+						fBarrelGraphs[bin]->SetPoint(fBarrelGraphs[bin]->GetN(), pmtPhi, pmtZ);
+					}
+				}
+
+				// Now fill the 1D histograms
+				fChargeHist->Fill(pmtQ);
+				fTimeHist->Fill(pmtT);
 			}
 
-			// Now fill the 1D histograms
-			fChargeHist->Fill(pmtQ);
-			fTimeHist->Fill(pmtT);
-		}
-
-	} // End of loop over Cherenkov digihits
+		} // End of loop over Cherenkov digihits
+	} else {
+		std::cout << "NO HITS SKIP THE EVENT!!!" << std::endl;
+	}
 
 	delete geo;
 	geo = 0x0;
