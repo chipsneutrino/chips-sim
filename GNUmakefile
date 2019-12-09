@@ -1,6 +1,5 @@
-# $Id: GNUmakefile,v 1.17 2006/09/04 15:43:27 t2k Exp $
 # --------------------------------------------------------------
-# GNUmakefile for examples module.  Gabriele Cosmo, 06/04/98.
+# GNUmakefile for WCSim
 # --------------------------------------------------------------
 
 G4DEBUG = 1
@@ -9,66 +8,72 @@ name := WCSim
 G4TARGET := $(name)
 G4EXLIB := true
 
-ifndef G4INSTALL
-  G4INSTALL = ../../..
-endif
+CXX			= g++
+CXXFLAGS    = -g -Wall -fPIC -O3
+LDFLAGS     = -g -O3
 
-ROOTCFLAGS   := $(shell root-config --cflags) -DUSE_ROOT -fPIC
-ROOTLIBS     := $(shell root-config --glibs) -lEG
+INCDIR 		= ./include
+SRCDIR 		= ./src
+BINDIR 		= ./bin
 
-LIBNAME := WCSim
+ROOTCFLAGS := $(shell root-config --cflags) -DUSE_ROOT -fPIC
+ROOTLDFLAGS:= $(shell root-config --ldflags)
+ROOTLIBS   := $(shell root-config --libs) -lEG
+ROOTGLIBS  := $(shell root-config --glibs)
 
-# NOTE: Geant4.7.0 changes the way Maximum Step size is defined.  
-# We need extra code for versions 4.7.0 and above; eventually 
-# everyone should upgrade to geant4.7
-ifneq (,$(findstring 4.7,$(G4INSTALL)))
-GEANT4_7_0 = 0
-else
-GEANT4_7_0 = 1
-endif
-
-ifdef GEANT4_7_0
-CPPFLAGS += -DGEANT4_7_0
-endif
-
-ifdef GCCVERS296
-CPPFLAGS += -DUSE_STRSTREAM
-endif
+CXXFLAGS   += $(ROOTCFLAGS)
+LDFLAGS    += $(ROOTLDFLAGS)
+LIBS        = $(ROOTLIBS) $(SYSLIBS)
+GLIBS       = $(ROOTGLIBS) $(SYSLIBS)
 
 CPPFLAGS  += -I$(ROOTSYS)/include $(ROOTCFLAGS)
-EXTRALIBS += $(ROOTLIBS)
-
-EXTRA_LINK_DEPENDENCIES := 
+EXTRALIBS += $(ROOTLIBS) $(ROOTGLIBS) -L$(G4LIB)/$(G4SYSTEM)
 
 .PHONY: all
 all: rootcint lib bin shared libWCSim.a evDisp geoHelp
 
-# Note dependencies not yet set up right yet
+LIBNAME := WCSim
+ROOTSO := libWCSim.so
+ROOTDICT := $(SRCDIR)/WCSimRootDict.cc
 
-ROOTSO    := libWCSimRoot.so
+# This is the list of all the ROOT-based classes we need to worry about.
+# Assumes that each class has src/*.cc, include/*.hh and tmp/*.o files.
+ROOTCLASS := WCSimRootEvent WCSimRootGeom WCSimPmtInfo WCSimCHIPSPMT WCSimSK1pePMT WCSimTOTPMT WCSimPMTManager WCSimPMTConfig WCSimLCManager WCSimLCConfig WCSimEvDisplay WCSimTruthSummary
 
-ROOTSRC  := ./src/WCSimRootEvent.cc ./include/WCSimRootEvent.hh ./src/WCSimRootGeom.cc ./include/WCSimRootGeom.hh ./include/WCSimPmtInfo.hh ./src/WCSimCHIPSPMT.cc ./include/WCSimCHIPSPMT.hh ./src/WCSimSK1pePMT.cc ./include/WCSimSK1pePMT.hh ./src/WCSimTOTPMT.cc ./include/WCSimTOTPMT.hh ./src/WCSimPMTManager.cc ./include/WCSimPMTManager.hh ./src/WCSimPMTConfig.cc ./include/WCSimPMTConfig.hh ./src/WCSimLCManager.cc ./include/WCSimLCManager.hh ./src/WCSimLCConfig.cc ./include/WCSimLCConfig.hh ./include/WCSimEvDisplay.hh ./include/WCSimTruthSummary.hh ./include/WCSimRootLinkDef.hh
+# Create the ROOTINC list from the class list, remembering to also add the LinkDef file
+ROOTINC = $(ROOTCLASS:%=$(INCDIR)/%.hh)
+ROOTINC += $(INCDIR)/WCSimRootLinkDef.hh
+# For dictionary generation, want a version without the include directory.
+ROOTINCNODIR = $(ROOTCLASS:%=%.hh)
+ROOTINCNODIR += WCSimRootLinkDef.hh
+# Now for the ROOTSRC list
+ROOTSRC = $(ROOTCLASS:%=$(SRCDIR)/%.cc)
+# Finally, the ROOTOBJ list, remembering to add on the RootDict file
+G4PATH = $(G4WORKDIR)/tmp/$(G4SYSTEM)/$(G4TARGET)
+ROOTOBJS = $(ROOTCLASS:%=$(G4PATH)/%.o)
+ROOTOBJS += $(G4PATH)/WCSimRootDict.o
 
-ROOTOBJS  := $(G4WORKDIR)/tmp/$(G4SYSTEM)/WCSim/WCSimRootEvent.o $(G4WORKDIR)/tmp/$(G4SYSTEM)/WCSim/WCSimRootGeom.o $(G4WORKDIR)/tmp/$(G4SYSTEM)/WCSim/WCSimPmtInfo.o $(G4WORKDIR)/tmp/$(G4SYSTEM)/WCSim/WCSimCHIPSPMT.o $(G4WORKDIR)/tmp/$(G4SYSTEM)/WCSim/WCSimSK1pePMT.o $(G4WORKDIR)/tmp/$(G4SYSTEM)/WCSim/WCSimTOTPMT.o $(G4WORKDIR)/tmp/$(G4SYSTEM)/WCSim/WCSimPMTManager.o  $(G4WORKDIR)/tmp/$(G4SYSTEM)/WCSim/WCSimPMTConfig.o $(G4WORKDIR)/tmp/$(G4SYSTEM)/WCSim/WCSimLCManager.o $(G4WORKDIR)/tmp/$(G4SYSTEM)/WCSim/WCSimLCConfig.o $(G4WORKDIR)/tmp/$(G4SYSTEM)/WCSim/WCSimEvDisplay.o $(G4WORKDIR)/tmp/$(G4SYSTEM)/WCSim/WCSimTruthSummary.o  $(G4WORKDIR)/tmp/$(G4SYSTEM)/WCSim/WCSimRootDict.o 
+shared: $(ROOTDICT) $(ROOTSRC) $(ROOTINC) $(ROOTOBJS)
+	@echo "<**Shared**>"
+	@mkdir -p lib
+	$(CXX) -shared -O $(ROOTOBJS) -o $(ROOTSO) $(ROOTLIBS) -O3
 
-shared: $(ROOTSRC) $(ROOTOBJS) 
-	g++ -shared -O $(ROOTOBJS) -o $(ROOTSO) $(ROOTLIBS)
-
-libWCSim.a : $(ROOTOBJS)
+libWCSim.a: $(ROOTOBJS)
 	$(RM) $@
-	ar clq $@ $(ROOTOBJS) 
+	ar clq $@ $(ROOTOBJS)
 
-./src/WCSimRootDict.cc : $(ROOTSRC)
-	rootcint  -f ./src/WCSimRootDict.cc -c -I./include -I$(shell root-config --incdir) WCSimRootEvent.hh WCSimRootGeom.hh WCSimPmtInfo.hh WCSimCHIPSPMT.hh WCSimSK1pePMT.hh WCSimTOTPMT.hh WCSimPMTManager.hh WCSimPMTConfig.hh WCSimLCManager.hh WCSimLCConfig.hh WCSimEvDisplay.hh WCSimTruthSummary.hh WCSimRootLinkDef.hh
+$(ROOTDICT): $(ROOTSRC) $(ROOTINC)
+	rootcint -f $(ROOTDICT) -c -I$(shell root-config --incdir) $(ROOTINC) $(ROOTINCNODIR)
 
+rootcint: $(ROOTDICT)
 
-rootcint: ./src/WCSimRootDict.cc
+evDisp:
+	@mkdir -p bin 
+	$(CXX) -I$(INCDIR) -I$(shell root-config --incdir) -L./ -o $(BINDIR)/evDisplay evDisplay.cc $(ROOTDICT) -lWCSim -lEG $(CXXFLAGS) $(GLIBS) -O3
 
-evDisp : 
-	g++ `root-config --cflags --glibs` -I./include -L./ -o evDisplay evDisplay.cc src/WCSimRootDict.cc -lWCSim -lEG `root-config --cflags --glibs`
-
-geoHelp :
-	g++ $(CPPFLAGS) $(ROOTLIBS) $(ROOTCFLAGS) -I./include -L./  -o geometryHelper geometryHelper.cc src/WCSimGeometryHelper.cc `root-config --cflags --glibs`
+geoHelp:
+	@mkdir -p bin
+	$(CXX) -I$(INCDIR) -I$(shell root-config --incdir) -L./ $(LIBS) -o $(BINDIR)/geometryHelper geometryHelper.cc src/WCSimGeometryHelper.cc $(CXXFLAGS) $(GLIBS) -O3
 
 include $(G4INSTALL)/config/binmake.gmk
 
