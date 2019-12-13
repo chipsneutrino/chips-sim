@@ -1,27 +1,15 @@
-# Set tuning parameters
-# These scale the characteristic lengths
-# defined in WCSimMaterialProperties
+# Set tuning parameters, these scale hardcoded characteristic lengths defined in WCSimMaterialProperties
 
-# Absorption
-#/WCSim/tuning/abwff 0.615
-#/WCSim/tuning/abwff 0.045356  # Make maximum value 30m
-/WCSim/tuning/abwff 0.128073 # Value to set 50.0m at 405.0nm
-# default was 1.23
+/WCSim/tuning/abwff 0.12820     # Absorption value to set 50.0m at 405.0nm
+#/WCSim/tuning/abwff 0.07693    # Absorption value to set 30.0m at 405.0nm
+#/WCSim/tuning/abwff 0.02564    # Absorption value to set 10.0m at 405.0nm
+#/WCSim/tuning/abwff 0.01539    # Absorption value to set 6.0m at 405.0nm
+#/WCSim/tuning/abwff 0.01026    # Absorption value to set 4.0m at 405.0nm
+#/WCSim/tuning/abwff 0.00513    # Absorption value to set 2.0m at 405.0nm
+/WCSim/tuning/rgcff 0.24        # Reflectivity of glass cathode
+/WCSim/tuning/rayff 0.8         # Rayleigh scattering length
+/WCSim/tuning/bsrff 0.7         # Blacksheet reflectivity
+/WCSim/tuning/mieff 0.0         # Mie scattering length   
 
-# Reflectivity of glass cathode
-/WCSim/tuning/rgcff 0.24
-
-# Rayleigh scattering length
-/WCSim/tuning/rayff 0.8
-
-# Blacksheet reflectivity
-/WCSim/tuning/bsrff 0.7
-
-# Mie scattering length
-/WCSim/tuning/mieff 0.0
-
-# Parameters to set up Top Veto - jl145
-# Set to "1" to turn on top veto.
-/WCSim/tuning/topveto 0
-# Set top veto PMT spacing in cm.
-/WCSim/tuning/tvspacing 100
+/WCSim/tuning/topveto 0         # Set to "1" to turn on top veto.
+/WCSim/tuning/tvspacing 100     # Set top veto PMT spacing in cm.
