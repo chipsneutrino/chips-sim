@@ -27,7 +27,7 @@ LIBS        = $(ROOTLIBS) $(SYSLIBS)
 GLIBS       = $(ROOTGLIBS) $(SYSLIBS)
 
 CPPFLAGS  += -I$(ROOTSYS)/include $(ROOTCFLAGS)
-EXTRALIBS += $(ROOTLIBS) $(ROOTGLIBS) -L$(G4LIB)/$(G4SYSTEM)
+EXTRALIBS += $(ROOTLIBS) $(ROOTGLIBS) -L$(G4LIB)/$(G4SYSTEM) -L
 
 .PHONY: all
 all: rootcint lib bin shared libWCSim.a evDisp geoHelp
@@ -54,7 +54,6 @@ ROOTOBJS = $(ROOTCLASS:%=$(G4PATH)/%.o)
 ROOTOBJS += $(G4PATH)/WCSimRootDict.o
 
 shared: $(ROOTDICT) $(ROOTSRC) $(ROOTINC) $(ROOTOBJS)
-	@echo "<**Shared**>"
 	@mkdir -p lib
 	$(CXX) -shared -O $(ROOTOBJS) -o $(ROOTSO) $(ROOTLIBS) -O3
 
@@ -63,7 +62,7 @@ libWCSim.a: $(ROOTOBJS)
 	ar clq $@ $(ROOTOBJS)
 
 $(ROOTDICT): $(ROOTSRC) $(ROOTINC)
-	rootcint -f $(ROOTDICT) -c -I$(shell root-config --incdir) $(ROOTINC) $(ROOTINCNODIR)
+	rootcint -f $(ROOTDICT) -c -I$(shell root-config --incdir) $(ROOTINC)
 
 rootcint: $(ROOTDICT)
 

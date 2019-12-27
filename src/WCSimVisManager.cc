@@ -61,7 +61,7 @@ WCSimVisManager::WCSimVisManager () {}
 void WCSimVisManager::RegisterGraphicsSystems () {
 
 	// Graphics Systems not needing external packages or libraries...
-	RegisterGraphicsSystem (new G4ASCIITree);
+	//RegisterGraphicsSystem (new G4ASCIITree);
 	RegisterGraphicsSystem (new G4DAWNFILE);
 	//RegisterGraphicsSystem (new G4GAGTree);
 	RegisterGraphicsSystem (new G4HepRepFile);
