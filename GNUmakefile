@@ -14,7 +14,7 @@ LDFLAGS     = -g -O3
 
 INCDIR 		= ./include
 SRCDIR 		= ./src
-BINDIR 		= ./bin
+LIBDIR 		= ./lib
 
 ROOTCFLAGS := $(shell root-config --cflags) -DUSE_ROOT -fPIC
 ROOTLDFLAGS:= $(shell root-config --ldflags)
@@ -30,7 +30,7 @@ CPPFLAGS  += -I$(ROOTSYS)/include $(ROOTCFLAGS)
 EXTRALIBS += $(ROOTLIBS) $(ROOTGLIBS) -L$(G4LIB)/$(G4SYSTEM) -L
 
 .PHONY: all
-all: rootcint lib bin shared libWCSim.a evDisp geoHelp
+all: rootcint lib bin shared
 
 LIBNAME := WCSim
 ROOTSO := libWCSim.so
@@ -55,11 +55,12 @@ ROOTOBJS += $(G4PATH)/WCSimRootDict.o
 
 shared: $(ROOTDICT) $(ROOTSRC) $(ROOTINC) $(ROOTOBJS)
 	@mkdir -p lib
-	$(CXX) -shared -O $(ROOTOBJS) -o $(ROOTSO) $(ROOTLIBS) -O3
+	$(CXX) -shared -O $(ROOTOBJS) -o $(LIBDIR)/$(ROOTSO) $(ROOTLIBS) -O3
 
 libWCSim.a: $(ROOTOBJS)
 	$(RM) $@
 	ar clq $@ $(ROOTOBJS)
+	mv $@ $(LIBDIR)
 
 $(ROOTDICT): $(ROOTSRC) $(ROOTINC)
 	rootcint -f $(ROOTDICT) -c -I$(shell root-config --incdir) $(ROOTINC)
@@ -68,11 +69,11 @@ rootcint: $(ROOTDICT)
 
 evDisp:
 	@mkdir -p bin 
-	$(CXX) -I$(INCDIR) -I$(shell root-config --incdir) -L./ -o $(BINDIR)/evDisplay evDisplay.cc $(ROOTDICT) -lWCSim -lEG $(CXXFLAGS) $(GLIBS) -O3
+	$(CXX) -I$(INCDIR) -I$(shell root-config --incdir) -L./ -o evDisplay evDisplay.cc $(ROOTDICT) -lWCSim -lEG $(CXXFLAGS) $(GLIBS) -O3
 
 geoHelp:
 	@mkdir -p bin
-	$(CXX) -I$(INCDIR) -I$(shell root-config --incdir) -L./ $(LIBS) -o $(BINDIR)/geometryHelper geometryHelper.cc src/WCSimGeometryHelper.cc $(CXXFLAGS) $(GLIBS) -O3
+	$(CXX) -I$(INCDIR) -I$(shell root-config --incdir) -L./ $(LIBS) -o geometryHelper geometryHelper.cc src/WCSimGeometryHelper.cc $(CXXFLAGS) $(GLIBS) -O3
 
 include $(G4INSTALL)/config/binmake.gmk
 
