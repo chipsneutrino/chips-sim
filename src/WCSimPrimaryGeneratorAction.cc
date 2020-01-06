@@ -155,10 +155,11 @@ void WCSimPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent) {
 						if (token[6] == "0") {
 							// Leigh Hack for Coh events with the nucleus in the final state
 							if (token[1] == "8016")
-								token[1] = "1000080160";
+								//token[1] = "1000080160";
+								continue;
 							if (token[1] == "1001")
-								token[1] = "1000010010";
-
+								//token[1] = "1000010010";
+								continue;
 							this->FireParticleGunFromTrackLine(anEvent, nuVtx, nuVtxT, token, fUseXAxisForBeam, false);
 						}
 					}
@@ -333,10 +334,13 @@ void WCSimPrimaryGeneratorAction::GenerateOverlayEvents(G4Event *evt) {
 		// We are only interested in the particles that leave the nucleus, tagged by "0"
 		if (token[6] == "0" && atof(token[5]) > -999) {
 			// Leigh Hack for Coh events with the nucleus in the final state
+			// Josh change: Just don't include the nucleons in the particle gun...
 			if (token[1] == "8016")
-				token[1] = "1000080160";
+				//token[1] = "1000080160";
+				continue;
 			if (token[1] == "1001")
-				token[1] = "1000010010";
+				//token[1] = "1000010010";
+				continue;
 			// Interface with the particle gun to generate the event
 			FireParticleGunFromTrackLine(evt, nuVtx, nuVtxT, token, fUseXAxisForBeam, false);
 		}
@@ -360,10 +364,11 @@ void WCSimPrimaryGeneratorAction::GenerateOverlayEvents(G4Event *evt) {
 		if ((overToken[6] == "0") && atof(overToken[5]) > -999) {
 			// Leigh Hack for Coh events with the nucleus in the final state
 			if (overToken[1] == "8016")
-				overToken[1] = "1000080160";
+				//overToken[1] = "1000080160";
+				continue;
 			if (overToken[1] == "1001")
-				overToken[1] = "1000010010";
-
+				//overToken[1] = "1000010010";
+				continue;
 			// No need for XZ swaps with the cosmics overlays.
 			FireParticleGunFromTrackLine(evt, cosmicVtx, cosmicTime, overToken, false, true);
 		}
