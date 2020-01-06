@@ -37,8 +37,6 @@
 #include "WCSimRootEvent.hh"
 #include "TStopwatch.h"
 
-#define _SAVE_RAW_HITS
-
 WCSimEventAction::WCSimEventAction(WCSimRunAction* myRun, WCSimDetectorConstruction* myDetector,
 		WCSimPrimaryGeneratorAction* myGenerator) :
 		runAction(myRun), generatorAction(myGenerator), detectorConstructor(myDetector) {
