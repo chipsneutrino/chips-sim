@@ -197,7 +197,6 @@ WCSimRootTrack *WCSimRootTrigger::AddTrack(Int_t ipnu, Int_t flag, Float_t m, Fl
 	// the standard but not well know C++ operator "new with placement"
 	// is called. If tracks[i] is 0, a new Track object will be created
 	// otherwise the previous Track[i] will be overwritten.
-
 	TClonesArray &tracks = *fTracks;
 	WCSimRootTrack *track = new (tracks[fNtrack++]) WCSimRootTrack(ipnu, flag, m, p, E, startvol, stopvol, dir, pdir,
 			stop, start, parenttype, time, id, parentId);

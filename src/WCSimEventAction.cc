@@ -387,11 +387,16 @@ void WCSimEventAction::FillRootEvent(G4int event_id, G4TrajectoryContainer* TC, 
 	if (TC)
 		n_trajectories = TC->entries();
 
-	// M Fechner : removed this limit to get to the primaries...
-	//if (n_trajectories>50)  // there is no need for this limit, but it has
-	//n_trajectories=50;    // existed in previous versions of the code.  It also
+	// JTINGEY: ADDED A LIMIT TO MAKE THE ROOT FILE SMALLER
+	// THIS SHOULD BE CONFIGURABLE OR ONLY STORE IMPORTANT TRACKS
+	// there is no need for this limit, but it has
+	// existed in previous versions of the code.  It also
 	// makes the ROOT file smaller.
-
+	if (n_trajectories>5)  
+	{
+		n_trajectories=5; 
+	}
+		   
 	for (int i = 0; i < n_trajectories; i++) {
 		WCSimTrajectory* trj = (WCSimTrajectory*) (*TC)[i];
 
