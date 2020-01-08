@@ -8,18 +8,18 @@
 /hits/verbose 0
 
 ## Select the input nuance-formatted vector file, you can ofcourse use your own
-/mygen/vecfile /unix/chips/jtingey/CHIPS/code/WCSim/example/chips_nuel_ccqe_000.vec
+/mygen/vecfile /unix/chips/production/beam_nuel_all/gen/filtered/filtered_000.vec
 
 ## Toggles for swapping X and Z, and randomising vertices
 /mygen/useXAxisForBeam true
 /mygen/enableRandomVtx true
-/mygen/fiducialDist 2.0
+/mygen/fiducialDist 1.0
 
 ## Select the generator, "gps" for general particle gun, "muline" for vector files, "overlay" for cosmic overlays
 /mygen/generator muline
 
 ## If /mygen/generator overlay, define the overlay file here.
-/mygen/overlayfile /unix/fnu/lwhitehead/chips10_5000_50m_overburden.vec
+/mygen/overlayfile /unix/chips/production/cosmic_numu_all/gen/filtered/filtered_000.vec
 
 ## General Particle Gun settings, if using /mygen/generator gps
 /gps/particle e-
