@@ -13,6 +13,7 @@
 #include "G4ThreeVector.hh"
 #include "globals.hh"
 #include "G4VisAttributes.hh"
+#include "CLHEP/Units/SystemOfUnits.h"
 
 #include "G4RunManager.hh"
 #include "G4PhysicalVolumeStore.hh"
@@ -24,10 +25,10 @@ std::map<int, G4Transform3D> WCSimDetectorConstruction::tubeIDMap;
 std::map<int, std::string> WCSimDetectorConstruction::tubeNameMap;
 std::map<int, std::string> WCSimDetectorConstruction::tubeTagMap;
 //std::map<int, cyl_location>  WCSimDetectorConstruction::tubeCylLocation;
-hash_map<std::string, int, hash<std::string> > WCSimDetectorConstruction::tubeLocationMap;
+hash_map<std::string, int, hash<std::string>> WCSimDetectorConstruction::tubeLocationMap;
 
-WCSimDetectorConstruction::WCSimDetectorConstruction(G4int DetConfig) :
-		fPMTBuilder() {
+WCSimDetectorConstruction::WCSimDetectorConstruction(G4int DetConfig) : fPMTBuilder()
+{
 	// Initialise daughter classes
 
 	// Initialise geometry pointers
@@ -44,9 +45,9 @@ WCSimDetectorConstruction::WCSimDetectorConstruction(G4int DetConfig) :
 	isMailbox = false;
 
 	debugMode = false;
-//-----------------------------------------------------
-// Initilise SD pointers
-//-----------------------------------------------------
+	//-----------------------------------------------------
+	// Initilise SD pointers
+	//-----------------------------------------------------
 
 	aWCPMT = NULL;
 
@@ -114,17 +115,19 @@ WCSimDetectorConstruction::WCSimDetectorConstruction(G4int DetConfig) :
 	messenger = new WCSimDetectorMessenger(this);
 }
 
-void WCSimDetectorConstruction::SetDetectorName(const G4String &detName) {
+void WCSimDetectorConstruction::SetDetectorName(const G4String &detName)
+{
 	fDetectorName = detName;
 	this->SetCustomGeometry();
 	return;
 }
 
-void WCSimDetectorConstruction::SetCustomGeometry() {
+void WCSimDetectorConstruction::SetCustomGeometry()
+{
 	std::cerr << "Error: you are using the old interface to construct detectors, which only supports the hardcoded ones"
-			<< std::endl;
+			  << std::endl;
 	std::cerr << "Cannot construct the custom detector " << fDetectorName
-			<< " - use config/geoConfig.xml and a name that isn't hardcoded" << std::endl;
+			  << " - use config/geoConfig.xml and a name that isn't hardcoded" << std::endl;
 	assert(false);
 }
 
@@ -134,25 +137,28 @@ void WCSimDetectorConstruction::SetCustomGeometry() {
 
 // Put the call to update inside this function so we can call it with
 // this->Update() to ensure that derived classes call their own implementation
-void WCSimDetectorConstruction::UpdateGeometry() {
+void WCSimDetectorConstruction::UpdateGeometry()
+{
 	this->Update();
 }
 
-void WCSimDetectorConstruction::Update() {
+void WCSimDetectorConstruction::Update()
+{
 	G4bool geomChanged = true;
 	G4RunManager::GetRunManager()->DefineWorldVolume(this->Construct(), geomChanged);
-
 }
 
-WCSimDetectorConstruction::~WCSimDetectorConstruction() {
-	for (int i = 0; i < fpmts.size(); i++) {
+WCSimDetectorConstruction::~WCSimDetectorConstruction()
+{
+	for (int i = 0; i < fpmts.size(); i++)
+	{
 		delete fpmts.at(i);
 	}
 	fpmts.clear();
-
 }
 
-G4VPhysicalVolume* WCSimDetectorConstruction::Construct() {
+G4VPhysicalVolume *WCSimDetectorConstruction::Construct()
+{
 	G4GeometryManager::GetInstance()->OpenGeometry();
 
 	G4PhysicalVolumeStore::GetInstance()->Clean();
@@ -172,15 +178,18 @@ G4VPhysicalVolume* WCSimDetectorConstruction::Construct() {
 	// Note the order is important because they rearrange themselves depending
 	// on their size and detector ordering.
 
-	G4LogicalVolume* logicWCBox = NULL;
+	G4LogicalVolume *logicWCBox = NULL;
 	// Select between cylinder and mailbox
-	if (isMailbox) {
+	if (isMailbox)
+	{
 		logicWCBox = ConstructMailboxWC();
-	} else {
+	}
+	else
+	{
 		logicWCBox = ConstructWC();
 	}
 
-	G4cout << " WCLength (base)      = " << WCLength / m << " m" << G4endl;
+	G4cout << " WCLength (base)      = " << WCLength / CLHEP::m << " CLHEP::m" << G4endl;
 
 	//-------------------------------
 
@@ -190,18 +199,18 @@ G4VPhysicalVolume* WCSimDetectorConstruction::Construct() {
 	// We want a big lake so that CRY can generate cosmics above it
 	// - it does that in a 300m x 300m square so we need at least that
 	// much space
-	G4double expHallWidth = WCDiameter + 300 * m;
-	G4double expHallLength = WCLength + 2 * 40 * m; // Depth is 40m - for now just have it floating in water
+	G4double expHallWidth = WCDiameter + 300 * CLHEP::m;
+	G4double expHallLength = WCLength + 2 * 40 * CLHEP::m; // Depth is 40m - for now just have it floating in water
 
-	G4cout << " expHallLength = " << expHallLength / m << G4endl;
-	G4cout << " expHallWidth  = " << expHallWidth / m << G4endl;
+	G4cout << " expHallLength = " << expHallLength / CLHEP::m << G4endl;
+	G4cout << " expHallWidth  = " << expHallWidth / CLHEP::m << G4endl;
 	G4double expHallHalfWidth = 0.5 * expHallWidth;
 	G4double expHallHalfLength = 0.5 * expHallLength;
 
-	G4Box* solidExpHall = new G4Box("expHall", expHallHalfWidth, expHallHalfWidth, expHallHalfLength);
+	G4Box *solidExpHall = new G4Box("expHall", expHallHalfWidth, expHallHalfWidth, expHallHalfLength);
 
-	G4LogicalVolume* logicExpHall = new G4LogicalVolume(solidExpHall,
-			WCSimMaterialsBuilder::Instance()->GetMaterial("Vacuum"), "expHall", 0, 0, 0);
+	G4LogicalVolume *logicExpHall = new G4LogicalVolume(solidExpHall,
+														WCSimMaterialsBuilder::Instance()->GetMaterial("Vacuum"), "expHall", 0, 0, 0);
 
 	// Now set the visualization attributes of the logical volumes.
 
@@ -213,19 +222,19 @@ G4VPhysicalVolume* WCSimDetectorConstruction::Construct() {
 	//-----------------------------------------------------
 
 	// Experimental Hall
-	G4VPhysicalVolume* physiExpHall = new G4PVPlacement(0, G4ThreeVector(), logicExpHall, "expHall", 0, false, 0, true);
+	G4VPhysicalVolume *physiExpHall = new G4PVPlacement(0, G4ThreeVector(), logicExpHall, "expHall", 0, false, 0, true);
 
 	// Water Cherenkov Detector (WC) mother volume
 	// WC Box, nice to turn on for x and y views to provide a frame:
 
-	G4RotationMatrix* rotationMatrix = new G4RotationMatrix;
-	rotationMatrix->rotateX(90. * deg);
-	rotationMatrix->rotateZ(90. * deg);
+	G4RotationMatrix *rotationMatrix = new G4RotationMatrix;
+	rotationMatrix->rotateX(90. * CLHEP::deg);
+	rotationMatrix->rotateZ(90. * CLHEP::deg);
 
 	G4ThreeVector genPosition = G4ThreeVector(0., 0., WCPosition);
 	std::cout << "logicWCBox name = " << logicWCBox->GetName() << std::endl;
 	std::cout << "logicExpHall name = " << logicExpHall->GetName() << std::endl;
-	G4VPhysicalVolume* physiWCBox = new G4PVPlacement(0, genPosition, logicWCBox, "WCBox", logicExpHall, false, 0);
+	G4VPhysicalVolume *physiWCBox = new G4PVPlacement(0, genPosition, logicWCBox, "WCBox", logicExpHall, false, 0);
 
 	// Traverse and print the geometry Tree
 
@@ -242,15 +251,18 @@ G4VPhysicalVolume* WCSimDetectorConstruction::Construct() {
 	return physiExpHall;
 }
 
-WCSimPMTManager* WCSimDetectorConstruction::GetPMTManager() const {
+WCSimPMTManager *WCSimDetectorConstruction::GetPMTManager() const
+{
 	return fPMTManager;
 }
 
-std::vector<WCSimPMTConfig> WCSimDetectorConstruction::GetPMTVector() const {
+std::vector<WCSimPMTConfig> WCSimDetectorConstruction::GetPMTVector() const
+{
 	return fPMTConfigs;
 }
 
-void WCSimDetectorConstruction::ResetPMTConfigs() {
+void WCSimDetectorConstruction::ResetPMTConfigs()
+{
 	fPMTConfigs.clear();
 	return;
 }

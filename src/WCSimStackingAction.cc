@@ -13,32 +13,36 @@
 
 //class WCSimDetectorConstruction;
 
-WCSimStackingAction::WCSimStackingAction(WCSimDetectorConstruction* myDet) :
-		DetConstruct(myDet) {
-	;
+WCSimStackingAction::WCSimStackingAction(WCSimDetectorConstruction *myDet) : DetConstruct(myDet)
+{
 }
-WCSimStackingAction::~WCSimStackingAction() {
-	;
+WCSimStackingAction::~WCSimStackingAction()
+{
 }
 
-G4ClassificationOfNewTrack WCSimStackingAction::ClassifyNewTrack(const G4Track* aTrack) {
+G4ClassificationOfNewTrack WCSimStackingAction::ClassifyNewTrack(const G4Track *aTrack)
+{
 	G4ClassificationOfNewTrack classification = fWaiting;
-	G4ParticleDefinition* particleType = aTrack->GetDefinition();
+	G4ParticleDefinition *particleType = aTrack->GetDefinition();
 
-// The following code implements the PMT quantum efficiency
+	// The following code implements the PMT quantum efficiency
 
-// Make sure it is an optical photon
-	if (particleType == G4OpticalPhoton::OpticalPhotonDefinition()) {
-		G4float photonWavelength = (2.0 * M_PI * 197.3) / (aTrack->GetTotalEnergy() / eV);
+	// Make sure it is an optical photon
+	if (particleType == G4OpticalPhoton::OpticalPhotonDefinition())
+	{
+		G4float photonWavelength = (2.0 * M_PI * 197.3) / (aTrack->GetTotalEnergy() / CLHEP::eV);
 		G4float ratio = 1. / (1.0 - 0.25);
 		ratio = 1.0;
 		G4float wavelengthQE = 0;
-		if (aTrack->GetCreatorProcess() == NULL) {
+		if (aTrack->GetCreatorProcess() == NULL)
+		{
 			wavelengthQE = DetConstruct->GetPMTQE(photonWavelength, 1, 240, 660, ratio);
 			if (G4UniformRand() > wavelengthQE)
 				classification = fKill;
-		} else if (((G4VProcess*) (aTrack->GetCreatorProcess()))->GetProcessType() != 3) {
-			G4float photonWavelength = (2.0 * M_PI * 197.3) / (aTrack->GetTotalEnergy() / eV);
+		}
+		else if (((G4VProcess *)(aTrack->GetCreatorProcess()))->GetProcessType() != 3)
+		{
+			G4float photonWavelength = (2.0 * M_PI * 197.3) / (aTrack->GetTotalEnergy() / CLHEP::eV);
 			// MF : translated from skdetsim : better to increase the number of photons
 			// than to throw in a global factor  at Digitization time !
 			G4float ratio = 1. / (1.0 - 0.25);
@@ -47,11 +51,16 @@ G4ClassificationOfNewTrack WCSimStackingAction::ClassifyNewTrack(const G4Track* 
 			// only work for the range between 240 nm and 660 nm for now
 			// Even with WLS
 			G4float wavelengthQE = 0;
-			if (DetConstruct->GetPMT_QE_Method() == 1) {
+			if (DetConstruct->GetPMT_QE_Method() == 1)
+			{
 				wavelengthQE = DetConstruct->GetPMTQE(photonWavelength, 1, 240, 660, ratio);
-			} else if (DetConstruct->GetPMT_QE_Method() == 2) {
+			}
+			else if (DetConstruct->GetPMT_QE_Method() == 2)
+			{
 				wavelengthQE = DetConstruct->GetPMTQE(photonWavelength, 0, 240, 660, ratio);
-			} else if (DetConstruct->GetPMT_QE_Method() == 3) {
+			}
+			else if (DetConstruct->GetPMT_QE_Method() == 3)
+			{
 				wavelengthQE = 1.1;
 			}
 
@@ -63,10 +72,11 @@ G4ClassificationOfNewTrack WCSimStackingAction::ClassifyNewTrack(const G4Track* 
 	return classification;
 }
 
-void WCSimStackingAction::NewStage() {
+void WCSimStackingAction::NewStage()
+{
 	;
 }
-void WCSimStackingAction::PrepareNewEvent() {
+void WCSimStackingAction::PrepareNewEvent()
+{
 	;
 }
-

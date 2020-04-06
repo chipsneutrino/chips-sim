@@ -11,30 +11,31 @@
 #include "WCSimRootEvent.hh"
 
 #ifndef REFLEX_DICTIONARY
-ClassImp (WCSimRootCherenkovDigiHit)
-ClassImp (WCSimRootCherenkovHit)
-ClassImp (WCSimRootCherenkovHitTime)
-ClassImp (WCSimRootTrack)
-ClassImp (WCSimRootPi0)
-ClassImp (WCSimRootEventHeader)
-ClassImp (WCSimRootTrigger)
-ClassImp (WCSimRootEvent)
+ClassImp(WCSimRootCherenkovDigiHit)
+ClassImp(WCSimRootCherenkovHit)
+ClassImp(WCSimRootCherenkovHitTime)
+ClassImp(WCSimRootTrack)
+ClassImp(WCSimRootPi0)
+ClassImp(WCSimRootEventHeader)
+ClassImp(WCSimRootTrigger)
+ClassImp(WCSimRootEvent)
 #endif
 
-//TClonesArray* WCSimRootTrigger::fgTracks = 0;
-//
-//TClonesArray* WCSimRootTrigger::fgCherenkovHits = 0;
-//TClonesArray* WCSimRootTrigger::fgCherenkovHitTimes = 0;
-//TClonesArray* WCSimRootTrigger::fgCherenkovDigiHits = 0;
-//
-//TClonesArray* WCSimRootTrigger::fgFVCherenkovHits = 0;
-//TClonesArray* WCSimRootTrigger::fgFVCherenkovHitTimes = 0;
-//TClonesArray* WCSimRootTrigger::fgFVCherenkovDigiHits = 0;
-//
-// 
-//_____________________________________________________________________________
+	//TClonesArray* WCSimRootTrigger::fgTracks = 0;
+	//
+	//TClonesArray* WCSimRootTrigger::fgCherenkovHits = 0;
+	//TClonesArray* WCSimRootTrigger::fgCherenkovHitTimes = 0;
+	//TClonesArray* WCSimRootTrigger::fgCherenkovDigiHits = 0;
+	//
+	//TClonesArray* WCSimRootTrigger::fgFVCherenkovHits = 0;
+	//TClonesArray* WCSimRootTrigger::fgFVCherenkovHitTimes = 0;
+	//TClonesArray* WCSimRootTrigger::fgFVCherenkovDigiHits = 0;
+	//
+	//
+	//_____________________________________________________________________________
 
-WCSimRootTrigger::WCSimRootTrigger() {
+	WCSimRootTrigger::WCSimRootTrigger()
+{
 	// Create an WCSimRootTrigger object.
 
 	// WARNING : default constructor for ROOT : do not allocate memory
@@ -57,7 +58,8 @@ WCSimRootTrigger::WCSimRootTrigger() {
 	IsZombie = true;
 }
 
-WCSimRootTrigger::WCSimRootTrigger(int Number, int Subevt) {
+WCSimRootTrigger::WCSimRootTrigger(int Number, int Subevt)
+{
 	this->Initialize();
 	fEvtHdr.Set(Number, 0, 0, Subevt);
 }
@@ -70,7 +72,7 @@ void WCSimRootTrigger::Initialize() //actually allocate memory for things in her
 	// When the constructor is invoked for the first time, the class static
 	// variable fgTracks is 0 and the TClonesArray fgTracks is created.
 	// Sim. for the other TClonesArray
-	TStopwatch* mystopw = new TStopwatch();
+	TStopwatch *mystopw = new TStopwatch();
 
 	// TClonesArray of WCSimRootTracks
 	fTracks = new TClonesArray("WCSimRootTrack", 10000);
@@ -96,15 +98,17 @@ void WCSimRootTrigger::Initialize() //actually allocate memory for things in her
 
 //_____________________________________________________________________________
 
-WCSimRootTrigger::~WCSimRootTrigger() {
+WCSimRootTrigger::~WCSimRootTrigger()
+{
 	// now we must do a bunch a deleting stuff...
 	//Destroys all the TClonesArray.. Let's see if Ren'e Brun is right...
 
-	TStopwatch* mystopw = new TStopwatch();
+	TStopwatch *mystopw = new TStopwatch();
 
 	mystopw->Start();
 
-	if (!IsZombie) {
+	if (!IsZombie)
+	{
 
 		fTracks->Delete();
 		fCherenkovHits->Delete();
@@ -127,7 +131,8 @@ WCSimRootTrigger::~WCSimRootTrigger() {
 
 //_____________________________________________________________________________
 
-void WCSimRootTrigger::Clear(Option_t*) {
+void WCSimRootTrigger::Clear(Option_t *)
+{
 	// To be filled in
 	// Filled in, by MF, 31/08/06  -> Keep all the alloc'ed memory but reset all
 	// the indices to 0 in the TCAs.
@@ -154,33 +159,39 @@ void WCSimRootTrigger::Clear(Option_t*) {
 
 //_____________________________________________________________________________
 
-void WCSimRootTrigger::Reset(Option_t*) {
-// Static function to reset all static objects for this event
-// To be filled in
+void WCSimRootTrigger::Reset(Option_t *)
+{
+	// Static function to reset all static objects for this event
+	// To be filled in
 }
 
 //_____________________________________________________________________________
 
-void WCSimRootTrigger::SetHeader(Int_t i, Int_t run, Int_t date, Int_t subevent) {
+void WCSimRootTrigger::SetHeader(Int_t i, Int_t run, Int_t date, Int_t subevent)
+{
 	// Set the header values
 	fEvtHdr.Set(i, run, date, subevent);
 }
 
 //_____________________________________________________________________________
 
-void WCSimRootTrigger::SetPi0Info(Float_t pi0Vtx[3], Int_t gammaID[2], Float_t gammaE[2], Float_t gammaVtx[2][3]) {
+void WCSimRootTrigger::SetPi0Info(Float_t pi0Vtx[3], Int_t gammaID[2], Float_t gammaE[2], Float_t gammaVtx[2][3])
+{
 	fPi0.Set(pi0Vtx, gammaID, gammaE, gammaVtx);
 }
 
 //_____________________________________________________________________________
 
-void WCSimRootPi0::Set(Float_t pi0Vtx[3], Int_t gammaID[2], Float_t gammaE[2], Float_t gammaVtx[2][3]) {
-	for (int i = 0; i < 2; i++) {
+void WCSimRootPi0::Set(Float_t pi0Vtx[3], Int_t gammaID[2], Float_t gammaE[2], Float_t gammaVtx[2][3])
+{
+	for (int i = 0; i < 2; i++)
+	{
 		fGammaID[i] = gammaID[i];
 		fGammaE[i] = gammaE[i];
 	}
 
-	for (int j = 0; j < 3; j++) {
+	for (int j = 0; j < 3; j++)
+	{
 		fPi0Vtx[j] = pi0Vtx[j];
 		fGammaVtx[0][j] = gammaVtx[0][j];
 		fGammaVtx[1][j] = gammaVtx[1][j];
@@ -190,8 +201,9 @@ void WCSimRootPi0::Set(Float_t pi0Vtx[3], Int_t gammaID[2], Float_t gammaE[2], F
 //_____________________________________________________________________________
 
 WCSimRootTrack *WCSimRootTrigger::AddTrack(Int_t ipnu, Int_t flag, Float_t m, Float_t p, Float_t E, Int_t startvol,
-		Int_t stopvol, Float_t dir[3], Float_t pdir[3], Float_t stop[3], Float_t start[3], Int_t parenttype,
-		Float_t time, Int_t id, Int_t parentId) {
+										   Int_t stopvol, Float_t dir[3], Float_t pdir[3], Float_t stop[3], Float_t start[3], Int_t parenttype,
+										   Float_t time, Int_t id, Int_t parentId)
+{
 	// Add a new WCSimRootTrack to the list of tracks for this event.
 	// To avoid calling the very time consuming operator new for each track,
 	// the standard but not well know C++ operator "new with placement"
@@ -199,7 +211,7 @@ WCSimRootTrack *WCSimRootTrigger::AddTrack(Int_t ipnu, Int_t flag, Float_t m, Fl
 	// otherwise the previous Track[i] will be overwritten.
 	TClonesArray &tracks = *fTracks;
 	WCSimRootTrack *track = new (tracks[fNtrack++]) WCSimRootTrack(ipnu, flag, m, p, E, startvol, stopvol, dir, pdir,
-			stop, start, parenttype, time, id, parentId);
+																   stop, start, parenttype, time, id, parentId);
 
 	return track;
 }
@@ -207,8 +219,9 @@ WCSimRootTrack *WCSimRootTrigger::AddTrack(Int_t ipnu, Int_t flag, Float_t m, Fl
 //_____________________________________________________________________________
 
 WCSimRootTrack::WCSimRootTrack(Int_t ipnu, Int_t flag, Float_t m, Float_t p, Float_t E, Int_t startvol, Int_t stopvol,
-		Float_t dir[3], Float_t pdir[3], Float_t stop[3], Float_t start[3], Int_t parenttype, Float_t time, Int_t id,
-		Int_t parentId) {
+							   Float_t dir[3], Float_t pdir[3], Float_t stop[3], Float_t start[3], Int_t parenttype, Float_t time, Int_t id,
+							   Int_t parentId)
+{
 
 	// Create a WCSimRootTrack object and fill it with stuff
 
@@ -220,7 +233,8 @@ WCSimRootTrack::WCSimRootTrack(Int_t ipnu, Int_t flag, Float_t m, Float_t p, Flo
 	fStartvol = startvol;
 	fStopvol = stopvol;
 	int i;
-	for (i = 0; i < 3; i++) {
+	for (i = 0; i < 3; i++)
+	{
 		fDir[i] = dir[i];
 		fPdir[i] = pdir[i];
 		fStop[i] = stop[i];
@@ -235,11 +249,13 @@ WCSimRootTrack::WCSimRootTrack(Int_t ipnu, Int_t flag, Float_t m, Float_t p, Flo
 //_____________________________________________________________________________
 
 WCSimRootCherenkovHit *WCSimRootTrigger::AddCherenkovHit(Int_t tubeID, std::vector<Float_t> truetime,
-		std::vector<Int_t> primParID) {
+														 std::vector<Int_t> primParID)
+{
 	// Add a new Cherenkov hit to the list of Cherenkov hits
 	TClonesArray &cherenkovhittimes = *fCherenkovHitTimes;
 
-	for (unsigned int i = 0; i < truetime.size(); i++) {
+	for (unsigned int i = 0; i < truetime.size(); i++)
+	{
 		fCherenkovHitCounter++;
 
 		new (cherenkovhittimes[fNcherenkovhittimes++]) WCSimRootCherenkovHitTime(truetime[i], primParID[i]);
@@ -252,13 +268,14 @@ WCSimRootCherenkovHit *WCSimRootTrigger::AddCherenkovHit(Int_t tubeID, std::vect
 	TClonesArray &cherenkovhits = *fCherenkovHits;
 
 	WCSimRootCherenkovHit *cherenkovhit = new (cherenkovhits[fNcherenkovhits++]) WCSimRootCherenkovHit(tubeID,
-			WC_Index);
+																									   WC_Index);
 
 	return cherenkovhit;
 }
 //_____________________________________________________________________________
 
-WCSimRootCherenkovHit::WCSimRootCherenkovHit(Int_t tubeID, Int_t totalPe[2]) {
+WCSimRootCherenkovHit::WCSimRootCherenkovHit(Int_t tubeID, Int_t totalPe[2])
+{
 	// Create a WCSimRootCherenkovHitIndex object and fill it with stuff
 
 	fTubeID = tubeID;
@@ -266,7 +283,8 @@ WCSimRootCherenkovHit::WCSimRootCherenkovHit(Int_t tubeID, Int_t totalPe[2]) {
 	fTotalPe[1] = totalPe[1];
 }
 
-WCSimRootCherenkovHitTime::WCSimRootCherenkovHitTime(Float_t truetime, Int_t primParID) {
+WCSimRootCherenkovHitTime::WCSimRootCherenkovHitTime(Float_t truetime, Int_t primParID)
+{
 	// Create a WCSimRootCherenkovHit object and fill it with stuff
 	fTruetime = truetime;
 	fPrimaryParentID = primParID;
@@ -274,28 +292,30 @@ WCSimRootCherenkovHitTime::WCSimRootCherenkovHitTime(Float_t truetime, Int_t pri
 
 //_____________________________________________________________________________
 
-WCSimRootCherenkovDigiHit *WCSimRootTrigger::AddCherenkovDigiHit(Float_t q, Float_t t, Int_t tubeid) {
+WCSimRootCherenkovDigiHit *WCSimRootTrigger::AddCherenkovDigiHit(Float_t q, Float_t t, Int_t tubeid)
+{
 	// Add a new digitized hit to the list of digitized hits
 	TClonesArray &cherenkovdigihits = *fCherenkovDigiHits;
 	WCSimRootCherenkovDigiHit *cherenkovdigihit =
-			new (cherenkovdigihits[fNcherenkovdigihits++]) WCSimRootCherenkovDigiHit(q, t, tubeid);
+		new (cherenkovdigihits[fNcherenkovdigihits++]) WCSimRootCherenkovDigiHit(q, t, tubeid);
 
 	return cherenkovdigihit;
 }
 //_____________________________________________________________________________
 
-WCSimRootCherenkovDigiHit::WCSimRootCherenkovDigiHit(Float_t q, Float_t t, Int_t tubeid) {
+WCSimRootCherenkovDigiHit::WCSimRootCherenkovDigiHit(Float_t q, Float_t t, Int_t tubeid)
+{
 	// Create a WCSimRootCherenkovDigiHit object and fill it with stuff
 
 	fQ = q;
 	fT = t;
 	fTubeId = tubeid;
-
 }
 
 // M Fechner, august 2006
 
-WCSimRootEvent::WCSimRootEvent() {
+WCSimRootEvent::WCSimRootEvent()
+{
 	// default constructor : nothing happens
 	//fEventList.push_back(new WCSimRootTrigger() ); //at least one event
 	// this is standard root practise for streaming ROOT objtecs : if memory is alloc'ed here,
@@ -304,26 +324,31 @@ WCSimRootEvent::WCSimRootEvent() {
 	Current = 0;
 }
 
-void WCSimRootEvent::Initialize() {
+void WCSimRootEvent::Initialize()
+{
 	fEventList = new TObjArray(10, 0); // very rarely more than 10 subevents...
 	fEventList->AddAt(new WCSimRootTrigger(0, 0), 0);
 	Current = 0;
 }
 
-WCSimRootEvent::~WCSimRootEvent() {
-	if (fEventList != 0) {
-		for (int i = 0; i < fEventList->GetEntriesFast(); i++) {
+WCSimRootEvent::~WCSimRootEvent()
+{
+	if (fEventList != 0)
+	{
+		for (int i = 0; i < fEventList->GetEntriesFast(); i++)
+		{
 			delete (*fEventList)[i];
 		}
 		delete fEventList;
 	}
 }
 
-void WCSimRootEvent::Clear(Option_t*) {
+void WCSimRootEvent::Clear(Option_t *)
+{
 	//nothing for now
 }
 
-void WCSimRootEvent::Reset(Option_t*) {
+void WCSimRootEvent::Reset(Option_t *)
+{
 	//nothing for now
 }
-

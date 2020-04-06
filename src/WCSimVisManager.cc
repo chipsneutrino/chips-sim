@@ -56,84 +56,84 @@
 #include "G4VRML2.hh"
 #endif
 
-WCSimVisManager::WCSimVisManager () {}
+WCSimVisManager::WCSimVisManager() {}
 
-void WCSimVisManager::RegisterGraphicsSystems () {
+void WCSimVisManager::RegisterGraphicsSystems()
+{
 
 	// Graphics Systems not needing external packages or libraries...
 	//RegisterGraphicsSystem (new G4ASCIITree);
-	RegisterGraphicsSystem (new G4DAWNFILE);
+	RegisterGraphicsSystem(new G4DAWNFILE);
 	//RegisterGraphicsSystem (new G4GAGTree);
-	RegisterGraphicsSystem (new G4HepRepFile);
-	RegisterGraphicsSystem (new G4HepRep);
-	RegisterGraphicsSystem (new G4RayTracer);
-	RegisterGraphicsSystem (new G4VRML1File);
-	RegisterGraphicsSystem (new G4VRML2File);
+	RegisterGraphicsSystem(new G4HepRepFile);
+	RegisterGraphicsSystem(new G4HepRep);
+	RegisterGraphicsSystem(new G4RayTracer);
+	RegisterGraphicsSystem(new G4VRML1File);
+	RegisterGraphicsSystem(new G4VRML2File);
 
 	// Graphics systems needing external packages or libraries...
 
 #ifdef G4VIS_USE_DAWN
-	RegisterGraphicsSystem (new G4FukuiRenderer);
+	RegisterGraphicsSystem(new G4FukuiRenderer);
 #endif
 
 #ifdef G4VIS_USE_OPACS
-	RegisterGraphicsSystem (new G4Wo);
-	RegisterGraphicsSystem (new G4Xo);
+	RegisterGraphicsSystem(new G4Wo);
+	RegisterGraphicsSystem(new G4Xo);
 #endif
 
 #ifdef G4VIS_USE_OPENGLX
-	RegisterGraphicsSystem (new G4OpenGLImmediateX);
-	RegisterGraphicsSystem (new G4OpenGLStoredX);
+	RegisterGraphicsSystem(new G4OpenGLImmediateX);
+	RegisterGraphicsSystem(new G4OpenGLStoredX);
 #endif
 
 #ifdef G4VIS_USE_OPENGLWIN32
-	RegisterGraphicsSystem (new G4OpenGLImmediateWin32);
-	RegisterGraphicsSystem (new G4OpenGLStoredWin32);
+	RegisterGraphicsSystem(new G4OpenGLImmediateWin32);
+	RegisterGraphicsSystem(new G4OpenGLStoredWin32);
 #endif
 
 #ifdef G4VIS_USE_OPENGLXM
-	RegisterGraphicsSystem (new G4OpenGLImmediateXm);
-	RegisterGraphicsSystem (new G4OpenGLStoredXm);
+	RegisterGraphicsSystem(new G4OpenGLImmediateXm);
+	RegisterGraphicsSystem(new G4OpenGLStoredXm);
 #endif
 
 #ifdef G4VIS_USE_OIX
-	RegisterGraphicsSystem (new G4OpenInventorX);
+	RegisterGraphicsSystem(new G4OpenInventorX);
 #endif
 
 #ifdef G4VIS_USE_OIWIN32
-	RegisterGraphicsSystem (new G4OpenInventorWin32);
+	RegisterGraphicsSystem(new G4OpenInventorWin32);
 #endif
 
 #ifdef G4VIS_USE_VRML
-	RegisterGraphicsSystem (new G4VRML1);
-	RegisterGraphicsSystem (new G4VRML2);
+	RegisterGraphicsSystem(new G4VRML1);
+	RegisterGraphicsSystem(new G4VRML2);
 #endif
 
 	//create new drawByParticleID model
-	G4TrajectoryDrawByParticleID* mymodel = new G4TrajectoryDrawByParticleID;
+	G4TrajectoryDrawByParticleID *mymodel = new G4TrajectoryDrawByParticleID;
 
 	//Configure model
 	mymodel->SetDefault("cyan");
-	mymodel->Set("gamma","green");
-	mymodel->Set("nu_e","yellow");
-	mymodel->Set("nu_mu","yellow");
-	mymodel->Set("anti_nu_e","yellow");
-	mymodel->Set("anti_nu_mu","yellow");
-	mymodel->Set("e-","blue");
-	mymodel->Set("mu-","black");
-	mymodel->Set("e+","red");
-	mymodel->Set("mu+","white");
-	mymodel->Set("proton","magenta");
-	mymodel->Set("neutron","Grey");
+	mymodel->Set("gamma", "green");
+	mymodel->Set("nu_e", "yellow");
+	mymodel->Set("nu_mu", "yellow");
+	mymodel->Set("anti_nu_e", "yellow");
+	mymodel->Set("anti_nu_mu", "yellow");
+	mymodel->Set("e-", "blue");
+	mymodel->Set("mu-", "black");
+	mymodel->Set("e+", "red");
+	mymodel->Set("mu+", "white");
+	mymodel->Set("proton", "magenta");
+	mymodel->Set("neutron", "Grey");
 
-	if (fVerbose > 0) {
-		G4cout <<
-		"\nYou have successfully chosen to use the following graphics systems."
-		<< G4endl;
-		PrintAvailableGraphicsSystems ();
+	if (fVerbose > 0)
+	{
+		G4cout << "\nYou have successfully chosen to use the following graphics systems."
+			   << G4endl;
+		//PrintAvailableGraphicsSystems(all);
 	}
 	RegisterModel(mymodel);
-
 }
 
 #endif

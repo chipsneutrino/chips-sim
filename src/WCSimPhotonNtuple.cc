@@ -7,20 +7,26 @@
 #include <cassert>
 #include <iostream>
 
-static WCSimPhotonNtuple* fgNtuple = 0;
+static WCSimPhotonNtuple *fgNtuple = 0;
 
-WCSimPhotonNtuple* WCSimPhotonNtuple::Instance() {
-	if (!fgNtuple) {
+WCSimPhotonNtuple *WCSimPhotonNtuple::Instance()
+{
+	if (!fgNtuple)
+	{
 		fgNtuple = new WCSimPhotonNtuple();
 	}
 
 	return fgNtuple;
 }
 
-WCSimPhotonNtuple* WCSimPhotonNtuple::Instance(G4String str) {
-	if (!fgNtuple) {
+WCSimPhotonNtuple *WCSimPhotonNtuple::Instance(G4String str)
+{
+	if (!fgNtuple)
+	{
 		fgNtuple = new WCSimPhotonNtuple(str);
-	} else {
+	}
+	else
+	{
 		std::cerr << "Photon ntuple already exists, cannot change the name" << std::endl;
 		assert(!fgNtuple);
 	}
@@ -28,7 +34,8 @@ WCSimPhotonNtuple* WCSimPhotonNtuple::Instance(G4String str) {
 	return fgNtuple;
 }
 
-WCSimPhotonNtuple::WCSimPhotonNtuple() {
+WCSimPhotonNtuple::WCSimPhotonNtuple()
+{
 	fWCFile = 0;
 	fWCTree = 0;
 	fWCFileName = "localfile_photons.root";
@@ -37,7 +44,8 @@ WCSimPhotonNtuple::WCSimPhotonNtuple() {
 	fHalfWidthXY = 0.0;
 }
 
-WCSimPhotonNtuple::WCSimPhotonNtuple(G4String str) {
+WCSimPhotonNtuple::WCSimPhotonNtuple(G4String str)
+{
 	fWCFile = 0;
 	fWCTree = 0;
 	fWCFileName = str;
@@ -46,35 +54,41 @@ WCSimPhotonNtuple::WCSimPhotonNtuple(G4String str) {
 	fHalfWidthXY = 0.0;
 }
 
-WCSimPhotonNtuple::~WCSimPhotonNtuple() {
+WCSimPhotonNtuple::~WCSimPhotonNtuple()
+{
 	WCSimPhotonNtuple::Instance()->CloseFile();
 }
 
-void WCSimPhotonNtuple::Open(const char* filename) {
+void WCSimPhotonNtuple::Open(const char *filename)
+{
 	WCSimPhotonNtuple::Instance()->OpenFile(filename);
 }
 
-void WCSimPhotonNtuple::Close() {
+void WCSimPhotonNtuple::Close()
+{
 	WCSimPhotonNtuple::Instance()->CloseFile();
 }
 
-void WCSimPhotonNtuple::FileName(const char* filename) {
+void WCSimPhotonNtuple::FileName(const char *filename)
+{
 	WCSimPhotonNtuple::Instance()->SetFileName(filename);
 }
 
 void WCSimPhotonNtuple::Fill(Int_t eventID, Int_t pdgCode, Int_t trackID, Int_t parentID, Int_t processID,
-		Float_t energy, Float_t momentum, Float_t lambda, Bool_t opticalPhoton, Bool_t scatteredPhoton, Float_t vtxX,
-		Float_t vtxY, Float_t vtxZ, Float_t vtxTime, Float_t endX, Float_t endY, Float_t endZ, Float_t endTime,
-		Float_t vtxdirX, Float_t vtxdirY, Float_t vtxdirZ) {
+							 Float_t energy, Float_t momentum, Float_t lambda, Bool_t opticalPhoton, Bool_t scatteredPhoton, Float_t vtxX,
+							 Float_t vtxY, Float_t vtxZ, Float_t vtxTime, Float_t endX, Float_t endY, Float_t endZ, Float_t endTime,
+							 Float_t vtxdirX, Float_t vtxdirY, Float_t vtxdirZ)
+{
 	WCSimPhotonNtuple::Instance()->WriteEvent(eventID, pdgCode, trackID, parentID, processID, energy, momentum, lambda,
-			opticalPhoton, scatteredPhoton, vtxX, vtxY, vtxZ, vtxTime, endX, endY, endZ, endTime, vtxdirX, vtxdirY,
-			vtxdirZ);
+											  opticalPhoton, scatteredPhoton, vtxX, vtxY, vtxZ, vtxTime, endX, endY, endZ, endTime, vtxdirX, vtxdirY,
+											  vtxdirZ);
 }
 
 void WCSimPhotonNtuple::WriteEvent(Int_t eventID, Int_t pdgCode, Int_t trackID, Int_t parentID, Int_t processID,
-		Float_t energy, Float_t momentum, Float_t lambda, Bool_t opticalPhoton, Bool_t scatteredPhoton, Float_t vtxX,
-		Float_t vtxY, Float_t vtxZ, Float_t vtxTime, Float_t endX, Float_t endY, Float_t endZ, Float_t endTime,
-		Float_t vtxdirX, Float_t vtxdirY, Float_t vtxdirZ) {
+								   Float_t energy, Float_t momentum, Float_t lambda, Bool_t opticalPhoton, Bool_t scatteredPhoton, Float_t vtxX,
+								   Float_t vtxY, Float_t vtxZ, Float_t vtxTime, Float_t endX, Float_t endY, Float_t endZ, Float_t endTime,
+								   Float_t vtxdirX, Float_t vtxdirY, Float_t vtxdirZ)
+{
 	fEventID = eventID;
 	fPdgCode = pdgCode;
 	fTrackID = trackID;
@@ -100,12 +114,14 @@ void WCSimPhotonNtuple::WriteEvent(Int_t eventID, Int_t pdgCode, Int_t trackID, 
 
 	fIsDetected = 0;
 
-	if (fOpticalPhoton && fProcessID == 2) { // Added the || 1 - AJP
+	if (fOpticalPhoton && fProcessID == 2)
+	{ // Added the || 1 - AJP
 		this->WriteEventToFile();
 	}
 }
 
-void WCSimPhotonNtuple::WriteEventToFile() {
+void WCSimPhotonNtuple::WriteEventToFile()
+{
 
 	this->OpenFile(fWCFileName.Data());
 
@@ -114,10 +130,12 @@ void WCSimPhotonNtuple::WriteEventToFile() {
 	return;
 }
 
-void WCSimPhotonNtuple::OpenFile(const char* filename) {
-	TDirectory* tmpd = 0;
+void WCSimPhotonNtuple::OpenFile(const char *filename)
+{
+	TDirectory *tmpd = 0;
 
-	if (fWCFile == 0) {
+	if (fWCFile == 0)
+	{
 		tmpd = gDirectory;
 		std::cout << " opening file: " << filename << std::endl;
 		fWCFile = new TFile(filename, "recreate");
@@ -139,9 +157,9 @@ void WCSimPhotonNtuple::OpenFile(const char* filename) {
 		fWCTree->Branch("endX", &fEndX, "endX/F");
 		fWCTree->Branch("endY", &fEndY, "endY/F");
 		fWCTree->Branch("endZ", &fEndZ, "endZ/F");
-//    fWCTree->Branch("endU",&fEndU,"endU/F");
-//    fWCTree->Branch("endV",&fEndV,"endV/F");
-//    //fWCTree->Branch("endTime",&fEndTime,"endTime/F");
+		//    fWCTree->Branch("endU",&fEndU,"endU/F");
+		//    fWCTree->Branch("endV",&fEndV,"endV/F");
+		//    //fWCTree->Branch("endTime",&fEndTime,"endTime/F");
 		fWCTree->Branch("vtxdirX", &fVtxDirX, "vtxdirX/F");
 		fWCTree->Branch("vtxdirY", &fVtxDirY, "vtxdirY/F");
 		fWCTree->Branch("vtxdirZ", &fVtxDirZ, "vtxdirZ/F");
@@ -152,10 +170,12 @@ void WCSimPhotonNtuple::OpenFile(const char* filename) {
 	return;
 }
 
-void WCSimPhotonNtuple::WriteToFile() {
-	TDirectory* tmpd = 0;
+void WCSimPhotonNtuple::WriteToFile()
+{
+	TDirectory *tmpd = 0;
 
-	if (fWCFile) {
+	if (fWCFile)
+	{
 		tmpd = gDirectory;
 		fWCFile->cd();
 		fWCTree->Fill();
@@ -165,10 +185,12 @@ void WCSimPhotonNtuple::WriteToFile() {
 	return;
 }
 
-void WCSimPhotonNtuple::CloseFile() {
-	TDirectory* tmpd = 0;
+void WCSimPhotonNtuple::CloseFile()
+{
+	TDirectory *tmpd = 0;
 
-	if (fWCFile) {
+	if (fWCFile)
+	{
 		tmpd = gDirectory;
 		std::cout << " closing file: " << fWCFile->GetName() << std::endl;
 		fWCFile->cd();

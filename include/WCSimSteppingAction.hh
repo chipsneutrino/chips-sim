@@ -8,19 +8,21 @@ class G4Event;
 
 // Leigh: I don't think we need the class at the moment. Will
 // leave it as unimplemented for now in case a use for it arises
-class WCSimSteppingAction: public G4UserSteppingAction {
+class WCSimSteppingAction : public G4UserSteppingAction
+{
 
-	public:
-		WCSimSteppingAction() {
-		}
+public:
+	WCSimSteppingAction()
+	{
+	}
 
-		~WCSimSteppingAction() {
-		}
+	~WCSimSteppingAction()
+	{
+	}
 
-		void UserSteppingAction(const G4Step*);
+	void UserSteppingAction(const G4Step *);
 
-	private:
-
+private:
 };
 
 #endif

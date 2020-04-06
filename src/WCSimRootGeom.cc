@@ -10,37 +10,41 @@
 #include "WCSimRootGeom.hh"
 
 #ifndef REFLEX_DICTIONARY
-ClassImp (WCSimRootGeom)
-ClassImp (WCSimRootPMT)
+ClassImp(WCSimRootGeom)
+	ClassImp(WCSimRootPMT)
 #endif
 
-//______________________________________________________________________________
-WCSimRootGeom::WCSimRootGeom() {
+	//______________________________________________________________________________
+	WCSimRootGeom::WCSimRootGeom()
+{
 	// Create a WCSimRootGeom object.
 	fWCNumPMT = 0;
 	fPMTArray = 0;
 	fPMTArray = new TClonesArray("WCSimRootPMT", 500);
-
 }
 
 //______________________________________________________________________________
-WCSimRootGeom::~WCSimRootGeom() {
+WCSimRootGeom::~WCSimRootGeom()
+{
 	fPMTArray->Delete();
 	delete fPMTArray;
 }
 
 //______________________________________________________________________________
-WCSimRootPMT::WCSimRootPMT() {
+WCSimRootPMT::WCSimRootPMT()
+{
 	// Create a WCSimRootPMT object.
 }
 
 //______________________________________________________________________________
 WCSimRootPMT::WCSimRootPMT(Int_t tubeNo, Int_t cylLoc, Float_t orientation[3], Float_t position[3], Float_t rad,
-		Float_t maxRad, TString pmtName) {
+						   Float_t maxRad, TString pmtName)
+{
 	fTubeNo = tubeNo;
 	fCylLoc = cylLoc;
 	int j = 0;
-	for (j = 0; j < 3; j++) {
+	for (j = 0; j < 3; j++)
+	{
 		fOrientation[j] = orientation[j];
 		fPosition[j] = position[j];
 	}
@@ -54,7 +58,8 @@ WCSimRootPMT::WCSimRootPMT(Int_t tubeNo, Int_t cylLoc, Float_t orientation[3], F
 
 //______________________________________________________________________________
 void WCSimRootGeom::SetPMT(Int_t i, Int_t tubeno, Int_t cyl_loc, Float_t rot[3], Float_t pos[3], Float_t rad,
-		Float_t maxRad, TString pmtName, bool expand) {
+						   Float_t maxRad, TString pmtName, bool expand)
+{
 	if (expand)
 		(*(fPMTArray)).ExpandCreate(i + 2);
 
@@ -69,9 +74,9 @@ void WCSimRootGeom::SetPMT(Int_t i, Int_t tubeno, Int_t cyl_loc, Float_t rot[3],
 	//   jPMT.SetOrientation(j,rot[j]);
 	//   jPMT.SetPosition(j,pos[j]);
 	// }
-
 }
 
 //______________________________________________________________________________
-WCSimRootPMT::~WCSimRootPMT() {
+WCSimRootPMT::~WCSimRootPMT()
+{
 }

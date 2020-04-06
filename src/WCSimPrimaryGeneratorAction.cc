@@ -19,27 +19,30 @@
 #include "G4Navigator.hh"
 #include "G4TransportationManager.hh"
 
-using std::vector;
-using std::string;
 using std::fstream;
+using std::string;
+using std::vector;
 
 vector<string> tokenize(string separators, string input);
 
-inline vector<string> readInLine(fstream& inFile, int lineSize, char* inBuf) {
+inline vector<string> readInLine(fstream &inFile, int lineSize, char *inBuf)
+{
 	// Read in line break it up into tokens
 	inFile.getline(inBuf, lineSize);
 	return tokenize(" $", inBuf);
 }
 
-inline float atof(const string& s) {
+inline float atof(const string &s)
+{
 	return std::atof(s.c_str());
 }
-inline int atoi(const string& s) {
+inline int atoi(const string &s)
+{
 	return std::atoi(s.c_str());
 }
 
-WCSimPrimaryGeneratorAction::WCSimPrimaryGeneratorAction(WCSimDetectorConstruction* myDC) :
-		myDetector(myDC) {
+WCSimPrimaryGeneratorAction::WCSimPrimaryGeneratorAction(WCSimDetectorConstruction *myDC) : myDetector(myDC)
+{
 	//T. Akiri: Initialize GPS to allow for the laser use
 	MyGPS = new G4GeneralParticleSource();
 
@@ -47,28 +50,30 @@ WCSimPrimaryGeneratorAction::WCSimPrimaryGeneratorAction(WCSimDetectorConstructi
 
 	G4int n_particle = 1;
 	particleGun = new G4ParticleGun(n_particle);
-	particleGun->SetParticleEnergy(1.0 * GeV);
+	particleGun->SetParticleEnergy(1.0 * CLHEP::GeV);
 	particleGun->SetParticleMomentumDirection(G4ThreeVector(0., 0., 1.0));
 
-	G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
+	G4ParticleTable *particleTable = G4ParticleTable::GetParticleTable();
 	G4String particleName;
 	particleGun->SetParticleDefinition(particleTable->FindParticle(particleName = "mu+"));
 
-	particleGun->SetParticlePosition(G4ThreeVector(0. * m, 0. * m, 0. * m));
+	particleGun->SetParticlePosition(G4ThreeVector(0. * CLHEP::m, 0. * CLHEP::m, 0. * CLHEP::m));
 
 	messenger = new WCSimPrimaryGeneratorMessenger(this);
 	useMulineEvt = true;
 	useNormalEvt = false;
 }
 
-WCSimPrimaryGeneratorAction::~WCSimPrimaryGeneratorAction() {
+WCSimPrimaryGeneratorAction::~WCSimPrimaryGeneratorAction()
+{
 	inputFile.close();
 	delete particleGun;
-	delete MyGPS;   //T. Akiri: Delete the GPS variable
+	delete MyGPS; //T. Akiri: Delete the GPS variable
 	delete messenger;
 }
 
-void WCSimPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent) {
+void WCSimPrimaryGeneratorAction::GeneratePrimaries(G4Event *anEvent)
+{
 
 	// Reset the truth information
 	fTruthSummary.ResetValues();
@@ -77,32 +82,40 @@ void WCSimPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent) {
 	G4bool useNuanceTextFormat = true;
 
 	// Do for every event
-	if (useMulineEvt) {
+	if (useMulineEvt)
+	{
 
-		if (!inputFile.is_open()) {
+		if (!inputFile.is_open())
+		{
 			G4cout << "Set a vector file using the command /mygen/vecfile name" << G4endl;
 			return;
 		}
 
-		if (useNuanceTextFormat) {
+		if (useNuanceTextFormat)
+		{
 			const int lineSize = 100;
 			char inBuf[lineSize];
-			vector < string > token(1);
+			vector<string> token(1);
 
 			token = readInLine(inputFile, lineSize, inBuf);
 
-			if (token.size() == 0) {
+			if (token.size() == 0)
+			{
 				G4cout << "end of nuance vector file!" << G4endl;
-				if (LoadNextVectorFile()) {
+				if (LoadNextVectorFile())
+				{
 					G4cout << "Loading next vector file" << G4endl;
 					token = readInLine(inputFile, lineSize, inBuf);
 				}
 			}
 
-			if (token.size() != 0) {
-				if (token[0] != "begin") {
+			if (token.size() != 0)
+			{
+				if (token[0] != "begin")
+				{
 					G4cout << "unexpected line begins with " << token[0] << G4endl;
-				} else   // normal parsing begins here
+				}
+				else // normal parsing begins here
 				{
 					// Read the nuance line (ignore value now)
 					token = readInLine(inputFile, lineSize, inBuf);
@@ -111,11 +124,13 @@ void WCSimPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent) {
 
 					// Read the Vertex line
 					token = readInLine(inputFile, lineSize, inBuf);
-					G4ThreeVector nuVtx = G4ThreeVector(atof(token[1]) * cm, atof(token[2]) * cm, atof(token[3]) * cm);
-					if (fUseXAxisForBeam) {
-						nuVtx = G4ThreeVector(atof(token[3]) * cm, atof(token[2]) * cm, atof(token[1]) * cm);
+					G4ThreeVector nuVtx = G4ThreeVector(atof(token[1]) * CLHEP::cm, atof(token[2]) * CLHEP::cm, atof(token[3]) * CLHEP::cm);
+					if (fUseXAxisForBeam)
+					{
+						nuVtx = G4ThreeVector(atof(token[3]) * CLHEP::cm, atof(token[2]) * CLHEP::cm, atof(token[1]) * CLHEP::cm);
 					}
-					if (fUseRandomVertex) {
+					if (fUseRandomVertex)
+					{
 						nuVtx = GenerateRandomVertex();
 					}
 					fTruthSummary.SetVertex(nuVtx.x(), nuVtx.y(), nuVtx.z());
@@ -129,9 +144,10 @@ void WCSimPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent) {
 					// First, the neutrino line
 					token = readInLine(inputFile, lineSize, inBuf);
 					fTruthSummary.SetBeamPDG(atoi(token[1]));
-					fTruthSummary.SetBeamEnergy(atof(token[2]) * MeV);
+					fTruthSummary.SetBeamEnergy(atof(token[2]) * CLHEP::MeV);
 					fTruthSummary.SetBeamDir(atof(token[3]), atof(token[4]), atof(token[5]));
-					if (fUseXAxisForBeam) {
+					if (fUseXAxisForBeam)
+					{
 						fTruthSummary.SetBeamDir(atof(token[5]), atof(token[4]), atof(token[3]));
 					}
 
@@ -139,20 +155,23 @@ void WCSimPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent) {
 
 					token = readInLine(inputFile, lineSize, inBuf);
 					fTruthSummary.SetTargetPDG(atoi(token[1]));
-					fTruthSummary.SetTargetEnergy(atof(token[2]) * MeV);
+					fTruthSummary.SetTargetEnergy(atof(token[2]) * CLHEP::MeV);
 					fTruthSummary.SetTargetDir(atof(token[3]), atof(token[4]), atof(token[5]));
-					if (fUseXAxisForBeam) {
+					if (fUseXAxisForBeam)
+					{
 						fTruthSummary.SetTargetDir(atof(token[5]), atof(token[4]), atof(token[3]));
 					}
 
 					// Now read the outgoing particles
 					// These we will simulate.
-					while (token = readInLine(inputFile, lineSize, inBuf), token[0] == "track") {
+					while (token = readInLine(inputFile, lineSize, inBuf), token[0] == "track")
+					{
 						// We are only interested in the particles
 						// that leave the nucleus, tagged by "0"
 
 						// G4cout << "Token[6] = " << token[6] << std::endl;
-						if (token[6] == "0") {
+						if (token[6] == "0")
+						{
 							// Leigh Hack for Coh events with the nucleus in the final state
 							if (token[1] == "8016")
 								//token[1] = "1000080160";
@@ -165,33 +184,35 @@ void WCSimPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent) {
 					}
 				}
 			}
-		} else {    // old muline format
+		}
+		else
+		{ // old muline format
 			double nuEnergy, energy;
 			double xPos, yPos, zPos;
 			double xDir, yDir, zDir;
 			inputFile >> nuEnergy >> energy >> xPos >> yPos >> zPos >> xDir >> yDir >> zDir;
 
-			G4double random_z = ((myDetector->GetWaterTubePosition()) - .5 * (myDetector->GetWaterTubeLength()) + 1. * m
-					+ 15.0 * m * G4UniformRand()) / m;
+			G4double random_z = ((myDetector->GetWaterTubePosition()) - .5 * (myDetector->GetWaterTubeLength()) + 1. * CLHEP::m + 15.0 * CLHEP::m * G4UniformRand()) / CLHEP::m;
 			zPos = random_z;
 			G4ThreeVector vtx = G4ThreeVector(xPos, yPos, zPos);
 			G4ThreeVector dir = G4ThreeVector(xDir, yDir, zDir);
 
-			particleGun->SetParticleEnergy(energy * MeV);
+			particleGun->SetParticleEnergy(energy * CLHEP::MeV);
 			particleGun->SetParticlePosition(vtx);
 			particleGun->SetParticleMomentumDirection(dir);
 			particleGun->GeneratePrimaryVertex(anEvent);
 
 			// Leigh: Will likely never use this, but assume muon?
 			fTruthSummary.SetBeamPDG(13);
-			fTruthSummary.SetBeamEnergy(energy * MeV);
+			fTruthSummary.SetBeamEnergy(energy * CLHEP::MeV);
 			fTruthSummary.SetVertex(vtx.x(), vtx.y(), vtx.z());
 			fTruthSummary.SetVertexT(0.0);
 			fTruthSummary.SetBeamDir(dir.x(), dir.y(), dir.z());
 		}
 	}
 
-	else if (useNormalEvt) {      // manual gun operation
+	else if (useNormalEvt)
+	{ // manual gun operation
 		particleGun->GeneratePrimaryVertex(anEvent);
 
 		G4ThreeVector P = anEvent->GetPrimaryVertex()->GetPrimary()->GetMomentum();
@@ -207,7 +228,9 @@ void WCSimPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent) {
 		fTruthSummary.SetBeamEnergy(E);
 		fTruthSummary.SetBeamPDG(pdg);
 		fTruthSummary.SetBeamDir(dir.x(), dir.y(), dir.z());
-	} else if (useLaserEvt) {
+	}
+	else if (useLaserEvt)
+	{
 		//T. Akiri: Create the GPS LASER event
 		MyGPS->GeneratePrimaryVertex(anEvent);
 
@@ -224,7 +247,9 @@ void WCSimPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent) {
 		fTruthSummary.SetBeamEnergy(E);
 		fTruthSummary.SetBeamPDG(pdg);
 		fTruthSummary.SetBeamDir(dir.x(), dir.y(), dir.z());
-	} else if (useGpsEvt) {
+	}
+	else if (useGpsEvt)
+	{
 		//Just like for LASER events but with massive particles
 		MyGPS->GeneratePrimaryVertex(anEvent);
 
@@ -241,27 +266,31 @@ void WCSimPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent) {
 		fTruthSummary.SetBeamEnergy(E);
 		fTruthSummary.SetBeamPDG(pdg);
 		fTruthSummary.SetBeamDir(dir.x(), dir.y(), dir.z());
-	} else if (useOverlayEvt) {
+	}
+	else if (useOverlayEvt)
+	{
 		GenerateOverlayEvents(anEvent);
 	}
-
 }
 
-void WCSimPrimaryGeneratorAction::GenerateOverlayEvents(G4Event *evt) {
+void WCSimPrimaryGeneratorAction::GenerateOverlayEvents(G4Event *evt)
+{
 
 	// For overlay events we need to read from two different vector files.
 	const int lineSize = 100;
 	char inBuf[lineSize];
-	std::vector < std::string > token(1);
-	std::vector < std::string > overToken(1);
+	std::vector<std::string> token(1);
+	std::vector<std::string> overToken(1);
 
 	//  G4ParticleTable *particleTable = G4ParticleTable::GetParticleTable();
 
 	// Read the next line of the next event first.
 	token = readInLine(inputFile, lineSize, inBuf);
-	if (token.size() == 0) {
+	if (token.size() == 0)
+	{
 		G4cout << "end of nuance vector file!" << G4endl;
-		if (LoadNextVectorFile()) {
+		if (LoadNextVectorFile())
+		{
 			G4cout << "Loading next vector file" << G4endl;
 			token = readInLine(inputFile, lineSize, inBuf);
 		}
@@ -269,14 +298,17 @@ void WCSimPrimaryGeneratorAction::GenerateOverlayEvents(G4Event *evt) {
 
 	// Now read the next line of the next overlay event.
 	overToken = readInLine(fOverlayFile, lineSize, inBuf);
-	if (overToken.size() == 0) {
-		if (LoadNextOverlayFile()) {
+	if (overToken.size() == 0)
+	{
+		if (LoadNextOverlayFile())
+		{
 			overToken = readInLine(fOverlayFile, lineSize, inBuf);
 		}
 	}
 
 	// Check to see if we can read an event from each file.
-	if (overToken.size() == 0 || token.size() == 0) {
+	if (overToken.size() == 0 || token.size() == 0)
+	{
 		std::cout << "Problem with overlay stuff: " << token.size() << ", " << overToken.size() << std::endl;
 		return;
 	}
@@ -292,13 +324,19 @@ void WCSimPrimaryGeneratorAction::GenerateOverlayEvents(G4Event *evt) {
 	// Read the vertex line.
 	token = readInLine(inputFile, lineSize, inBuf);
 	G4ThreeVector nuVtx;
-	if (fUseRandomVertex) {
+	if (fUseRandomVertex)
+	{
 		nuVtx = GenerateRandomVertex();
-	} else {
-		if (fUseXAxisForBeam) {
-			nuVtx = G4ThreeVector(atof(token[3]) * cm, atof(token[2]) * cm, atof(token[1]) * cm);
-		} else {
-			nuVtx = G4ThreeVector(atof(token[1]) * cm, atof(token[2]) * cm, atof(token[3]) * cm);
+	}
+	else
+	{
+		if (fUseXAxisForBeam)
+		{
+			nuVtx = G4ThreeVector(atof(token[3]) * CLHEP::cm, atof(token[2]) * CLHEP::cm, atof(token[1]) * CLHEP::cm);
+		}
+		else
+		{
+			nuVtx = G4ThreeVector(atof(token[1]) * CLHEP::cm, atof(token[2]) * CLHEP::cm, atof(token[3]) * CLHEP::cm);
 		}
 	}
 	fTruthSummary.SetVertex(nuVtx.x(), nuVtx.y(), nuVtx.z());
@@ -312,27 +350,35 @@ void WCSimPrimaryGeneratorAction::GenerateOverlayEvents(G4Event *evt) {
 	// First, the neutrino line
 	token = readInLine(inputFile, lineSize, inBuf);
 	fTruthSummary.SetBeamPDG(atoi(token[1]));
-	fTruthSummary.SetBeamEnergy(atof(token[2]) * MeV);
-	if (fUseXAxisForBeam) {
+	fTruthSummary.SetBeamEnergy(atof(token[2]) * CLHEP::MeV);
+	if (fUseXAxisForBeam)
+	{
 		fTruthSummary.SetBeamDir(atof(token[5]), atof(token[4]), atof(token[3]));
-	} else {
+	}
+	else
+	{
 		fTruthSummary.SetBeamDir(atof(token[3]), atof(token[4]), atof(token[5]));
 	}
 
 	// Now read the target line
 	token = readInLine(inputFile, lineSize, inBuf);
 	fTruthSummary.SetTargetPDG(atoi(token[1]));
-	fTruthSummary.SetTargetEnergy(atof(token[2]) * MeV);
-	if (fUseXAxisForBeam) {
+	fTruthSummary.SetTargetEnergy(atof(token[2]) * CLHEP::MeV);
+	if (fUseXAxisForBeam)
+	{
 		fTruthSummary.SetTargetDir(atof(token[5]), atof(token[4]), atof(token[3]));
-	} else {
+	}
+	else
+	{
 		fTruthSummary.SetTargetDir(atof(token[5]), atof(token[4]), atof(token[3]));
 	}
 
 	// Now read the outgoing particles
-	while (token = readInLine(inputFile, lineSize, inBuf), token[0] == "track") {
+	while (token = readInLine(inputFile, lineSize, inBuf), token[0] == "track")
+	{
 		// We are only interested in the particles that leave the nucleus, tagged by "0"
-		if (token[6] == "0" && atof(token[5]) > -999) {
+		if (token[6] == "0" && atof(token[5]) > -999)
+		{
 			// Leigh Hack for Coh events with the nucleus in the final state
 			// Josh change: Just don't include the nucleons in the particle gun...
 			if (token[1] == "8016")
@@ -353,15 +399,17 @@ void WCSimPrimaryGeneratorAction::GenerateOverlayEvents(G4Event *evt) {
 	// Currently on the "begin" line for the overlay, so read next.
 	overToken = readInLine(fOverlayFile, lineSize, inBuf); // Interaction code, ignore.
 	overToken = readInLine(fOverlayFile, lineSize, inBuf); // Vertex - need this!
-	G4ThreeVector cosmicVtx = G4ThreeVector(atof(overToken[1]) * cm, atof(overToken[2]) * cm, atof(overToken[3]) * cm);
+	G4ThreeVector cosmicVtx = G4ThreeVector(atof(overToken[1]) * CLHEP::cm, atof(overToken[2]) * CLHEP::cm, atof(overToken[3]) * CLHEP::cm);
 	fTruthSummary.SetOverlayVertex(cosmicVtx.x(), cosmicVtx.y(), cosmicVtx.z());
 	// We also want to define the cosmic to be at a different time.
 	// For now, assume flat distribution +/- 100ns from the event.
 	double cosmicTime = nuVtxT; // We will change this in FireParticleGun
 	fTruthSummary.SetOverlayVertexT(cosmicTime);
 	// Just read in the final state particle such that they have the last token equal to 0.
-	while (overToken = readInLine(fOverlayFile, lineSize, inBuf), overToken[0] == "track") {
-		if ((overToken[6] == "0") && atof(overToken[5]) > -999) {
+	while (overToken = readInLine(fOverlayFile, lineSize, inBuf), overToken[0] == "track")
+	{
+		if ((overToken[6] == "0") && atof(overToken[5]) > -999)
+		{
 			// Leigh Hack for Coh events with the nucleus in the final state
 			if (overToken[1] == "8016")
 				//overToken[1] = "1000080160";
@@ -373,12 +421,12 @@ void WCSimPrimaryGeneratorAction::GenerateOverlayEvents(G4Event *evt) {
 			FireParticleGunFromTrackLine(evt, cosmicVtx, cosmicTime, overToken, false, true);
 		}
 	}
-
 }
 
 // Set up the particle gun for all tracks in vector files (including overlays).
-void WCSimPrimaryGeneratorAction::FireParticleGunFromTrackLine(G4Event *evt, G4ThreeVector &vtx, double& vtxTime,
-		std::vector<std::string> &tokens, bool swapXZ, bool isOverlay) {
+void WCSimPrimaryGeneratorAction::FireParticleGunFromTrackLine(G4Event *evt, G4ThreeVector &vtx, double &vtxTime,
+															   std::vector<std::string> &tokens, bool swapXZ, bool isOverlay)
+{
 
 	// Double check the first token is actually a track.
 	if (tokens[0] != "track")
@@ -387,10 +435,11 @@ void WCSimPrimaryGeneratorAction::FireParticleGunFromTrackLine(G4Event *evt, G4T
 	G4ParticleTable *particleTable = G4ParticleTable::GetParticleTable();
 
 	G4int pdgid = atoi(tokens[1]);
-	G4double energy = atof(tokens[2]) * MeV;
+	G4double energy = atof(tokens[2]) * CLHEP::MeV;
 	G4ThreeVector dir = G4ThreeVector(atof(tokens[3]), atof(tokens[4]), atof(tokens[5]));
 
-	if (swapXZ) {
+	if (swapXZ)
+	{
 		// Swap the x and z coordinates if we need to.
 		dir = G4ThreeVector(dir.z(), dir.y(), dir.x());
 	}
@@ -398,19 +447,20 @@ void WCSimPrimaryGeneratorAction::FireParticleGunFromTrackLine(G4Event *evt, G4T
 	// For overlay events, check the muon actually enters the detector. If not, don't bother tracking it.
 	// If so, update the vertex to be the point at which the muon enters the detector.
 	double remainingEnergy = energy;
-	if (isOverlay) {
+	if (isOverlay)
+	{
 		double timeOffset = 0;
 		G4ThreeVector innerDetVtx = vtx;
 		bool inDet = this->UpdateOverlayVertexAndEnergy(innerDetVtx, timeOffset, dir, remainingEnergy);
 		if (!inDet)
 			return;
 		fTruthSummary.SetOverlayVertex(innerDetVtx.x(), innerDetVtx.y(), innerDetVtx.z());
-		vtxTime = vtxTime - timeOffset + (G4UniformRand() - 0.5) * 200 * ns;
+		vtxTime = vtxTime - timeOffset + (G4UniformRand() - 0.5) * 200 * CLHEP::ns;
 		fTruthSummary.SetOverlayVertexT(vtxTime + timeOffset);
 		std::cout << "Overlay muon vertex = " << vtx.x() << ", " << vtx.y() << ", " << vtx.z() << ", " << timeOffset
-				<< std::endl;
+				  << std::endl;
 		std::cout << "Psuedo muon vertex  = " << innerDetVtx.x() << ", " << innerDetVtx.y() << ", " << innerDetVtx.z()
-				<< ", " << vtxTime << std::endl;
+				  << ", " << vtxTime << std::endl;
 	}
 
 	// Get the particle mass and hence kinetic energy
@@ -425,40 +475,47 @@ void WCSimPrimaryGeneratorAction::FireParticleGunFromTrackLine(G4Event *evt, G4T
 	particleGun->GeneratePrimaryVertex(evt);
 
 	// Now for the truth summary update
-	if (!isOverlay) {
+	if (!isOverlay)
+	{
 		fTruthSummary.AddPrimary(pdgid, energy, TVector3(dir.x(), dir.y(), dir.z()));
-	} else {
+	}
+	else
+	{
 		fTruthSummary.AddOverlayTrack(pdgid, remainingEnergy, TVector3(dir.x(), dir.y(), dir.z()));
 	}
-
 }
 
-double WCSimPrimaryGeneratorAction::GetBeamSpillEventTime() const {
+double WCSimPrimaryGeneratorAction::GetBeamSpillEventTime() const
+{
 
-	double beamSpillDuration = 9900 * ns;
+	double beamSpillDuration = 9900 * CLHEP::ns;
 
 	return 100 + (G4UniformRand() * beamSpillDuration);
 }
 
-G4ThreeVector WCSimPrimaryGeneratorAction::GenerateRandomVertex() const {
+G4ThreeVector WCSimPrimaryGeneratorAction::GenerateRandomVertex() const
+{
 	std::cerr << " About to do the random vertex " << std::endl;
 	// Genie events are generates at (0,0,0) - we want to place them randomly in a
 	// box or cylinder
 	G4ThreeVector rdmVtx;
-	double border = (fFidBorder * m) / 10;
+	double border = (fFidBorder * CLHEP::m) / 10;
 
-	if (myDetector->GetIsMailbox()) {
+	if (myDetector->GetIsMailbox())
+	{
 		G4double xMax = myDetector->GetWCCylInfo(0) - 2 * border;
 		G4double yMax = myDetector->GetWCCylInfo(1) - 2 * border;
 		G4double zMax = myDetector->GetWCCylInfo(2) - 2 * border;
-		double vtxX = (G4UniformRand() - 0.5) * xMax * cm;
-		double vtxY = (G4UniformRand() - 0.5) * yMax * cm;
-		double vtxZ = (G4UniformRand() - 0.5) * zMax * cm;
+		double vtxX = (G4UniformRand() - 0.5) * xMax * CLHEP::cm;
+		double vtxY = (G4UniformRand() - 0.5) * yMax * CLHEP::cm;
+		double vtxZ = (G4UniformRand() - 0.5) * zMax * CLHEP::cm;
 		rdmVtx = G4ThreeVector(vtxX, vtxY, vtxZ);
-	} else {
+	}
+	else
+	{
 		double rRand, thetaRand, zRand;
-		rRand = sqrt(G4UniformRand()) * 0.5 * (myDetector->GetWCCylInfo(0) - (2 * border)) * cm;
-		zRand = (G4UniformRand() - 0.5) * (myDetector->GetWCCylInfo(2) - (2 * border)) * cm;
+		rRand = sqrt(G4UniformRand()) * 0.5 * (myDetector->GetWCCylInfo(0) - (2 * border)) * CLHEP::cm;
+		zRand = (G4UniformRand() - 0.5) * (myDetector->GetWCCylInfo(2) - (2 * border)) * CLHEP::cm;
 		thetaRand = (G4UniformRand()) * 2.0 * M_PI;
 		rdmVtx = G4ThreeVector(rRand * cos(thetaRand), rRand * sin(thetaRand), zRand);
 	}
@@ -467,32 +524,37 @@ G4ThreeVector WCSimPrimaryGeneratorAction::GenerateRandomVertex() const {
 
 // For the overlay events, need to find a fake vertex just inside the detector, and adjust the energy correspondingly.
 bool WCSimPrimaryGeneratorAction::UpdateOverlayVertexAndEnergy(G4ThreeVector &vtx, double &timeOffset,
-		G4ThreeVector dir, double &energy) {
+															   G4ThreeVector dir, double &energy)
+{
 
 	G4ThreeVector newVtx;
 
 	bool withinDet = false;
 	// Use vector algebra.
 	// Firstly, find the position of the track at the top of the detector.
-	double detTop = 0.5 * myDetector->GetWCCylInfo(2) * cm;
+	double detTop = 0.5 * myDetector->GetWCCylInfo(2) * CLHEP::cm;
 	// Check over the detector height to see if we are in the detector.
-	for (int i = 0; i < 2 * (int) detTop; ++i) {
+	for (int i = 0; i < 2 * (int)detTop; ++i)
+	{
 		double thisZ = detTop - i;
 		newVtx = vtx + ((thisZ - vtx.z()) / dir.z()) * dir;
 		double planeR = sqrt(newVtx.x() * newVtx.x() + newVtx.y() * newVtx.y());
-//    std::cout << "Testing position " << newVtx.x() << ", " << newVtx.y() << ", " << newVtx.z() << " :: " << planeR << ", " << newVtx.r() << std::endl;
-		if (planeR < (0.5 * myDetector->GetWCCylInfo(0) * cm)) {
+		//    std::cout << "Testing position " << newVtx.x() << ", " << newVtx.y() << ", " << newVtx.z() << " :: " << planeR << ", " << newVtx.r() << std::endl;
+		if (planeR < (0.5 * myDetector->GetWCCylInfo(0) * CLHEP::cm))
+		{
 			withinDet = true;
 			break;
 		}
 	}
 	bool energyOK = false;
-	if (withinDet) {
+	if (withinDet)
+	{
 		double dist = (newVtx - vtx).mag(); // In mm
-		double muonSpeed = 2.9979e8 * m / s;
-		energy -= dist * 2.0 / cm; // Assume 2.0 MeV/cm energy loss
+		double muonSpeed = 2.9979e8 * CLHEP::m / CLHEP::s;
+		energy -= dist * 2.0 / CLHEP::cm; // Assume 2.0 CLHEP::MeV/CLHEP::cm energy loss
 		timeOffset = dist / muonSpeed;
-		if (energy > 0) {
+		if (energy > 0)
+		{
 			energyOK = true;
 			vtx = newVtx;
 		}
@@ -502,22 +564,25 @@ bool WCSimPrimaryGeneratorAction::UpdateOverlayVertexAndEnergy(G4ThreeVector &vt
 		return true;
 	else
 		return false;
-
 }
 
 // Returns a vector with the tokens
-vector<string> tokenize(string separators, string input) {
+vector<string> tokenize(string separators, string input)
+{
 	std::size_t startToken = 0, endToken; // Pointers to the token pos
-	vector < string > tokens;  // Vector to keep the tokens
+	vector<string> tokens;				  // Vector to keep the tokens
 
-	if (separators.size() > 0 && input.size() > 0) {
+	if (separators.size() > 0 && input.size() > 0)
+	{
 
-		while (startToken < input.size()) {
+		while (startToken < input.size())
+		{
 			// Find the start of token
 			startToken = input.find_first_not_of(separators, startToken);
 
 			// If found...
-			if (startToken != input.npos) {
+			if (startToken != input.npos)
+			{
 				// Find end of token
 				endToken = input.find_first_of(separators, startToken);
 				if (endToken == input.npos)
@@ -535,4 +600,3 @@ vector<string> tokenize(string separators, string input) {
 
 	return tokens;
 }
-

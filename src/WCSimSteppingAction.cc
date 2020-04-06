@@ -5,7 +5,7 @@
 
 #include "WCSimSteppingAction.hh"
 
-void WCSimSteppingAction::UserSteppingAction(const G4Step*) {
+void WCSimSteppingAction::UserSteppingAction(const G4Step *)
+{
 	// Currently unimplemented
 }
-

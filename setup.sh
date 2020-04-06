@@ -3,6 +3,6 @@
 # Set the chips-sim directory
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 export WCSIMHOME=$DIR
-export G4WORKDIR=$DIR/geant4
-export PATH=$PATH:$DIR/geant4/bin/Linux-g++/
-export PATH=$PATH:$DIR/bin
+export LD_LIBRARY_PATH=$DIR:$LD_LIBRARY_PATH
+export CPLUS_INCLUDE_PATH=$DIR/include:$CPLUS_INCLUDE_PATH
+export PATH=$DIR:$PATH

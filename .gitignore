@@ -25,3 +25,12 @@ setupWCSim.sh
 tmp/
 bin/
 /nbproject/private/
+
+CMakeCache.txt
+CMakeFiles/
+Makefile
+WCSimConfig.cmake
+WCSimRootDict.cxx
+cmake_install.cmake
+libWCSimRootDict.rootmap
+libWCSimRootDict_rdict.pcm

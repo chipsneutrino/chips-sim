@@ -24,23 +24,24 @@
 
 #include <vector>
 
-int pawc_[500000];                // Declare the PAWC common
+int pawc_[500000]; // Declare the PAWC common
 
-WCSimRunAction::WCSimRunAction(WCSimDetectorConstruction* test) {
+WCSimRunAction::WCSimRunAction(WCSimDetectorConstruction *test)
+{
 	ntuples = 1;
 
 	// Messenger to allow IO options
 	wcsimdetector = test;
 	messenger = new WCSimRunActionMessenger(this);
-
 }
 
-WCSimRunAction::~WCSimRunAction() {
-
+WCSimRunAction::~WCSimRunAction()
+{
 }
 
-void WCSimRunAction::BeginOfRunAction(const G4Run* aRun) {
-//   G4cout << "### Run " << aRun->GetRunID() << " start." << G4endl;
+void WCSimRunAction::BeginOfRunAction(const G4Run *aRun)
+{
+	//   G4cout << "### Run " << aRun->GetRunID() << " start." << G4endl;
 	numberOfEventsGenerated = 0;
 	numberOfTimesWaterTubeHit = 0;
 	numberOfTimesCatcherHit = 0;
@@ -59,17 +60,17 @@ void WCSimRunAction::BeginOfRunAction(const G4Run* aRun) {
 	// Now controlled by the messenger
 
 	G4String rootname = GetRootFileName();
-	TFile* hfile = new TFile(rootname.c_str(), "RECREATE", "WCSim ROOT file");
+	TFile *hfile = new TFile(rootname.c_str(), "RECREATE", "WCSim ROOT file");
 	hfile->SetCompressionLevel(2);
 
 	// Event tree
-	TTree* tree = new TTree("wcsimT", "WCSim Tree");
+	TTree *tree = new TTree("wcsimT", "WCSim Tree");
 
 	SetTree(tree);
 	wcsimrootsuperevent = new WCSimRootEvent(); //empty list
 	//  wcsimrootsuperevent->AddSubEvent(); // make at least one event
 	wcsimrootsuperevent->Initialize(); // make at least one event
-	Int_t branchStyle = 1; //new style by default
+	Int_t branchStyle = 1;			   //new style by default
 	TTree::SetBranchStyle(branchStyle);
 	Int_t bufsize = 64000;
 
@@ -79,47 +80,51 @@ void WCSimRunAction::BeginOfRunAction(const G4Run* aRun) {
 	// Geometry tree
 
 	geoTree = new TTree("wcsimGeoT", "WCSim Geometry Tree");
-	SetGeoTree (geoTree);
+	SetGeoTree(geoTree);
 	wcsimrootgeom = new WCSimRootGeom();
 	TBranch *geoBranch = geoTree->Branch("wcsimrootgeom", "WCSimRootGeom", &wcsimrootgeom, bufsize, 0);
 
 	FillGeoTree();
-	if (GetSavePhotonNtuple()) {
+	if (GetSavePhotonNtuple())
+	{
 		G4String photonname = GetPhotonNtupleName();
 		std::cout << "Photon ntuple name = " << photonname << std::endl;
 		WCSimPhotonNtuple::Instance(photonname);
 	}
 
-	if (GetSaveEmissionProfile()) {
+	if (GetSaveEmissionProfile())
+	{
 		G4String emissionProfileName = GetEmissionProfileName();
 		std::cout << "Emission profile name = " << emissionProfileName << std::endl;
 		WCSimEmissionProfileMaker::Instance(emissionProfileName);
 	}
-
 }
 
-void WCSimRunAction::EndOfRunAction(const G4Run*) {
-//G4cout << "Number of Events Generated: "<< numberOfEventsGenerated << G4endl;
-//G4cout << "Number of times MRD hit: " << numberOfTimesMRDHit << G4endl;
-//G4cout << "Number of times FGD hit: "    << numberOfTimesFGDHit << G4endl;
-//G4cout << "Number of times lArD hit: "  << numberOfTimeslArDHit << G4endl;
-//G4cout<<"Number of times waterTube hit: " << numberOfTimesWaterTubeHit<<G4endl;
-//   G4cout << ((float(numberOfTimesMRDHit)+float(numberOfTimesFGDHit))/float(numberOfEventsGenerated))*100.
-// 	 << "% hit FGD or MRD" << G4endl;
-//   G4cout << "Number of times Catcher hit: " << numberOfTimesCatcherHit<<G4endl;
-//   G4cout << "Number of times Rock hit: " << numberOfTimesRockHit<<G4endl;
-//  G4cout << (float(numberOfTimesCatcherHit)/float(numberOfEventsGenerated))*100.
-//        << "% through-going (hit Catcher)" << G4endl;
+void WCSimRunAction::EndOfRunAction(const G4Run *)
+{
+	//G4cout << "Number of Events Generated: "<< numberOfEventsGenerated << G4endl;
+	//G4cout << "Number of times MRD hit: " << numberOfTimesMRDHit << G4endl;
+	//G4cout << "Number of times FGD hit: "    << numberOfTimesFGDHit << G4endl;
+	//G4cout << "Number of times lArD hit: "  << numberOfTimeslArDHit << G4endl;
+	//G4cout<<"Number of times waterTube hit: " << numberOfTimesWaterTubeHit<<G4endl;
+	//   G4cout << ((float(numberOfTimesMRDHit)+float(numberOfTimesFGDHit))/float(numberOfEventsGenerated))*100.
+	// 	 << "% hit FGD or MRD" << G4endl;
+	//   G4cout << "Number of times Catcher hit: " << numberOfTimesCatcherHit<<G4endl;
+	//   G4cout << "Number of times Rock hit: " << numberOfTimesRockHit<<G4endl;
+	//  G4cout << (float(numberOfTimesCatcherHit)/float(numberOfEventsGenerated))*100.
+	//        << "% through-going (hit Catcher)" << G4endl;
 
 	// Close the Root file at the end of the run
 	int events = WCSimTree->GetEntries();
-	if (GetSavePhotonNtuple()) {
+	if (GetSavePhotonNtuple())
+	{
 		WCSimPhotonNtuple::Close();
 	}
-	if (GetSaveEmissionProfile()) {
+	if (GetSaveEmissionProfile())
+	{
 		WCSimEmissionProfileMaker::Close();
 	}
-	TFile* hfile = WCSimTree->GetCurrentFile();
+	TFile *hfile = WCSimTree->GetCurrentFile();
 	hfile->Close();
 
 	// Clean up stuff on the heap; I think deletion of hfile and trees
@@ -131,10 +136,10 @@ void WCSimRunAction::EndOfRunAction(const G4Run*) {
 	wcsimrootsuperevent = 0;
 	delete wcsimrootgeom;
 	wcsimrootgeom = 0;
-
 }
 
-void WCSimRunAction::FillGeoTree() {
+void WCSimRunAction::FillGeoTree()
+{
 	// Fill the geometry tree
 	G4int geo_type;
 	G4double mailbox[3];
@@ -149,14 +154,18 @@ void WCSimRunAction::FillGeoTree() {
 	Float_t rot[3];
 	Int_t cylLoc;
 
-	if (wcsimdetector->GetIsMailbox() == false) {
+	if (wcsimdetector->GetIsMailbox() == false)
+	{
 		geo_type = 0;
-	} else {
+	}
+	else
+	{
 		geo_type = 1;
 	}
 	wcsimrootgeom->SetGeo_Type(geo_type);
 
-	if (geo_type == 1) {
+	if (geo_type == 1)
+	{
 		//mailbox
 		mailbox[0] = wcsimdetector->GetGeo_Dm(0);
 		mailbox[1] = wcsimdetector->GetGeo_Dm(1);
@@ -164,7 +173,9 @@ void WCSimRunAction::FillGeoTree() {
 		wcsimrootgeom->SetMailBox_x(mailbox[0]);
 		wcsimrootgeom->SetMailBox_y(mailbox[1]);
 		wcsimrootgeom->SetMailBox_z(mailbox[2]);
-	} else {
+	}
+	else
+	{
 		//cylinder
 		cylinfo[1] = wcsimdetector->GetGeo_Dm(3);
 		cylinfo[2] = wcsimdetector->GetGeo_Dm(2);
@@ -186,10 +197,11 @@ void WCSimRunAction::FillGeoTree() {
 
 	WCSimPMTManager *pmtManager = wcsimdetector->GetPMTManager();
 
-	std::vector<WCSimPmtInfo*> *fpmts = wcsimdetector->Get_Pmts();
+	std::vector<WCSimPmtInfo *> *fpmts = wcsimdetector->Get_Pmts();
 	WCSimPmtInfo *pmt;
-	for (int i = 0; i != fpmts->size(); i++) {
-		pmt = ((WCSimPmtInfo*) fpmts->at(i));
+	for (int i = 0; i != fpmts->size(); i++)
+	{
+		pmt = ((WCSimPmtInfo *)fpmts->at(i));
 		pos[0] = pmt->Get_transx();
 		pos[1] = pmt->Get_transy();
 		pos[2] = pmt->Get_transz();
@@ -205,7 +217,8 @@ void WCSimRunAction::FillGeoTree() {
 		//std::cout << "About to add PMT with name " << pmtName << " and radius " << pmtRadius << std::endl;
 		wcsimrootgeom->SetPMT(i, tubeNo, cylLoc, rot, pos, pmtRadius, maxRadius, pmtName);
 	}
-	if (fpmts->size() != numpmt) {
+	if (fpmts->size() != numpmt)
+	{
 		G4cout << "Mismatch between number of pmts and pmt list in geofile.txt!!" << G4endl;
 		G4cout << fpmts->size() << " vs. " << numpmt << G4endl;
 	}
@@ -214,6 +227,6 @@ void WCSimRunAction::FillGeoTree() {
 	wcsimrootgeom->SetWCNumVetoPMT(wcsimdetector->GetNumVetoPmts());
 
 	geoTree->Fill();
-	TFile* hfile = geoTree->GetCurrentFile();
+	TFile *hfile = geoTree->GetCurrentFile();
 	hfile->Write();
 }

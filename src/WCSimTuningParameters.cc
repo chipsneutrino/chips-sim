@@ -4,20 +4,24 @@
 #include "WCSimTuningMessenger.hh"
 #include <cassert>
 
-static WCSimTuningParameters * fgWCSimTuningParameters = NULL;
+static WCSimTuningParameters *fgWCSimTuningParameters = NULL;
 
-WCSimTuningParameters * WCSimTuningParameters::Instance() {
-	if (fgWCSimTuningParameters == NULL) {
+WCSimTuningParameters *WCSimTuningParameters::Instance()
+{
+	if (fgWCSimTuningParameters == NULL)
+	{
 		fgWCSimTuningParameters = new WCSimTuningParameters();
 	}
-	if (fgWCSimTuningParameters == NULL) {
+	if (fgWCSimTuningParameters == NULL)
+	{
 		assert(fgWCSimTuningParameters != NULL);
 	}
 
 	return fgWCSimTuningParameters;
 }
 
-WCSimTuningParameters::WCSimTuningParameters() {
+WCSimTuningParameters::WCSimTuningParameters()
+{
 
 	TuningMessenger = new WCSimTuningMessenger();
 	// Default values
@@ -30,11 +34,10 @@ WCSimTuningParameters::WCSimTuningParameters() {
 	//jl145 - For Top Veto
 	tvspacing = 100.0;
 	topveto = false;
-
 }
 
-WCSimTuningParameters::~WCSimTuningParameters() {
+WCSimTuningParameters::~WCSimTuningParameters()
+{
 	delete TuningMessenger;
 	TuningMessenger = 0;
 }
-

@@ -8,9 +8,11 @@
 #include "G4ThreeVector.hh"
 
 #include "WCSimGeoManager.hh"
+#include "CLHEP/Units/SystemOfUnits.h"
 
 // Default constructor
-WCSimGeoManager::WCSimGeoManager() {
+WCSimGeoManager::WCSimGeoManager()
+{
 
 	// Default location for the pmt definitions file
 	fConfigFile = getenv("WCSIMHOME");
@@ -18,40 +20,44 @@ WCSimGeoManager::WCSimGeoManager() {
 
 	// Read the geometry definitions from the config file
 	this->ReadGeometryList();
-
 }
 
-WCSimGeoManager::~WCSimGeoManager() {
-
+WCSimGeoManager::~WCSimGeoManager()
+{
 }
 
-void WCSimGeoManager::ReadGeometryList() {
+void WCSimGeoManager::ReadGeometryList()
+{
 
 	// Use the rapidxml xml parser.
 	// It has some quirks, like using templates to pass options, so the code below looks strange.
 	rapidxml::file<> xmlFile(fConfigFile.c_str());
 	rapidxml::xml_document<> doc;
-	doc.parse < 0 > (xmlFile.data());
+	doc.parse<0>(xmlFile.data());
 
 	// The geometry definitions exist as "geoDef" in the XML.
-	for (rapidxml::xml_node<> *curNode = doc.first_node("geoDef"); curNode; curNode = curNode->next_sibling("geoDef")) {
+	for (rapidxml::xml_node<> *curNode = doc.first_node("geoDef"); curNode; curNode = curNode->next_sibling("geoDef"))
+	{
 		// We have found a geometry definition, so create a geometry config object
 		WCSimGeoConfig geo;
 		for (rapidxml::xml_attribute<> *curAttr = curNode->first_attribute(); curAttr; curAttr =
-				curAttr->next_attribute()) {
+																						   curAttr->next_attribute())
+		{
 			this->FillGeoAttribute(geo, curAttr);
 		}
 
 		int i = 0;
 		for (rapidxml::xml_node<> *childNode = curNode->first_node("region"); childNode;
-				childNode = childNode->next_sibling("region")) {
+			 childNode = childNode->next_sibling("region"))
+		{
 			geo.ResetCurrent();
 			std::cout << "Filling region number " << ++i << std::endl;
 			this->FillRegion(geo, childNode);
 		}
 
 		for (rapidxml::xml_node<> *childNode = curNode->first_node("PMTLimit"); childNode;
-				childNode = childNode->next_sibling("PMTLimit")) {
+			 childNode = childNode->next_sibling("PMTLimit"))
+		{
 			this->FillPMTLimit(geo, childNode);
 		}
 		assert(geo.IsGood());
@@ -59,69 +65,88 @@ void WCSimGeoManager::ReadGeometryList() {
 	}
 }
 
-void WCSimGeoManager::FillGeoAttribute(WCSimGeoConfig &geo, rapidxml::xml_attribute<> *attr) {
+void WCSimGeoManager::FillGeoAttribute(WCSimGeoConfig &geo, rapidxml::xml_attribute<> *attr)
+{
 
 	std::string name = attr->name();
 	// Define a stringstream to convert types conveniently
 	std::stringstream ss;
 	ss << attr->value();
 
-	if (name == "name") {
+	if (name == "name")
+	{
 		std::string tempVal;
 		ss >> tempVal;
 		geo.SetGeoName(tempVal);
-	} else if (name == "innerRadius") {
+	}
+	else if (name == "innerRadius")
+	{
 		double tempVal;
 		ss >> tempVal;
-		geo.SetOuterRadius(tempVal * m);
-	} else if (name == "innerHeight") {
+		geo.SetOuterRadius(tempVal * CLHEP::m);
+	}
+	else if (name == "innerHeight")
+	{
 		double tempVal;
 		ss >> tempVal;
-		geo.SetInnerHeight(tempVal * m);
-	} else if (name == "nSides") {
+		geo.SetInnerHeight(tempVal * CLHEP::m);
+	}
+	else if (name == "nSides")
+	{
 		unsigned int tempVal;
 		ss >> tempVal;
 		geo.SetNSides(tempVal);
-	} else if (name == "coverageType") {
+	}
+	else if (name == "coverageType")
+	{
 		geo.SetCoverageType(ss.str());
-	} else if (name == "coverage") {
+	}
+	else if (name == "coverage")
+	{
 		double coverage = 0.0;
 		ss >> coverage;
-		if (coverage > 1.0) {
+		if (coverage > 1.0)
+		{
 			std::cout << "Warning: You've asked for coverage of " << coverage << " which is greater than 1" << std::endl
-					<< "         I'm going to assume you meant that as a percentage and set the fractional coverage to "
-					<< coverage / 100. << std::endl;
+					  << "         I'CLHEP::m going to assume you meant that as a percentage and set the fractional coverage to "
+					  << coverage / 100. << std::endl;
 			coverage = coverage / 100.;
 		}
 		std::cout << "Setting overall coverage in this geometry to " << coverage * 100.0 << " percent" << std::endl;
 		geo.SetOverallCoverage(coverage * 100.0);
-	} else if (name == "vetoSize") {
+	}
+	else if (name == "vetoSize")
+	{
 		double vetoSize = 2.0;
 		ss >> vetoSize;
-		geo.SetVetoSize(vetoSize * m);
-
-	} else if (name == "pmtSupport") {
+		geo.SetVetoSize(vetoSize * CLHEP::m);
+	}
+	else if (name == "pmtSupport")
+	{
 		geo.SetPMTSupport(ss.str());
 	}
 
-	else {
+	else
+	{
 		std::cerr << "WCSimGeoManager::FillGeoAttribute: Unexpected parameter " << attr->name() << ", " << attr->value()
-				<< std::endl;
+				  << std::endl;
 	}
-
 }
 
-void WCSimGeoManager::FillRegion(WCSimGeoConfig& geo, rapidxml::xml_node<>* node) {
+void WCSimGeoManager::FillRegion(WCSimGeoConfig &geo, rapidxml::xml_node<> *node)
+{
 
 	for (rapidxml::xml_node<> *childNode = node->first_node("location"); childNode;
-			childNode = childNode->next_sibling("location")) {
+		 childNode = childNode->next_sibling("location"))
+	{
 		std::string nodeVal = childNode->value();
 		// std::cout << "Adding location " << nodeVal << std::endl;
 		geo.AddCurrentRegion(nodeVal);
 	}
 
 	for (rapidxml::xml_node<> *childNode = node->first_node("zone"); childNode;
-			childNode = childNode->next_sibling("zone")) {
+		 childNode = childNode->next_sibling("zone"))
+	{
 		std::stringstream ss;
 		ss << childNode->value();
 		int zoneNum;
@@ -132,32 +157,37 @@ void WCSimGeoManager::FillRegion(WCSimGeoConfig& geo, rapidxml::xml_node<>* node
 	}
 
 	for (rapidxml::xml_node<> *childNode = node->first_node("cellPMTDef"); childNode;
-			childNode = childNode->next_sibling("cellPMTDef")) {
+		 childNode = childNode->next_sibling("cellPMTDef"))
+	{
 		FillCell(geo, childNode);
 	}
 
 	for (rapidxml::xml_node<> *childNode = node->first_node("pmtLimit"); childNode;
-			childNode = childNode->next_sibling("pmtLimit")) {
+		 childNode = childNode->next_sibling("pmtLimit"))
+	{
 		FillPMTLimit(geo, childNode);
 	}
 
 	for (rapidxml::xml_node<> *childNode = node->first_node("coverage"); childNode;
-			childNode = childNode->next_sibling("coverage")) {
+		 childNode = childNode->next_sibling("coverage"))
+	{
 		std::stringstream ss;
 		ss << childNode->value();
 		double coverage;
 		ss >> coverage;
-		if (coverage > 1.0) {
+		if (coverage > 1.0)
+		{
 			std::cout << "Warning: You've asked for coverage of " << coverage << " which is greater than 1" << std::endl
-					<< "         I'm going to assume you meant that as a percentage and set the fractional coverage to "
-					<< coverage / 100. << std::endl;
+					  << "         I'CLHEP::m going to assume you meant that as a percentage and set the fractional coverage to "
+					  << coverage / 100. << std::endl;
 			coverage = coverage / 100.;
 		}
 		geo.SetZonalCoverage(coverage);
 	}
 
 	for (rapidxml::xml_node<> *childNode = node->first_node("startAngle"); childNode;
-			childNode = childNode->next_sibling("startAngle")) {
+		 childNode = childNode->next_sibling("startAngle"))
+	{
 		std::stringstream ss;
 		ss << childNode->value();
 		double start;
@@ -167,7 +197,8 @@ void WCSimGeoManager::FillRegion(WCSimGeoConfig& geo, rapidxml::xml_node<>* node
 	}
 
 	for (rapidxml::xml_node<> *childNode = node->first_node("endAngle"); childNode;
-			childNode = childNode->next_sibling("endAngle")) {
+		 childNode = childNode->next_sibling("endAngle"))
+	{
 		std::stringstream ss;
 		ss << childNode->value();
 		double end;
@@ -175,12 +206,13 @@ void WCSimGeoManager::FillRegion(WCSimGeoConfig& geo, rapidxml::xml_node<>* node
 		end = ConvertAngle(geo, end);
 		geo.SetZoneThetaEnd(end);
 	}
-
 }
 
-void WCSimGeoManager::FillCell(WCSimGeoConfig& geo, rapidxml::xml_node<>* node) {
+void WCSimGeoManager::FillCell(WCSimGeoConfig &geo, rapidxml::xml_node<> *node)
+{
 	for (rapidxml::xml_node<> *childNode = node->first_node("PMT"); childNode;
-			childNode = childNode->next_sibling("PMT")) {
+		 childNode = childNode->next_sibling("PMT"))
+	{
 		rapidxml::xml_node<> *nameNode = childNode->first_node("name");
 		rapidxml::xml_node<> *xPosNode = childNode->first_node("posX");
 		rapidxml::xml_node<> *yPosNode = childNode->first_node("posY");
@@ -188,42 +220,48 @@ void WCSimGeoManager::FillCell(WCSimGeoConfig& geo, rapidxml::xml_node<>* node) 
 
 		assert(nameNode != NULL && xPosNode != NULL && yPosNode != NULL && faceNode != NULL);
 
-		if (nameNode) {
+		if (nameNode)
+		{
 			std::string nodeVal = nameNode->value();
 			geo.AddCellPMTName(nodeVal);
 		}
 
-		if (xPosNode) {
+		if (xPosNode)
+		{
 			std::stringstream ss;
 			ss << xPosNode->value();
 			double posX = 0.0;
 			ss >> posX;
-			geo.AddCellPMTX(posX * m);
+			geo.AddCellPMTX(posX * CLHEP::m);
 		}
 
-		if (yPosNode) {
+		if (yPosNode)
+		{
 			std::stringstream ss;
 			ss << yPosNode->value();
 			ss << yPosNode->value();
 			double posY = 0.0;
 			ss >> posY;
-			geo.AddCellPMTY(posY * m);
+			geo.AddCellPMTY(posY * CLHEP::m);
 		}
 
-		if (faceNode) {
+		if (faceNode)
+		{
 			rapidxml::xml_node<> *typeNode = faceNode->first_node("type");
 			rapidxml::xml_node<> *thetaNode = faceNode->first_node("theta");
 			rapidxml::xml_node<> *phiNode = faceNode->first_node("phi");
 			assert((typeNode != NULL));
 			assert((thetaNode != NULL && phiNode != NULL) || geo.CanBuildWithoutAngles(std::string(typeNode->value())));
 
-			if (typeNode) {
+			if (typeNode)
+			{
 				std::string faceType = typeNode->value();
 				geo.AddCellPMTFaceType(faceType);
 
 				double faceTh = -999.9;
 				double facePhi = -999.9;
-				if (thetaNode != NULL && phiNode != NULL) {
+				if (thetaNode != NULL && phiNode != NULL)
+				{
 					{
 						std::stringstream ss;
 						ss << thetaNode->value();
@@ -242,25 +280,32 @@ void WCSimGeoManager::FillCell(WCSimGeoConfig& geo, rapidxml::xml_node<>* node) 
 	}
 }
 
-WCSimGeoConfig WCSimGeoManager::GetGeometryByName(std::string name) const {
+WCSimGeoConfig WCSimGeoManager::GetGeometryByName(std::string name) const
+{
 
 	unsigned int geo = fGeoVector.size() + 1;
 	// Iterate through the PMTs to look for what we want.
-	for (unsigned int g = 0; g < fGeoVector.size(); ++g) {
-		if (name == fGeoVector[g].GetGeoName()) {
+	for (unsigned int g = 0; g < fGeoVector.size(); ++g)
+	{
+		if (name == fGeoVector[g].GetGeoName())
+		{
 			geo = g;
 			break;
 		}
 	}
 
 	WCSimGeoConfig curGeo;
-	if (geo < (fGeoVector.size() + 1)) {
+	if (geo < (fGeoVector.size() + 1))
+	{
 		curGeo = fGeoVector[geo];
-	} else {
+	}
+	else
+	{
 		std::cerr << "WCSIMGeoManager::GetGeometryByName: Geometry " << name
-				<< " does not exist. Returned default WCSimGeoConfig object." << std::endl;
+				  << " does not exist. Returned default WCSimGeoConfig object." << std::endl;
 		std::cerr << "Available geometries are:" << std::endl;
-		for (unsigned int iVec = 0; iVec < fGeoVector.size(); ++iVec) {
+		for (unsigned int iVec = 0; iVec < fGeoVector.size(); ++iVec)
+		{
 			std::cerr << fGeoVector.at(iVec).GetGeoName() << std::endl;
 		}
 	}
@@ -268,41 +313,50 @@ WCSimGeoConfig WCSimGeoManager::GetGeometryByName(std::string name) const {
 	return curGeo;
 }
 
-bool WCSimGeoManager::GeometryExists(std::string name) const {
+bool WCSimGeoManager::GeometryExists(std::string name) const
+{
 	bool foundIt = false;
 	std::cout << "...Looking for -> " << name << "hello" << std::endl;
-	for (unsigned int g = 0; g < fGeoVector.size(); ++g) {
+	for (unsigned int g = 0; g < fGeoVector.size(); ++g)
+	{
 		std::cout << "...Looking at -> " << fGeoVector[g].GetGeoName() << "hello" << std::endl;
-		if (name == fGeoVector[g].GetGeoName()) {
+		if (name == fGeoVector[g].GetGeoName())
+		{
 			foundIt = true;
 			break;
 		}
 	}
 
-	if (!foundIt) {
+	if (!foundIt)
+	{
 		std::cerr << "Could not find geometry called ===" << name << "===" << std::endl;
 		std::cerr << "Available geometries are:" << std::endl;
-		for (unsigned int g = 0; g < fGeoVector.size(); ++g) {
+		for (unsigned int g = 0; g < fGeoVector.size(); ++g)
+		{
 			std::cerr << "\t ===" << fGeoVector.at(g).GetGeoName() << "===" << std::endl;
 		}
 	}
 	return foundIt;
 }
 
-bool WCSimGeoManager::MeansYes(std::string str) {
+bool WCSimGeoManager::MeansYes(std::string str)
+{
 	return ((str == "YES") || (str == "Y") || (str == "yes") || (str == "y") || (str == "TRUE") || (str == "true"));
 }
 
-bool WCSimGeoManager::MeansNo(std::string str) {
+bool WCSimGeoManager::MeansNo(std::string str)
+{
 	return ((str == "NO") || (str == "N") || (str == "no") || (str == "n") || (str == "FALSE") || (str == "false"));
 }
 
-void WCSimGeoManager::FillPMTLimit(WCSimGeoConfig& geo, rapidxml::xml_node<>* node) {
+void WCSimGeoManager::FillPMTLimit(WCSimGeoConfig &geo, rapidxml::xml_node<> *node)
+{
 	rapidxml::xml_node<> *nameNode = node->first_node("name");
 	rapidxml::xml_node<> *limitNode = node->first_node("limit");
 	assert(nameNode != NULL && limitNode != NULL);
 
-	if (nameNode && limitNode) {
+	if (nameNode && limitNode)
+	{
 		std::string pmtName = nameNode->value();
 		std::stringstream ss;
 		ss << limitNode->value();
@@ -313,6 +367,7 @@ void WCSimGeoManager::FillPMTLimit(WCSimGeoConfig& geo, rapidxml::xml_node<>* no
 	}
 }
 
-double WCSimGeoManager::ConvertAngle(const WCSimGeoConfig &geo, const double &angle) {
+double WCSimGeoManager::ConvertAngle(const WCSimGeoConfig &geo, const double &angle)
+{
 	return (angle + (M_PI / geo.GetNSides()));
 }

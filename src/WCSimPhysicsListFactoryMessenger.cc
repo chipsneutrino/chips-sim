@@ -6,12 +6,11 @@
 #include "globals.hh"
 #include "G4UIcmdWithAString.hh"
 
-WCSimPhysicsListFactoryMessenger::WCSimPhysicsListFactoryMessenger(WCSimPhysicsListFactory* WCSimPhysFactory,
-		G4String inValidListsString) :
-		thisWCSimPhysicsListFactory(WCSimPhysFactory), ValidListsString(inValidListsString) {
+WCSimPhysicsListFactoryMessenger::WCSimPhysicsListFactoryMessenger(WCSimPhysicsListFactory *WCSimPhysFactory,
+																   G4String inValidListsString) : thisWCSimPhysicsListFactory(WCSimPhysFactory), ValidListsString(inValidListsString)
+{
 
-//  G4String defaultList="QGSP_BIC_HP";
-	G4String defaultList = "WCSim";
+	G4String defaultList = "QGSP_BIC_HP";
 
 	physListCmd = new G4UIcmdWithAString("/WCSim/physics/list", this);
 	G4String cmd_hint = "Available options: " + ValidListsString;
@@ -22,18 +21,19 @@ WCSimPhysicsListFactoryMessenger::WCSimPhysicsListFactoryMessenger(WCSimPhysicsL
 	physListCmd->SetGuidance("Note: I think physics list is locked-in after initialization");
 
 	physListCmd->SetDefaultValue(defaultList);
-	physListCmd->SetCandidates(ValidListsString);  // TODO get list of physics lists from G4PhysicsListFactory
+	physListCmd->SetCandidates(ValidListsString); // TODO get list of physics lists from G4PhysicsListFactory
 
 	SetNewValue(physListCmd, defaultList);
 }
 
-WCSimPhysicsListFactoryMessenger::~WCSimPhysicsListFactoryMessenger() {
+WCSimPhysicsListFactoryMessenger::~WCSimPhysicsListFactoryMessenger()
+{
 	delete physListCmd;
 	//delete WCSimDir;
 }
 
-void WCSimPhysicsListFactoryMessenger::SetNewValue(G4UIcommand* command, G4String newValue) {
+void WCSimPhysicsListFactoryMessenger::SetNewValue(G4UIcommand *command, G4String newValue)
+{
 	if (command == physListCmd)
 		thisWCSimPhysicsListFactory->SetList(newValue);
-
 }

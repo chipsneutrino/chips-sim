@@ -6,34 +6,34 @@
 #include <TObject.h>
 // This is a class that builds a list of defined PMT types and
 // provides the access interface to them.
-class WCSimPMTManager: public TObject {
+class WCSimPMTManager : public TObject
+{
 
-	public:
+public:
+	// Default constructor
+	WCSimPMTManager();
 
-		// Default constructor
-		WCSimPMTManager();
+	// Destructor
+	~WCSimPMTManager();
 
-		// Destructor
-		~WCSimPMTManager();
+	// Get a PMT object by the PMT name
+	WCSimPMTConfig GetPMTByName(std::string name);
 
-		// Get a PMT object by the PMT name
-		WCSimPMTConfig GetPMTByName(std::string name);
+private:
+	// Read the list of PMT types from the config file
+	void ReadPMTTypeList();
 
-	private:
+	// Fill PMT object attribute from xml file
+	void FillPMTAttribute(WCSimPMTConfig &pmt, const std::string &attrName, const std::string &attrValue);
 
-		// Read the list of PMT types from the config file
-		void ReadPMTTypeList();
+	// Vector to store the requested PMT types
+	std::vector<WCSimPMTConfig> fPMTVector;
 
-		// Fill PMT object attribute from xml file
-		void FillPMTAttribute(WCSimPMTConfig &pmt, const std::string &attrName, const std::string &attrValue);
+	// Temporary efficiency vector. Filled and used for each PMT in turn.
+	std::vector<std::pair<double, double>> fTempEffVec;
 
-		// Vector to store the requested PMT types
-		std::vector<WCSimPMTConfig> fPMTVector;
-
-		// Temporary efficiency vector. Filled and used for each PMT in turn.
-		std::vector<std::pair<double, double> > fTempEffVec;
-
-		std::string fConfigFile;ClassDef(WCSimPMTManager,1);
+	std::string fConfigFile;
+	ClassDef(WCSimPMTManager, 1);
 };
 
 #endif

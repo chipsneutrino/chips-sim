@@ -7,21 +7,20 @@
 
 class G4Track;
 
-class WCSimStackingAction: public G4UserStackingAction {
+class WCSimStackingAction : public G4UserStackingAction
+{
 
-	public:
-		WCSimStackingAction(WCSimDetectorConstruction*);
-		virtual ~WCSimStackingAction();
+public:
+	WCSimStackingAction(WCSimDetectorConstruction *);
+	virtual ~WCSimStackingAction();
 
-	public:
-		virtual G4ClassificationOfNewTrack ClassifyNewTrack(const G4Track* aTrack);
-		virtual void NewStage();
-		virtual void PrepareNewEvent();
+public:
+	virtual G4ClassificationOfNewTrack ClassifyNewTrack(const G4Track *aTrack);
+	virtual void NewStage();
+	virtual void PrepareNewEvent();
 
-	private:
-		WCSimDetectorConstruction* DetConstruct;
-
+private:
+	WCSimDetectorConstruction *DetConstruct;
 };
 
 #endif
-

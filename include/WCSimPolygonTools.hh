@@ -9,7 +9,8 @@
 #define WCSIMPOLYGONTOOLS_HH_
 #include "G4TwoVector.hh"
 
-namespace WCSimPolygonTools {
+namespace WCSimPolygonTools
+{
 /**
  * \brief Test if a regular polygon centred on (0,0) contains a certain point
  * \param nSides Number of sides for the polygon
@@ -41,7 +42,7 @@ bool PolygonContainsSquare(unsigned int nSides, double outerRadius, G4TwoVector 
  * \return True if the polygon contains every point on the square
  */
 bool PolygonSliceContainsSquare(unsigned int nSides, double thetaStart, double thetaEnd, double outerRadius,
-		G4TwoVector squareCorner, double squareSide);
+								G4TwoVector squareCorner, double squareSide);
 
 /**
  * \brief Take a regular n-sided polygon centred on (0,0), cut it into slices along the lines
@@ -54,7 +55,7 @@ bool PolygonSliceContainsSquare(unsigned int nSides, double thetaStart, double t
  * \return True if the polygon contains every point on the square
  */
 bool PolygonSliceContains(unsigned int nSides, double thetaStart, double thetaEnd, double outerRadius,
-		G4TwoVector point);
+						  G4TwoVector point);
 
 double GetSideFromRadius(unsigned int nSides, double outerRadius);
 double GetRadiusFromSide(unsigned int nSides, double side);

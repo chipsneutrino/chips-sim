@@ -6,8 +6,8 @@
 #include "G4UIcmdWithADouble.hh"
 #include "G4ios.hh"
 
-WCSimPrimaryGeneratorMessenger::WCSimPrimaryGeneratorMessenger(WCSimPrimaryGeneratorAction* pointerToAction) :
-		myAction(pointerToAction) {
+WCSimPrimaryGeneratorMessenger::WCSimPrimaryGeneratorMessenger(WCSimPrimaryGeneratorAction *pointerToAction) : myAction(pointerToAction)
+{
 	mydetDirectory = new G4UIdirectory("/mygen/");
 	mydetDirectory->SetGuidance("WCSim detector control commands.");
 
@@ -33,37 +33,40 @@ WCSimPrimaryGeneratorMessenger::WCSimPrimaryGeneratorMessenger(WCSimPrimaryGener
 
 	fRandomVertexCmd = new G4UIcmdWithABool("/mygen/enableRandomVtx", this);
 	fRandomVertexCmd->SetGuidance("Bool to toggle random vertices\n"
-			" - The default value is false.\n"
-			" - To limit the vertices away from the walls use the /mygen/fiducialDist \n");
+								  " - The default value is false.\n"
+								  " - To limit the vertices away from the walls use the /mygen/fiducialDist \n");
 	fRandomVertexCmd->SetParameterName("enableRandomVtx", true);
 	fRandomVertexCmd->SetDefaultValue(false);
 
 	fFiducialBorderCmd = new G4UIcmdWithADouble("/mygen/fiducialDist", this);
 	fFiducialBorderCmd->SetGuidance("Distance from the wall to define the fiducial volume.\n"
-			" - Requires /mygen/enableRandomVtx true in order to be used.\n"
-			" - Defaults to 0.0m.\n"
-			" - Units in m.");
+									" - Requires /mygen/enableRandomVtx true in order to be used.\n"
+									" - Defaults to 0.0m.\n"
+									" - Units in m.");
 	fFiducialBorderCmd->SetParameterName("fiducialDist", true);
 	fFiducialBorderCmd->SetDefaultValue(0.0);
 
 	fSwapXZCmd = new G4UIcmdWithABool("/mygen/useXAxisForBeam", this);
 	fSwapXZCmd->SetGuidance("Bool to toggle using the X axis for the beam\n"
-			" - Use when events are generated assuming beam in the Z direction (ie from GENIE).\n"
-			" - Default value is true.");
+							" - Use when events are generated assuming beam in the Z direction (ie from GENIE).\n"
+							" - Default value is true.");
 	fSwapXZCmd->SetParameterName("useXAxisForBeam", true);
 	fSwapXZCmd->SetDefaultValue(true);
 }
 
-WCSimPrimaryGeneratorMessenger::~WCSimPrimaryGeneratorMessenger() {
+WCSimPrimaryGeneratorMessenger::~WCSimPrimaryGeneratorMessenger()
+{
 	delete genCmd;
 	delete mydetDirectory;
 }
 
-void WCSimPrimaryGeneratorMessenger::SetNewValue(G4UIcommand * command, G4String newValue) {
-	if (command == genCmd) {
+void WCSimPrimaryGeneratorMessenger::SetNewValue(G4UIcommand *command, G4String newValue)
+{
+	if (command == genCmd)
+	{
 		// If it is one of the allowed options then set everything to false.
-		if (newValue == "muline" || newValue == "normal" || newValue == "laser" || newValue == "gps"
-				|| newValue == "overlay") {
+		if (newValue == "muline" || newValue == "normal" || newValue == "laser" || newValue == "gps" || newValue == "overlay")
+		{
 			myAction->SetMulineEvtGenerator(false);
 			myAction->SetNormalEvtGenerator(false);
 			myAction->SetLaserEvtGenerator(false);
@@ -72,67 +75,92 @@ void WCSimPrimaryGeneratorMessenger::SetNewValue(G4UIcommand * command, G4String
 		}
 
 		// Now set the correct option to true.
-		if (newValue == "muline") {
+		if (newValue == "muline")
+		{
 			myAction->SetMulineEvtGenerator(true);
-		} else if (newValue == "normal") {
+		}
+		else if (newValue == "normal")
+		{
 			myAction->SetNormalEvtGenerator(true);
-		} else if (newValue == "laser") {   //T. Akiri: Addition of laser{
+		}
+		else if (newValue == "laser")
+		{ //T. Akiri: Addition of laser{
 			myAction->SetLaserEvtGenerator(true);
-		} else if (newValue == "gps") {
+		}
+		else if (newValue == "gps")
+		{
 			myAction->SetGpsEvtGenerator(true);
-		} else if (newValue == "overlay") {
+		}
+		else if (newValue == "overlay")
+		{
 			myAction->SetOverlayEvtGenerator(true);
 		}
 	}
 	// Vector file
-	if (command == fileNameCmd) {
+	if (command == fileNameCmd)
+	{
 		myAction->AddVectorFile(newValue);
 		G4cout << "Added new input vector file from " << newValue << G4endl;
 	}
 	// Overlay file
-	if (command == fOverlayNameCmd) {
+	if (command == fOverlayNameCmd)
+	{
 		myAction->AddOverlayFile(newValue);
 		G4cout << "Added new overlay vector file from " << newValue << G4endl;
 	}
-	if (command == fRandomVertexCmd) {
+	if (command == fRandomVertexCmd)
+	{
 		bool val = false;
-		if (newValue == "true") {
+		if (newValue == "true")
+		{
 			val = true;
 		}
 		myAction->SetRandomVertex(val);
 	}
 	// Fiducial distance
-	if (command == fFiducialBorderCmd) {
+	if (command == fFiducialBorderCmd)
+	{
 		myAction->SetFiducialBorder(atof(newValue));
 	}
 	// Swap the X and Z coordinates of the vec file particles
-	if (command == fSwapXZCmd) {
+	if (command == fSwapXZCmd)
+	{
 		bool val = true;
-		if (newValue == "false") {
+		if (newValue == "false")
+		{
 			val = false;
 		}
 		myAction->SetUseXAxisForBeam(val);
 	}
 }
 
-G4String WCSimPrimaryGeneratorMessenger::GetCurrentValue(G4UIcommand* command) {
+G4String WCSimPrimaryGeneratorMessenger::GetCurrentValue(G4UIcommand *command)
+{
 	G4String cv;
 
-	if (command == genCmd) {
-		if (myAction->IsUsingMulineEvtGenerator()) {
+	if (command == genCmd)
+	{
+		if (myAction->IsUsingMulineEvtGenerator())
+		{
 			cv = "muline";
-		} else if (myAction->IsUsingNormalEvtGenerator()) {
+		}
+		else if (myAction->IsUsingNormalEvtGenerator())
+		{
 			cv = "normal";
-		} else if (myAction->IsUsingLaserEvtGenerator()) {
+		}
+		else if (myAction->IsUsingLaserEvtGenerator())
+		{
 			cv = "laser";
-		}   //T. Akiri: Addition of laser
-		else if (myAction->IsUsingGpsEvtGenerator()) {
+		} //T. Akiri: Addition of laser
+		else if (myAction->IsUsingGpsEvtGenerator())
+		{
 			cv = "gps";
-		} else if (myAction->IsUsingOverlayEvtGenerator()) {
+		}
+		else if (myAction->IsUsingOverlayEvtGenerator())
+		{
 			cv = "overlay";
 		}
 	}
 
 	return cv;
 }
-

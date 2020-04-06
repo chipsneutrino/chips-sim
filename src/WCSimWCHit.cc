@@ -15,22 +15,25 @@ G4Allocator<WCSimWCHit> WCSimWCHitAllocator;
 G4double numbpmthit = 0.0;
 G4double avePe = 0.0;
 
-WCSimWCHit::WCSimWCHit() {
+WCSimWCHit::WCSimWCHit()
+{
 	totalPe = 0;
 }
 
-WCSimWCHit::~WCSimWCHit() {
+WCSimWCHit::~WCSimWCHit()
+{
 }
 
-WCSimWCHit::WCSimWCHit(const WCSimWCHit& right) :
-		G4VHit() {
+WCSimWCHit::WCSimWCHit(const WCSimWCHit &right) : G4VHit()
+{
 	trackID = right.trackID;
 	tubeID = right.tubeID;
 	edep = right.edep;
 	pos = right.pos;
 }
 
-const WCSimWCHit& WCSimWCHit::operator=(const WCSimWCHit& right) {
+const WCSimWCHit &WCSimWCHit::operator=(const WCSimWCHit &right)
+{
 	trackID = right.trackID;
 	tubeID = right.tubeID;
 	edep = right.edep;
@@ -38,48 +41,53 @@ const WCSimWCHit& WCSimWCHit::operator=(const WCSimWCHit& right) {
 	return *this;
 }
 
-G4int WCSimWCHit::operator==(const WCSimWCHit& right) const {
+G4int WCSimWCHit::operator==(const WCSimWCHit &right) const
+{
 	return (this == &right) ? 1 : 0;
 }
 
-void WCSimWCHit::Draw() {
-	G4VVisManager* pVVisManager = G4VVisManager::GetConcreteInstance();
-	if (pVVisManager) {
+void WCSimWCHit::Draw()
+{
+	G4VVisManager *pVVisManager = G4VVisManager::GetConcreteInstance();
+	if (pVVisManager)
+	{
 		G4Transform3D trans(rot, pos);
 		G4VisAttributes attribs;
 
 		G4String volumeName = pLogV->GetName();
 
-		if (volumeName == "glassFaceWCPMT" || volumeName == "glassFaceWCPMT_refl") {
+		if (volumeName == "glassFaceWCPMT" || volumeName == "glassFaceWCPMT_refl")
+		{
 			//G4cout << "PE: " << totalPe << " Max Pe " << maxPe << G4endl;
 			//numbpmthit++;
 			//avePe += totalPe;
 			//G4cout << "Ave PE: " << avePe/numbpmthit << " Max PE: " << maxPe << G4endl;
-			if (totalPe > maxPe * .01) {
+			if (totalPe > maxPe * .01)
+			{
 				G4Colour colour(1., 1. - (float(totalPe - .05 * maxPe) / float(.95 * maxPe)), 0.0);
 				attribs.SetColour(colour);
 				//    attribs.SetForceWireframe(false);
 				attribs.SetForceSolid(true);
 				pVVisManager->Draw(*pLogV, attribs, trans);
 			}
-
 		}
 	}
 }
 
-void WCSimWCHit::Print() {
+void WCSimWCHit::Print()
+{
 
 	G4cout.setf(std::ios::fixed);
 	G4cout.precision(1);
 
 	G4cout << " Tube:" << std::setw(4) << tubeID << " Track:" << std::setw(6) << trackID << " Pe:" << totalPe << " Pos:"
-			<< pos / cm << G4endl << "\tTime: ";
+		   << pos / CLHEP::cm << G4endl << "\tTime: ";
 
-	for (int i = 0; i < totalPe; i++) {
-		G4cout << time[i] / ns << " ";
+	for (int i = 0; i < totalPe; i++)
+	{
+		G4cout << time[i] / CLHEP::ns << " ";
 		if (i % 10 == 0 && i != 0)
 			G4cout << G4endl << "\t";
 	}
 	G4cout << "size: " << time.size() << G4endl;
 }
-

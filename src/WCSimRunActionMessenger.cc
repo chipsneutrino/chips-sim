@@ -7,8 +7,8 @@
 #include "G4UIcmdWithAString.hh"
 #include "G4UIcmdWithABool.hh"
 
-WCSimRunActionMessenger::WCSimRunActionMessenger(WCSimRunAction* WCSimRA) :
-		WCSimRun(WCSimRA) {
+WCSimRunActionMessenger::WCSimRunActionMessenger(WCSimRunAction *WCSimRA) : WCSimRun(WCSimRA)
+{
 	WCSimIODir = new G4UIdirectory("/WCSimIO/");
 	WCSimIODir->SetGuidance("Commands to select I/O options");
 
@@ -47,10 +47,10 @@ WCSimRunActionMessenger::WCSimRunActionMessenger(WCSimRunAction* WCSimRA) :
 	EmissionProfile->SetGuidance("Enter the name of the emission profile ROOT file");
 	EmissionProfile->SetParameterName("EmissionProfileName", true);
 	EmissionProfile->SetDefaultValue("wcsim_emission_profile.root");
-
 }
 
-WCSimRunActionMessenger::~WCSimRunActionMessenger() {
+WCSimRunActionMessenger::~WCSimRunActionMessenger()
+{
 	delete SaveRootFile;
 	delete RootFile;
 	delete SavePhotonNtuple;
@@ -58,33 +58,38 @@ WCSimRunActionMessenger::~WCSimRunActionMessenger() {
 	delete SaveEmissionProfile;
 	delete EmissionProfile;
 	delete WCSimIODir;
-
 }
 
-void WCSimRunActionMessenger::SetNewValue(G4UIcommand* command, G4String newValue) {
-	if (command == SaveRootFile) {
+void WCSimRunActionMessenger::SetNewValue(G4UIcommand *command, G4String newValue)
+{
+	if (command == SaveRootFile)
+	{
 		WCSimRun->SetSaveRootFile(SaveRootFile->GetNewBoolValue(newValue));
 		G4cout << "Save ROOT file set to " << newValue << std::endl;
 	}
-	if (command == RootFile) {
+	if (command == RootFile)
+	{
 		WCSimRun->SetRootFileName(newValue);
 		G4cout << "Output ROOT file set to " << newValue << G4endl;
 	}
-	if (command == SavePhotonNtuple) {
+	if (command == SavePhotonNtuple)
+	{
 		WCSimRun->SetSavePhotonNtuple(SavePhotonNtuple->GetNewBoolValue(newValue));
 		G4cout << "Save photon ntuple set to " << newValue << G4endl;
 	}
-	if (command == PhotonNtuple) {
+	if (command == PhotonNtuple)
+	{
 		WCSimRun->SetPhotonNtupleName(newValue);
 		G4cout << "Outut photon ntuple file set to " << newValue << G4endl;
 	}
-	if (command == SaveEmissionProfile) {
+	if (command == SaveEmissionProfile)
+	{
 		WCSimRun->SetSaveEmissionProfile(SaveEmissionProfile->GetNewBoolValue(newValue));
 		G4cout << "Save emission profile set to " << newValue << G4endl;
 	}
-	if (command == EmissionProfile) {
+	if (command == EmissionProfile)
+	{
 		WCSimRun->SetEmissionProfileName(newValue);
 		G4cout << "Outut emission profiel file basename set to " << newValue << G4endl;
 	}
-
 }
