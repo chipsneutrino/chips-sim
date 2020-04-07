@@ -2,24 +2,36 @@
 
 CHIPS detector simulation based on WCSim
 
-# Building
+## Building
 
-You need an up-to-date version of ROOT6 and Geant4.10 with all its data files
+You need an up-to-date version of ROOT6 and Geant4.10 with all the usual data files. This is provided by the chips-env repository.
 
-To compile run...
+To compile all the apps run...
 
 ```
 $ source setup.sh
 $ cmake .
-$ make -jN # N is the number of cores your machine has availiable
+$ make -jN # Where N is the number of cores your machine has availiable
 ```
 
-# Running
-
-To run call...
+## Running WCSim
 
 ```
-$ WCSim -g [geometrySetup.mac file] [generalConfiguration.mac file]
+$ ./WCSim -g [geometrySetup.mac file] [generalConfiguration.mac file]
 ```
 
-by dafault it will use the files found in ./config/example/
+by default it will use the files found in ./config/example/
+
+## Running the Geometry Helper
+
+```
+$ ./geometryHelper
+```
+
+then just follow the prompt to generate geometry .xml
+
+## Running the Event Display
+
+```
+$ ./evDisplay
+```
