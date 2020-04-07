@@ -25,16 +25,16 @@ void usage();
 int main(int argc, char **argv)
 {
 	// Setup the paths to the default files
-	G4String geoMacFile = getenv("WCSIMHOME");
+	G4String geoMacFile = getenv("CHIPSSIM");
 	geoMacFile.append("/config/example/example_geo_setup.mac");
 
-	G4String macFile = getenv("WCSIMHOME");
+	G4String macFile = getenv("CHIPSSIM");
 	macFile.append("/config/example/example.mac");
 
-	G4String tuningFile = getenv("WCSIMHOME");
+	G4String tuningFile = getenv("CHIPSSIM");
 	tuningFile.append("/config/tuning_parameters.mac");
 
-	G4String jobOptionsFile = getenv("WCSIMHOME");
+	G4String jobOptionsFile = getenv("CHIPSSIM");
 	jobOptionsFile.append("/config/job_options.mac");
 
 	if (argc > 1)
@@ -145,5 +145,5 @@ void usage()
 	std::cout << "   -g path_to_geo_file.mac" << std::endl
 			  << "       Use a different mac file to specify geometry options" << std::endl
 			  << "       such as which geometry or PMT simulation to use (default " << std::endl
-			  << "       is $WCSIMHOME/config/example/example_geo_setup.mac" << std::endl;
+			  << "       is $CHIPSSIM/config/example/example_geo_setup.mac" << std::endl;
 }

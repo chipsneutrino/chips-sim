@@ -20,7 +20,7 @@ ClassImp(WCSimPMTManager)
 {
 
 	// Default location for the pmt definitions file
-	fConfigFile = getenv("WCSIMHOME");
+	fConfigFile = getenv("CHIPSSIM");
 	fConfigFile.append("/config/pmt_definitions.xml");
 
 	// Read the PMT types from the config file

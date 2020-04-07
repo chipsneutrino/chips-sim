@@ -18,7 +18,7 @@ ClassImp(WCSimLCManager)
 {
 
 	// Default location for the lc definitions file
-	fConfigFile = getenv("WCSIMHOME");
+	fConfigFile = getenv("CHIPSSIM");
 	fConfigFile.append("/config/lc_definitions.xml");
 
 	// Read the LC types from the config file
