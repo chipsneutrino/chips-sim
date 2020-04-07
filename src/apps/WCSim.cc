@@ -24,10 +24,19 @@ void usage();
 
 int main(int argc, char **argv)
 {
-	// Check to see if we need to use a custom geometry setup macfile
-	// Means we can submit batch jobs with different geometries concurrently
-	G4String geoMacFile("config/example/example_geo_setup.mac");
-	G4String macFile("config/example/example.mac");
+	// Setup the paths to the default files
+	G4String geoMacFile = getenv("WCSIMHOME");
+	geoMacFile.append("/config/example/example_geo_setup.mac");
+
+	G4String macFile = getenv("WCSIMHOME");
+	macFile.append("/config/example/example.mac");
+
+	G4String tuningFile = getenv("WCSIMHOME");
+	tuningFile.append("/config/tuning_parameters.mac");
+
+	G4String jobOptionsFile = getenv("WCSIMHOME");
+	jobOptionsFile.append("/config/job_options.mac");
+
 	if (argc > 1)
 	{
 		for (int i = 1; i < argc; ++i)
@@ -66,6 +75,9 @@ int main(int argc, char **argv)
 	std::cout << "Geometry macfile is " << geoMacFile << std::endl;
 	std::cout << "Run configuration macfile is " << macFile << std::endl;
 
+	// Setup 'execute' command to use with the files
+	G4String execute = "/control/execute ";
+
 	// Construct the run manager
 	G4RunManager *runManager = new G4RunManager;
 
@@ -74,17 +86,16 @@ int main(int argc, char **argv)
 
 	// Get the tuning parameters from file
 	WCSimTuningParameters::Instance();
-	UI->ApplyCommand("/control/execute config/tuning_parameters.mac");
+	UI->ApplyCommand(execute + tuningFile);
 
 	// Setup the detector geometry and register with the run manager
 	WCSimCherenkovBuilder *WCSimdetector = new WCSimCherenkovBuilder(2);
 	runManager->SetUserInitialization(WCSimdetector);
-	G4String geoCommand = "/control/execute ";
-	UI->ApplyCommand(geoCommand + geoMacFile);
+	UI->ApplyCommand(execute + geoMacFile);
 
 	// Setup the physics list, initialize and register with the run manager
 	WCSimPhysicsListFactory *WCSimPhysics = new WCSimPhysicsListFactory();
-	UI->ApplyCommand("/control/execute config/jobOptions.mac");
+	UI->ApplyCommand(execute + jobOptionsFile);
 	WCSimPhysics->InitializeList();
 	runManager->SetUserInitialization(WCSimPhysics);
 
@@ -104,35 +115,24 @@ int main(int argc, char **argv)
 	runManager->SetUserAction(new WCSimStackingAction(WCSimdetector));
 	runManager->SetUserAction(new WCSimSteppingAction);
 
-	// Initialize G4 kernel, this actually sets everything up
-	std::cout << "Initializing the Geant4 Kernel..." << macFile << std::endl;
-	runManager->Initialize();
+	runManager->Initialize(); // Initialize G4 kernel, this actually sets everything up
 
-	if (macFile.compare("config/example/example_vis.mac") == 0) // Define UI terminal for interactive mode
+	if (macFile.contains("vis")) // Define UI terminal for interactive mode
 	{
-
-		// Start UI Session
-		G4UIsession *session = new G4UIterminal(new G4UItcsh);
-
-		// Visualisation Macro
-		UI->ApplyCommand("/control/execute config/example/example_vis.mac");
-
-		// Start Interactive Mode
-		session->SessionStart();
-
+		std::cout << "Using a visualisation macro..." << std::endl;
+		G4UIsession *session = new G4UIterminal(new G4UItcsh); // Start UI Session
+		UI->ApplyCommand(execute + macFile);				   // Visualisation Macro
+		session->SessionStart();							   // Start Interactive Mode
 		delete session;
 	}
-	else // Batch mode
+	else // Normal batch mode
 	{
-		G4String command = "/control/execute ";
-		G4String fileName = macFile;
-
-		UI->ApplyCommand(command + fileName);
+		std::cout << "Using a batch macro..." << std::endl;
+		UI->ApplyCommand(execute + macFile);
 	}
 
 	delete visManager;
-
-	delete runManager;
+	delete runManager; // This will delete everything registered with it aswell
 	return 0;
 }
 

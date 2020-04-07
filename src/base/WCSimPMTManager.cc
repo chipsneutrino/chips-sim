@@ -21,7 +21,7 @@ ClassImp(WCSimPMTManager)
 
 	// Default location for the pmt definitions file
 	fConfigFile = getenv("WCSIMHOME");
-	fConfigFile.append("/config/pmtDefinitions.xml");
+	fConfigFile.append("/config/pmt_definitions.xml");
 
 	// Read the PMT types from the config file
 	this->ReadPMTTypeList();

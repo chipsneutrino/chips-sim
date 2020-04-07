@@ -1,4 +1,4 @@
-#include "include/WCSimGeometryHelper.hh"
+#include "WCSimGeometryHelper.hh"
 int main()
 {
   WCSimGeometryHelper helper;

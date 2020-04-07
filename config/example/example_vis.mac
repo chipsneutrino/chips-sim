@@ -8,7 +8,7 @@
 /hits/verbose 0
 
 ## Select the input nuance-formatted vector file, you can ofcourse use your own
-/mygen/vecfile example/example_events.vec
+/mygen/vecfile ./config/example/example_events.vec
 
 ## Toggles for swapping X and Z, and randomising vertices
 /mygen/useXAxisForBeam true

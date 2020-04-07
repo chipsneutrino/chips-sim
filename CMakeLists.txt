@@ -1,8 +1,12 @@
 #---Setup the project
 cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
-project(WCSim)
+project(chips-sim CXX)
 
-#set(CMAKE_VERBOSE_MAKEFILE on)
+#---Build Configuration
+set(CMAKE_CXX_STANDARD 11)
+set(BUILD_SHARED_LIBS YES CACHE BOOL "")
+set(BUILD_STATIC_LIBS NO CACHE BOOL "")
+set(CMAKE_VERBOSE_MAKEFILE off)
 
 #---Default to a 'release' build with O2 optimisations
 if(NOT CMAKE_BUILD_TYPE)
@@ -44,18 +48,18 @@ ROOT_GENERATE_DICTIONARY(WCSimRootDict
 
 #---Make shared object library, crucial for reading ROOT classes
 add_library(WCSimRoot SHARED 
-            ./src/WCSimRootEvent.cc 
-            ./src/WCSimRootGeom.cc 
-            ./src/WCSimPmtInfo.cc 
-            ./src/WCSimCHIPSPMT.cc 
-            ./src/WCSimSK1pePMT.cc 
-            ./src/WCSimTOTPMT.cc 
-            ./src/WCSimPMTManager.cc 
-            ./src/WCSimPMTConfig.cc 
-            ./src/WCSimLCManager.cc 
-            ./src/WCSimLCConfig.cc 
-            ./src/WCSimTruthSummary.cc 
-            ./src/WCSimEvDisplay.cc
+            ./src/base/WCSimRootEvent.cc 
+            ./src/base/WCSimRootGeom.cc 
+            ./src/base/WCSimPmtInfo.cc 
+            ./src/base/WCSimCHIPSPMT.cc 
+            ./src/base/WCSimSK1pePMT.cc 
+            ./src/base/WCSimTOTPMT.cc 
+            ./src/base/WCSimPMTManager.cc 
+            ./src/base/WCSimPMTConfig.cc 
+            ./src/base/WCSimLCManager.cc 
+            ./src/base/WCSimLCConfig.cc 
+            ./src/base/WCSimTruthSummary.cc 
+            ./src/base/WCSimEvDisplay.cc
             WCSimRootDict.cxx)
 target_link_libraries(WCSimRoot ${ROOT_LIBRARIES})
 
@@ -69,17 +73,17 @@ endif()
 include(${Geant4_USE_FILE})
 
 #---Locate sources and headers for this project
-file(GLOB sources ${PROJECT_SOURCE_DIR}/src/*.cc)
+file(GLOB sources ${PROJECT_SOURCE_DIR}/src/base/*.cc)
 file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh)
 
 #---Add the WCSim executable and link to all the required libraries
-add_executable(WCSim WCSim.cc ${sources} ${headers} WCSimRootDict.cxx)
+add_executable(WCSim src/apps/WCSim.cc ${sources} ${headers} WCSimRootDict.cxx)
 target_link_libraries(WCSim ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} Gui EG WCSimRoot Tree)
 
 #---Add the geometryHelper executable and link to all the required libraries
-add_executable(geometryHelper geometryHelper.cc ${sources} ${headers})
+add_executable(geometryHelper src/apps/geometryHelper.cc ${sources} ${headers})
 target_link_libraries(geometryHelper ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} Gui EG WCSimRoot Tree)
 
 #---Add the evDisplay executable and link to all the required libraries
-add_executable(evDisplay evDisplay.cc ${sources} ${headers})
+add_executable(evDisplay src/apps/evDisplay.cc ${sources} ${headers})
 target_link_libraries(evDisplay ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} Gui EG WCSimRoot Tree)

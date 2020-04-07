@@ -16,7 +16,7 @@ WCSimGeoManager::WCSimGeoManager()
 
 	// Default location for the pmt definitions file
 	fConfigFile = getenv("WCSIMHOME");
-	fConfigFile.append("/config/geometryDefinitions.xml");
+	fConfigFile.append("/config/geometry_definitions.xml");
 
 	// Read the geometry definitions from the config file
 	this->ReadGeometryList();
