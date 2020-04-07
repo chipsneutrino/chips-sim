@@ -5,12 +5,8 @@
 #include "WCSimVisManager.hh"
 #include "G4TrajectoryDrawByParticleID.hh"
 
-// Supported drivers...
-
 // Not needing external packages or libraries...
-#include "G4ASCIITree.hh"
 #include "G4DAWNFILE.hh"
-//#include "G4GAGTree.hh"
 #include "G4HepRepFile.hh"
 #include "G4HepRep.hh"
 #include "G4RayTracer.hh"
@@ -43,6 +39,11 @@
 #include "G4OpenGLStoredXm.hh"
 #endif
 
+#ifdef G4VIS_USE_OPENGLQT
+#include "G4OpenGLImmediateQt.hh"
+#include "G4OpenGLStoredQt.hh"
+#endif
+
 #ifdef G4VIS_USE_OIX
 #include "G4OpenInventorX.hh"
 #endif
@@ -62,9 +63,7 @@ void WCSimVisManager::RegisterGraphicsSystems()
 {
 
 	// Graphics Systems not needing external packages or libraries...
-	//RegisterGraphicsSystem (new G4ASCIITree);
 	RegisterGraphicsSystem(new G4DAWNFILE);
-	//RegisterGraphicsSystem (new G4GAGTree);
 	RegisterGraphicsSystem(new G4HepRepFile);
 	RegisterGraphicsSystem(new G4HepRep);
 	RegisterGraphicsSystem(new G4RayTracer);
@@ -95,6 +94,11 @@ void WCSimVisManager::RegisterGraphicsSystems()
 #ifdef G4VIS_USE_OPENGLXM
 	RegisterGraphicsSystem(new G4OpenGLImmediateXm);
 	RegisterGraphicsSystem(new G4OpenGLStoredXm);
+#endif
+
+#ifdef G4VIS_USE_OPENGLQT
+	RegisterGraphicsSystem(new G4OpenGLImmediateQt);
+	RegisterGraphicsSystem(new G4OpenGLStoredQt);
 #endif
 
 #ifdef G4VIS_USE_OIX

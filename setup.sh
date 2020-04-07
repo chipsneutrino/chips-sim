@@ -19,6 +19,9 @@ else
     echo "${C_GREEN}chips-sim built${C_RESET}"
 fi
 
+export G4VIS_USE=1
+export G4VIS_USE_OPENGLQT=1
+
 export WCSIMHOME=$DIR
 export LD_LIBRARY_PATH=$DIR:$LD_LIBRARY_PATH
 export CPLUS_INCLUDE_PATH=$DIR/include:$CPLUS_INCLUDE_PATH
