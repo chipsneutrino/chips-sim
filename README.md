@@ -1,6 +1,6 @@
 # chips-sim
 
-CHIPS detector simulation based on WCSim
+The CHIPS detector simulation. A heavily modified version of [WCSim](https://github.com/WCSim/WCSim)
 
 ## Building
 
