@@ -292,7 +292,7 @@ void WCSimDetectorConstruction::DumpGeometryTableToFile()
 		G4Vector3D nullOrient = G4Vector3D(0, 0, 1);
 		G4Vector3D pmtOrientation = newTransform * nullOrient;
 		// Count it if it is a veto
-		if (pmtOrientation * newTransform.getTranslation() > 0)
+		if (pmtOrientation.z() == 1)
 		{
 			++fVetoPMTs;
 		}
@@ -324,19 +324,23 @@ void WCSimDetectorConstruction::DumpGeometryTableToFile()
 
 		// Figure out if pmt is on top/bottom or barrel
 		// print key: 0-top, 1-barrel, 2-bottom
-		if (pmtOrientation * newTransform.getTranslation() > 0) //veto pmt
+		if (pmtOrientation.z() == 1) //veto
 		{
 			cylLocation = 3;
 		}
-		else if (pmtOrientation.z() == 1.0) //bottom
+		else if (pmtOrientation.z() < 1.0 && pmtOrientation.z() >= 0.1) //bottom
 		{
 			cylLocation = 2;
 		}
-		else if (pmtOrientation.z() == -1.0) //top
+		else if (pmtOrientation.z() >= -1.0 && pmtOrientation.z() <= -0.1) //top
 		{
 			cylLocation = 0;
 		}
-		else // barrel
+		else if ((pmtOrientation.z() < 0.1 && pmtOrientation.z() > -0.1)) //barrel
+		{
+			cylLocation = 1;
+		}
+		else 
 		{
 			cylLocation = 1;
 		}
@@ -368,6 +372,7 @@ void WCSimDetectorConstruction::DumpGeometryTableToFile()
 
 		fpmts[tubeNumber - 1] = new_pmt;
 	}
+
 	tubeLocationMap = newLocHashMap;
 	geoFile.close();
 }

@@ -267,11 +267,12 @@ void WCSimEvDisplay::FillPlotsFromWCSimEvent()
 	fChain->GetEntry(fCurrentEvent);
 	if (wcSimEvt == 0x0)
 		std::cout << "Null pointer :( " << std::endl;
-	WCSimRootTrigger *wcSimTrigger = wcSimEvt->GetTrigger(0);
 
-	std::cout << "HITS-> " << wcSimTrigger->GetNcherenkovhits() << std::endl;
+	WCSimRootTrigger* wcSimTrigger = (WCSimRootTrigger*) (wcSimEvt->GetTrigger(0));
+	int nDigiHits = wcSimTrigger->GetNcherenkovdigihits();
+	int nHits =  wcSimTrigger->GetNcherenkovhits();
 
-	if (wcSimTrigger->GetNcherenkovhits() > 0)
+	if (wcSimTrigger->GetNcherenkovdigihits() > 0)
 	{
 		// Lets plot this event...
 		// Get the truth information
