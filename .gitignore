@@ -15,7 +15,7 @@
 *~
 geoSetup*
 
-evDisplay
+simDisplay
 WCSim
 geometryHelper
 src/WCSimRootDict.*

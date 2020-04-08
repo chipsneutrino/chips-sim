@@ -1,11 +1,14 @@
 #! /bin/bash
 
+CURRENTDIR=$(pwd)
+
+cd $CHIPSSIM
 make clean
-rm -rf bin/
-rm -rf lib/
-rm CMakeCache.txt
-rm -rf CMakeFiles/
-rm Makefile
-rm cmake_install.cmake
-rm example_output.root
-rm geofile.txt
+rm ./cmake_install.cmake
+rm ./CMakeCache.txt
+rm -r ./CMakeFiles
+rm ./Makefile
+rm ./example_output.root
+rm ./geofile.txt
+
+cd $CURRENTDIR

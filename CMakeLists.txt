@@ -84,6 +84,6 @@ target_link_libraries(WCSim ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} Gui EG WCSimRo
 add_executable(geometryHelper src/apps/geometryHelper.cc ${sources} ${headers})
 target_link_libraries(geometryHelper ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} Gui EG WCSimRoot Tree)
 
-#---Add the evDisplay executable and link to all the required libraries
-add_executable(evDisplay src/apps/evDisplay.cc ${sources} ${headers})
-target_link_libraries(evDisplay ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} Gui EG WCSimRoot Tree)
+#---Add the simDisplay executable and link to all the required libraries
+add_executable(simDisplay src/apps/simDisplay.cc ${sources} ${headers})
+target_link_libraries(simDisplay ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} Gui EG WCSimRoot Tree)
