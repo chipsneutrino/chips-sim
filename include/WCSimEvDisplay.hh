@@ -334,7 +334,7 @@ public:
 	// need to be public.
 	// Open the file to display events from
 	virtual void OpenFile(std::string name);
-	void OpenFile();
+	virtual void OpenFile();
 	// Toggles to switch between events
 	void NextEvent();
 	void PrevEvent();
