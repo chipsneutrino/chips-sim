@@ -6,16 +6,14 @@
 
 #include "G4VisManager.hh"
 
-class WCSimVisManager: public G4VisManager {
+class WCSimVisManager : public G4VisManager
+{
 
-	public:
+public:
+	WCSimVisManager();
 
-	WCSimVisManager ();
-
-	private:
-
-	void RegisterGraphicsSystems ();
-
+private:
+	void RegisterGraphicsSystems();
 };
 
 #endif

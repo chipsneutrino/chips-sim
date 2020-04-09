@@ -8,34 +8,34 @@
 // This is a class that builds a list of defined LC types and
 // provides the access interface to them.
 
-class WCSimLCManager: public TObject {
+class WCSimLCManager : public TObject
+{
 
-	public:
+public:
+	// Default constructor
+	WCSimLCManager();
 
-		// Default constructor
-		WCSimLCManager();
+	// Destructor
+	~WCSimLCManager();
 
-		// Destructor
-		~WCSimLCManager();
+	// Get a LC object by the LC name
+	WCSimLCConfig GetLCByName(std::string name);
 
-		// Get a LC object by the LC name
-		WCSimLCConfig GetLCByName(std::string name);
+private:
+	// Read the list of LC types from the config file
+	void ReadLCTypeList();
 
-	private:
+	// Fill LC object attribute from xml file
+	void FillLCAttribute(WCSimLCConfig &lc, const std::string &attrName, const std::string &attrValue);
 
-		// Read the list of LC types from the config file
-		void ReadLCTypeList();
+	// Vector to store the requested LC types
+	std::vector<WCSimLCConfig> fLCVector;
 
-		// Fill LC object attribute from xml file
-		void FillLCAttribute(WCSimLCConfig &lc, const std::string &attrName, const std::string &attrValue);
+	// Temporary shape Z-R vector. Filled and used for each LC in turn.
+	std::vector<std::pair<double, double>> fTempShapeVec;
 
-		// Vector to store the requested LC types
-		std::vector<WCSimLCConfig> fLCVector;
-
-		// Temporary shape Z-R vector. Filled and used for each LC in turn.
-		std::vector<std::pair<double, double> > fTempShapeVec;
-
-		std::string fConfigFile;ClassDef(WCSimLCManager,1)
+	std::string fConfigFile;
+	ClassDef(WCSimLCManager, 1)
 };
 
 #endif

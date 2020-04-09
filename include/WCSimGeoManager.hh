@@ -7,44 +7,44 @@
 
 // This is a class that builds a list of defined PMT types and
 // provides the access interface to them.
-class WCSimGeoManager {
+class WCSimGeoManager
+{
 
-	public:
+public:
+	// Default constructor
+	WCSimGeoManager();
 
-		// Default constructor
-		WCSimGeoManager();
+	// Destructor
+	~WCSimGeoManager();
 
-		// Destructor
-		~WCSimGeoManager();
+	WCSimGeoConfig GetGeometryByName(std::string name) const;
+	bool GeometryExists(std::string name) const;
 
-		WCSimGeoConfig GetGeometryByName(std::string name) const;
-		bool GeometryExists(std::string name) const;
-	private:
+private:
+	// Read the list of geometry types from the config file
+	void ReadGeometryList();
 
-		// Read the list of geometry types from the config file
-		void ReadGeometryList();
+	// Fill geometry object attribute from xml file
+	void FillGeoAttribute(WCSimGeoConfig &geo, rapidxml::xml_attribute<> *attr);
 
-		// Fill geometry object attribute from xml file
-		void FillGeoAttribute(WCSimGeoConfig &geo, rapidxml::xml_attribute<> *attr);
+	// Fill geometry object attribute for a subregion of the detector from the xml file
+	void FillRegion(WCSimGeoConfig &geo, rapidxml::xml_node<> *node);
 
-		// Fill geometry object attribute for a subregion of the detector from the xml file
-		void FillRegion(WCSimGeoConfig &geo, rapidxml::xml_node<> *node);
+	// Fill unit cell object attribute from xml file
+	void FillCell(WCSimGeoConfig &geo, rapidxml::xml_node<> *node);
 
-		// Fill unit cell object attribute from xml file
-		void FillCell(WCSimGeoConfig &geo, rapidxml::xml_node<> *node);
+	// Fill geometry object corresponding to a limit on available PMTs
+	void FillPMTLimit(WCSimGeoConfig &geo, rapidxml::xml_node<> *node);
 
-		// Fill geometry object corresponding to a limit on available PMTs
-		void FillPMTLimit(WCSimGeoConfig &geo, rapidxml::xml_node<> *node);
+	bool MeansYes(std::string str);
+	bool MeansNo(std::string str);
 
-		bool MeansYes(std::string str);
-		bool MeansNo(std::string str);
+	double ConvertAngle(const WCSimGeoConfig &geo, const double &angle);
 
-		double ConvertAngle(const WCSimGeoConfig &geo, const double &angle);
+	// Vector to store the requested geometry types
+	std::vector<WCSimGeoConfig> fGeoVector;
 
-		// Vector to store the requested geometry types
-		std::vector<WCSimGeoConfig> fGeoVector;
-
-		std::string fConfigFile;
+	std::string fConfigFile;
 };
 
 #endif
