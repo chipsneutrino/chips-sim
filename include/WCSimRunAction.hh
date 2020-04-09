@@ -1,5 +1,4 @@
-#ifndef WCSimRunAction_h
-#define WCSimRunAction_h 1
+#pragma once
 
 #include "G4UserRunAction.hh"
 #include "globals.hh"
@@ -163,5 +162,3 @@ private:
 	WCSimRunActionMessenger *messenger;
 	int ntuples; // 1 for ntuples to be written
 };
-
-#endif

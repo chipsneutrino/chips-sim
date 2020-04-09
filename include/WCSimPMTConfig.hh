@@ -1,5 +1,4 @@
-#ifndef WCSimPMTConfig_H
-#define WCSimPMTConfig_H 1
+#pragma once
 
 #include <vector>
 #include <string>
@@ -81,5 +80,3 @@ private:
 
 	ClassDef(WCSimPMTConfig, 1)
 };
-
-#endif

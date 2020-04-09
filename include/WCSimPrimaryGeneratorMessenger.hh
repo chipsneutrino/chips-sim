@@ -1,5 +1,4 @@
-#ifndef WCSimPrimaryGeneratorMessenger_h
-#define WCSimPrimaryGeneratorMessenger_h 1
+#pragma once
 
 class WCSimPrimaryGeneratorAction;
 class G4UIdirectory;
@@ -37,5 +36,3 @@ private:
 	// Toggle to swap X and Z for beam events generated along Z (ie with GENIE).
 	G4UIcmdWithABool *fSwapXZCmd;
 };
-
-#endif

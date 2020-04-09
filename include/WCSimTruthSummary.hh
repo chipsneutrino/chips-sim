@@ -1,5 +1,4 @@
-#ifndef WCSimTruthSummary_h
-#define WCSimTruthSummary_h
+#pragma once
 
 #include <vector>
 
@@ -199,5 +198,3 @@ private:
 
 	ClassDef(WCSimTruthSummary, 3);
 };
-
-#endif

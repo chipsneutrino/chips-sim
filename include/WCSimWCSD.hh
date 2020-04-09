@@ -1,5 +1,4 @@
-#ifndef WCSimWCSD_h
-#define WCSimWCSD_h 1
+#pragma once
 
 #include "G4VSensitiveDetector.hh"
 #include "WCSimWCHit.hh"
@@ -26,5 +25,3 @@ private:
 	WCSimWCHitsCollection *hitsCollection;
 	std::map<int, int> PMTHitMap; // Whether a PMT was hit already
 };
-
-#endif

@@ -1,7 +1,6 @@
-class WCSimTrajectory;
+#pragma once
 
-#ifndef WCSimTrajectory_h
-#define WCSimTrajectory_h 1
+class WCSimTrajectory;
 
 #include "G4VTrajectory.hh"
 #include "G4Allocator.hh"
@@ -259,5 +258,3 @@ inline void WCSimTrajectory::operator delete(void *aTrajectory)
 {
 	myTrajectoryAllocator.FreeSingle((WCSimTrajectory *)aTrajectory);
 }
-
-#endif

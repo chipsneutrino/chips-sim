@@ -1,5 +1,4 @@
-#ifndef WCSimPrimaryGeneratorAction_h
-#define WCSimPrimaryGeneratorAction_h
+#pragma once
 
 #include "G4VUserPrimaryGeneratorAction.hh"
 #include "G4ThreeVector.hh"
@@ -241,5 +240,3 @@ public:
 		GenerateVertexInRock = choice;
 	}
 };
-
-#endif

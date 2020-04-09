@@ -1,5 +1,4 @@
-#ifndef WCSimRandomMessenger_h
-#define WCSimRandomMessenger_h 1
+#pragma once
 
 #include "G4UImessenger.hh"
 class WCSimRandomParameters;
@@ -23,5 +22,3 @@ private:
 	G4UIcmdWithAString *Rangen;
 	G4UIcmdWithAnInteger *Ranseed;
 };
-
-#endif

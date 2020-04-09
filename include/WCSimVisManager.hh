@@ -1,6 +1,4 @@
-
-#ifndef WCSimVisManager_h
-#define WCSimVisManager_h 1
+#pragma once
 
 #ifdef G4VIS_USE
 
@@ -15,7 +13,5 @@ public:
 private:
 	void RegisterGraphicsSystems();
 };
-
-#endif
 
 #endif

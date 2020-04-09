@@ -1,5 +1,4 @@
-#ifndef WCSimRunActionMessenger_h
-#define WCSimRunActionMessenger_h 1
+#pragma once
 
 class WCSimRunAction;
 class G4UIdirectory;
@@ -30,5 +29,3 @@ private:
 	G4UIcmdWithABool *SaveEmissionProfile;
 	G4UIcmdWithAString *EmissionProfile;
 };
-
-#endif

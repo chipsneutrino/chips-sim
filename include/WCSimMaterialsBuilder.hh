@@ -5,8 +5,8 @@
  *      Author: andy
  */
 
-#ifndef WCSIMMATERIALSBUILDER_HH_
-#define WCSIMMATERIALSBUILDER_HH_
+#pragma once
+
 #include <map>
 #include <vector>
 #include "G4String.hh"
@@ -68,5 +68,3 @@ private:
 	G4OpticalSurface *fOpWaterPlanePipeSurface;
 	G4OpticalSurface *fOpWaterPMTBackSurface;
 };
-
-#endif /* WCSIMMATERIALSBUILDER_HH_ */

@@ -1,5 +1,4 @@
-#ifndef WCSimTrackingAction_h
-#define WCSimTrackingAction_h
+#pragma once
 
 #include <set>
 #include "G4UserTrackingAction.hh"
@@ -30,5 +29,3 @@ private:
 
 	double fFractionCherenkovPhotonsToDraw;
 };
-
-#endif

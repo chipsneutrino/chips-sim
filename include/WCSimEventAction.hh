@@ -1,5 +1,4 @@
-#ifndef WCSimEventAction_h
-#define WCSimEventAction_h 1
+#pragma once
 
 #include "G4UserEventAction.hh"
 #include "G4ThreeVector.hh"
@@ -41,5 +40,3 @@ private:
 	G4int WCSimEventFindStoppingVolume(G4String stopVolumeName);
 	WCSimEmissionProfileMaker *fEmissionProfileMaker;
 };
-
-#endif

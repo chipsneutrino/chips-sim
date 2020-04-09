@@ -1,5 +1,4 @@
-#ifndef WCSIMEVDISPLAY_HH
-#define WCSIMEVDISPLAY_HH
+#pragma once
 
 #include <iostream>
 #include <string>
@@ -377,5 +376,3 @@ public:
 
 	ClassDef(WCSimEvDisplay, 0)
 };
-
-#endif

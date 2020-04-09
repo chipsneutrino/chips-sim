@@ -1,5 +1,5 @@
-#ifndef WCSimRandomParameters_h
-#define WCSimRandomParameters_h 1
+#pragma once
+
 #include "WCSimRandomMessenger.hh"
 #include "CLHEP/Random/Random.h"
 #include "CLHEP/Random/RanluxEngine.h"
@@ -81,5 +81,3 @@ private:
 	int seed;
 	WCSimRandomMessenger *RandomMessenger;
 };
-
-#endif

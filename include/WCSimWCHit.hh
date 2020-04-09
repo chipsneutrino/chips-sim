@@ -1,5 +1,4 @@
-#ifndef WCSimWCHit_h
-#define WCSimWCHit_h 1
+#pragma once
 
 #include "G4VHit.hh"
 #include "G4THitsCollection.hh"
@@ -268,5 +267,3 @@ inline void WCSimWCHit::operator delete(void *aHit)
 {
 	WCSimWCHitAllocator.FreeSingle((WCSimWCHit *)aHit);
 }
-
-#endif

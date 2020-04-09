@@ -5,8 +5,7 @@
  *      Author: andy
  */
 
-#ifndef WCSIMPMTBUILDER_H_
-#define WCSIMPMTBUILDER_H_
+#pragma once
 
 #include <vector>
 #include <map>
@@ -45,5 +44,3 @@ private:
 	void ConstructPMT(WCSimPMTConfig config);
 	std::map<std::string, WCSimGeantPMTWrapper> fPMTLogicalVolumes;
 };
-
-#endif /* WCSIMPMTBUILDER_H_ */

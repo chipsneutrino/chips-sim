@@ -1,5 +1,4 @@
-#ifndef WCSimRunActionMessenger_h
-#define WCSimRunActionMessenger_h 1
+#pragma once
 
 class WCSimTrackingAction;
 class G4UIdirectory;
@@ -28,5 +27,3 @@ private:
 	// A double between 0 and 100.0 (i.e. %)
 	G4UIcmdWithADouble *PercentCherenkovPhotonsToDraw;
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef WCSimTuningMessenger_h
-#define WCSimTuningMessenger_h 1
+#pragma once
 
 // Contains detector parameters that need to be set up before detector is constructed
 // KS Mar 2010
@@ -33,5 +32,3 @@ private:
 	G4UIcmdWithADouble *TVSpacing;
 	G4UIcmdWithABool *TopVeto;
 };
-
-#endif

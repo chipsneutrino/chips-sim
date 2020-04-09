@@ -8,8 +8,7 @@
  *  PMT Rotation feature added by S. Germani on Dec 10, 2015
  */
 
-#ifndef WCSIMCHERENKOVBUILDER_HH_
-#define WCSIMCHERENKOVBUILDER_HH_
+#pragma once
 
 #include "WCSimDetectorConstruction.hh"
 #include "WCSimGeoConfig.hh"
@@ -265,5 +264,3 @@ private:
 	// Size of the veto layer. Default is 2m.
 	G4double fVetoSize;
 };
-
-#endif /* WCSIMCHERENKOVBUILDER_HH_ */

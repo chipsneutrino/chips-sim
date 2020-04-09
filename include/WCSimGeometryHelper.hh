@@ -5,8 +5,7 @@
  *      Author: ajperch
  */
 
-#ifndef WCSIMGEOMETRYHELPER_HH_
-#define WCSIMGEOMETRYHELPER_HH_
+#pragma once
 
 #include "rapidxml-1.13/rapidxml.hpp"
 #include "WCSimGeometryEnums.hh"
@@ -77,5 +76,3 @@ private:
 
 	std::vector<std::string *> fAllNewStrings;
 };
-
-#endif /* WCSIMGEOMETRYHELPER_HH_ */

@@ -1,5 +1,4 @@
-#ifndef WCSimPMTManager_H
-#define WCSimPMTManager_H
+#pragma once
 
 #include "WCSimPMTConfig.hh"
 
@@ -35,5 +34,3 @@ private:
 	std::string fConfigFile;
 	ClassDef(WCSimPMTManager, 1);
 };
-
-#endif

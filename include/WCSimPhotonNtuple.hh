@@ -1,5 +1,4 @@
-#ifndef WCSimPhotonNtuple_h
-#define WCSimPhotonNtuple_h
+#pragma once
 
 #include "TString.h"
 #include "G4String.hh"
@@ -80,5 +79,3 @@ private:
 	Float_t fHalfWidthXY;
 	Float_t fHalfWidthZ;
 };
-
-#endif

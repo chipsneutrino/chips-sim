@@ -1,5 +1,4 @@
-#ifndef WCSimGeoConfig_H
-#define WCSimGeoConfig_H
+#pragma once
 
 #include <map>
 #include <math.h>
@@ -148,5 +147,3 @@ private:
 	std::vector<WCSimGeometryEnums::DetectorRegion_t> fCurrentRegions;
 	std::vector<int> fCurrentZones;
 };
-
-#endif

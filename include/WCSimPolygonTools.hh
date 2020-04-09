@@ -5,8 +5,8 @@
  *      Author: andy
  */
 
-#ifndef WCSIMPOLYGONTOOLS_HH_
-#define WCSIMPOLYGONTOOLS_HH_
+#pragma once
+
 #include "G4TwoVector.hh"
 
 namespace WCSimPolygonTools
@@ -74,4 +74,3 @@ bool CheckPolygon(unsigned int nSides, double outerRadius);
 double NormaliseAngle(double angle);
 bool IsAngleBetween(double testAngle, double startAngle, double endAngle);
 } /* namespace WCSimPolygonTools */
-#endif /* WCSIMPOLYGONTOOLS_HH_ */

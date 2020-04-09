@@ -1,5 +1,4 @@
-#ifndef WCSimGeoManager_H
-#define WCSimGeoManager_H
+#pragma once
 
 #include "WCSimGeoConfig.hh"
 
@@ -46,5 +45,3 @@ private:
 
 	std::string fConfigFile;
 };
-
-#endif

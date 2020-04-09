@@ -1,5 +1,4 @@
-#ifndef WCSimPhysicsListFactory_h
-#define WCSimPhysicsListFactory_h 1
+#pragma once
 
 #include "globals.hh"
 #include "G4VModularPhysicsList.hh"
@@ -31,5 +30,3 @@ private:
 	WCSimPhysicsListFactoryMessenger *PhysicsMessenger;
 	G4PhysListFactory *factory;
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef WCSimLCManager_H
-#define WCSimLCManager_H
+#pragma once
 
 #include "WCSimLCConfig.hh"
 
@@ -37,5 +36,3 @@ private:
 	std::string fConfigFile;
 	ClassDef(WCSimLCManager, 1)
 };
-
-#endif

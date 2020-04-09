@@ -1,5 +1,4 @@
-#ifndef WCSimSteppingAction_h
-#define WCSimSteppingAction_h 1
+#pragma once
 
 #include "G4UserSteppingAction.hh"
 
@@ -24,5 +23,3 @@ public:
 
 private:
 };
-
-#endif

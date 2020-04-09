@@ -1,5 +1,5 @@
-#ifndef WCSimTuningParameters_h
-#define WCSimTuningParameters_h 1
+#pragma once
+
 #include "WCSimTuningMessenger.hh"
 #include "globals.hh"
 
@@ -92,5 +92,3 @@ private:
 	G4double tvspacing;
 	G4bool topveto;
 };
-
-#endif

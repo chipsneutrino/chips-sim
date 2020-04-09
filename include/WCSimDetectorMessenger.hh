@@ -1,5 +1,4 @@
-#ifndef WCSimDetectorMessenger_h
-#define WCSimDetectorMessenger_h 1
+#pragma once
 
 class WCSimDetectorConstruction;
 class G4UIdirectory;
@@ -53,5 +52,3 @@ private:
 	G4UIcmdWithAString *distortionCmd;
 	G4UIcmdWithoutParameter *WCConstruct;
 };
-
-#endif

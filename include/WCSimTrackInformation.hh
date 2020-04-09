@@ -1,5 +1,4 @@
-#ifndef WCSimTrackInformation_h
-#define WCSimTrackInformation_h 1
+#pragma once
 
 #include "globals.hh"
 #include "G4Track.hh"
@@ -71,5 +70,3 @@ inline void WCSimTrackInformation::operator delete(void *aTrackInfo)
 {
 	aWCSimTrackInfoAllocator.FreeSingle((WCSimTrackInformation *)aTrackInfo);
 }
-
-#endif

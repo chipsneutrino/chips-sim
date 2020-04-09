@@ -1,5 +1,4 @@
-#ifndef WCSimWCDigi_h
-#define WCSimWCDigi_h 1
+#pragma once
 
 #include "G4VDigi.hh"
 #include "G4TDigiCollection.hh"
@@ -96,5 +95,3 @@ inline void WCSimWCDigi::operator delete(void *aDigi)
 {
 	WCSimWCDigiAllocator.FreeSingle((WCSimWCDigi *)aDigi);
 }
-
-#endif

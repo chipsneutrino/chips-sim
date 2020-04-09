@@ -1,5 +1,4 @@
-#ifndef WCSimDetectorConstruction_H
-#define WCSimDetectorConstruction_H 1
+#pragma once
 
 #include "WCSimPmtInfo.hh"
 #include "WCSimPMTConfig.hh"
@@ -440,5 +439,3 @@ protected:
 
 	WCSimPMTBuilder fPMTBuilder;
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef WCSimStackingAction_H
-#define WCSimStackingAction_H 1
+#pragma once
 
 #include "globals.hh"
 #include "G4UserStackingAction.hh"
@@ -22,5 +21,3 @@ public:
 private:
 	WCSimDetectorConstruction *DetConstruct;
 };
-
-#endif

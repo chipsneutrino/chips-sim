@@ -1,5 +1,4 @@
-#ifndef WCSimPhysicsListFactoryMessenger_h
-#define WCSimPhysicsListFactoryMessenger_h 1
+#pragma once
 
 #include "globals.hh"
 #include "G4UImessenger.hh"
@@ -24,5 +23,3 @@ private:
 	G4UIdirectory *WCSimDir;
 	G4UIcmdWithAString *physListCmd;
 };
-
-#endif

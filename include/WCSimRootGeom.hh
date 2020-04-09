@@ -1,5 +1,4 @@
-#ifndef WCSim_RootGeom
-#define WCSim_RootGeom
+#pragma once
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -257,5 +256,3 @@ public:
 	ClassDef(WCSimRootGeom, 1)
 	//WCSimRootEvent structure
 };
-
-#endif

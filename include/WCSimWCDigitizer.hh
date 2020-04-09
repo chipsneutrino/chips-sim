@@ -1,5 +1,4 @@
-#ifndef WCSimWCDigitizer_h
-#define WCSimWCDigitizer_h 1
+#pragma once
 
 #include "G4VDigitizerModule.hh"
 #include "WCSimWCDigi.hh"
@@ -87,5 +86,3 @@ private:
 	WCSimSK1pePMT *fSK1peSim;
 	WCSimTOTPMT *fTOTSim;
 };
-
-#endif

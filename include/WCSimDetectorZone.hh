@@ -5,8 +5,7 @@
  *      Author: ajperch
  */
 
-#ifndef WCSIMDETECTORZONE_HH_
-#define WCSIMDETECTORZONE_HH_
+#pragma once
 
 #include "G4ThreeVector.hh"
 #include "WCSimGeometryEnums.hh"
@@ -96,5 +95,3 @@ private:
 	double fThetaStart;
 	double fThetaEnd;
 };
-
-#endif /* WCSIMDETECTORZONE_HH_ */

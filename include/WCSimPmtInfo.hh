@@ -1,5 +1,4 @@
-#ifndef WCSim_PmtInfo
-#define WCSim_PmtInfo
+#pragma once
 
 /////////////////////////////////////////////////////////////////
 //
@@ -72,5 +71,3 @@ public:
 
 	ClassDef(WCSimPmtInfo, 1);
 };
-
-#endif

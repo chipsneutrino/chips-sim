@@ -5,8 +5,8 @@
  *      Author: ajperch
  */
 
-#ifndef WCSIMGEOMETRYENUMS_HH_
-#define WCSIMGEOMETRYENUMS_HH_
+#pragma once
+
 #include <vector>
 #include <iostream>
 #include <cassert>
@@ -472,5 +472,3 @@ struct PMTSupport_t
 };
 
 } // namespace WCSimGeometryEnums
-
-#endif /* WCSIMGEOMETRYENUMS_HH_ */

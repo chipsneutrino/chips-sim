@@ -1,5 +1,4 @@
-#ifndef WCSimLCConfig_H
-#define WCSimLCConfig_H 1
+#pragma once
 
 #include <vector>
 #include <string>
@@ -42,5 +41,3 @@ private:
 	std::string fName;
 	ClassDef(WCSimLCConfig, 1)
 };
-
-#endif

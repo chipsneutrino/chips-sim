@@ -5,8 +5,7 @@
  *      Author: ajperch
  */
 
-#ifndef WCSIMEMISSIONPROFILEMAKER_HH_
-#define WCSIMEMISSIONPROFILEMAKER_HH_
+#pragma once
 
 #include "G4String.hh"
 #include "TFile.h"
@@ -99,5 +98,3 @@ private:
 	std::vector<TVector3> fPhotonVertices;
 	std::vector<TVector3> fPhotonDirections;
 };
-
-#endif /* WCSIMEMISSIONPROFILEMAKER_HH_ */

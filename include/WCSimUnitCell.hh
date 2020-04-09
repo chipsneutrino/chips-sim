@@ -8,8 +8,8 @@
  *      by  S. Germani
  */
 
-#ifndef WCSIMUNITCELL_HH_
-#define WCSIMUNITCELL_HH_
+#pragma once
+
 #include "WCSimPMTConfig.hh"
 #include "WCSimGeometryEnums.hh"
 #include "G4TwoVector.hh"
@@ -174,5 +174,3 @@ public:
 private:
 	std::vector<WCSimPMTPlacement> fPMTs; //< Collection of PMTs and their relative positions in the cell
 };
-
-#endif /* WCSIMUNITCELL_HH_ */
