@@ -35,7 +35,11 @@ public:
 		kNCNuBarPtoNuBarNPiPlus = 14,
 		kNCNuBarNtoNuBarNPiZero = 15,
 		kNCNuBarNtoNuBarPPiMinus = 16,
+		kOtherResonant = 17,
 		// Others
+		kCCMEC = 18,
+		kNCMEC = 19, 
+		kIMD = 20,
 		kCCDIS = 91,
 		kNCDIS = 92,
 		kNCCoh = 96, // No idea why NC is first here, but that's what it says.
@@ -77,6 +81,8 @@ public:
 	static bool TypeIsResEvent(int typeCode);
 	static bool TypeIsDISEvent(int typeCode);
 	static bool TypeIsCohEvent(int typeCode);
+	static bool TypeIsMECEvent(int typeCode);
+	static bool TypeIsIMDEvent(int typeCode);
 	static bool TypeIsNueElectronElasticEvent(int typeCode);
 	static bool TypeIsInverseMuonDecayEvent(int typeCode);
 	bool IsCCEvent() const;
@@ -85,6 +91,8 @@ public:
 	bool IsResEvent() const;
 	bool IsDISEvent() const;
 	bool IsCohEvent() const;
+	bool IsMECEvent() const;
+	bool IsIMDEvent() const;
 	bool IsNueElectronElasticEvent() const;
 	bool IsInverseMuonDecayEvent() const;
 

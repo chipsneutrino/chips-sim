@@ -286,7 +286,7 @@
 		</cellPMTDef>
 	</region>
 	<region>
-		<coverage>0.03041</coverage>
+		<coverage>0.038</coverage>
 		<location>kTop</location>
 		<zone>0</zone>
 		<startAngle>-1.25664</startAngle>
@@ -336,7 +336,7 @@
 		</cellPMTDef>
 	</region>
 	<region>
-		<coverage>0.01521</coverage>
+		<coverage>0.022815</coverage>
 		<location>kTop</location>
 		<zone>1</zone>
 		<startAngle>1.25664</startAngle>
@@ -501,7 +501,7 @@
 		</cellPMTDef>
 	</region>
 	<region>
-		<coverage>0.03041</coverage>
+		<coverage>0.038</coverage>
 		<location>kTop</location>
 		<zone>0</zone>
 		<startAngle>-1.25664</startAngle>
@@ -551,7 +551,7 @@
 		</cellPMTDef>
 	</region>
 	<region>
-		<coverage>0.01521</coverage>
+		<coverage>0.022815</coverage>
 		<location>kTop</location>
 		<zone>1</zone>
 		<startAngle>1.25664</startAngle>
@@ -716,7 +716,7 @@
 		</cellPMTDef>
 	</region>
 	<region>
-		<coverage>0.03041</coverage>
+		<coverage>0.038</coverage>
 		<location>kTop</location>
 		<zone>0</zone>
 		<startAngle>-1.25664</startAngle>
@@ -766,7 +766,7 @@
 		</cellPMTDef>
 	</region>
 	<region>
-		<coverage>0.01521</coverage>
+		<coverage>0.022815</coverage>
 		<location>kTop</location>
 		<zone>1</zone>
 		<startAngle>1.25664</startAngle>
@@ -931,7 +931,7 @@
 		</cellPMTDef>
 	</region>
 	<region>
-		<coverage>0.03041</coverage>
+		<coverage>0.038</coverage>
 		<location>kTop</location>
 		<zone>0</zone>
 		<startAngle>-1.25664</startAngle>
@@ -981,7 +981,7 @@
 		</cellPMTDef>
 	</region>
 	<region>
-		<coverage>0.01521</coverage>
+		<coverage>0.022815</coverage>
 		<location>kTop</location>
 		<zone>1</zone>
 		<startAngle>1.25664</startAngle>
@@ -1146,7 +1146,7 @@
 		</cellPMTDef>
 	</region>
 	<region>
-		<coverage>0.03041</coverage>
+		<coverage>0.038</coverage>
 		<location>kTop</location>
 		<zone>0</zone>
 		<startAngle>-1.25664</startAngle>
@@ -1196,7 +1196,7 @@
 		</cellPMTDef>
 	</region>
 	<region>
-		<coverage>0.01521</coverage>
+		<coverage>0.022815</coverage>
 		<location>kTop</location>
 		<zone>1</zone>
 		<startAngle>1.25664</startAngle>
@@ -1361,7 +1361,7 @@
 		</cellPMTDef>
 	</region>
 	<region>
-		<coverage>0.03041</coverage>
+		<coverage>0.038</coverage>
 		<location>kTop</location>
 		<zone>0</zone>
 		<startAngle>-1.25664</startAngle>
@@ -1411,7 +1411,7 @@
 		</cellPMTDef>
 	</region>
 	<region>
-		<coverage>0.01521</coverage>
+		<coverage>0.022815</coverage>
 		<location>kTop</location>
 		<zone>1</zone>
 		<startAngle>1.25664</startAngle>
@@ -1548,7 +1548,7 @@
 		</cellPMTDef>
 	</region>
 	<region>
-		<coverage>0.03041</coverage>
+		<coverage>0.038</coverage>
 		<location>kTop</location>
 		<zone>0</zone>
 		<startAngle>-1.25664</startAngle>

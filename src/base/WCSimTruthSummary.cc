@@ -156,6 +156,8 @@ bool WCSimTruthSummary::TypeIsCCEvent(int typeCode)
 		return true;
 	else if (typeCode == WCSimTruthSummary::kCCCoh)
 		return true;
+	else if (typeCode == WCSimTruthSummary::kCCMEC)
+		return true;
 	else
 		return false;
 }
@@ -188,6 +190,8 @@ bool WCSimTruthSummary::TypeIsNCEvent(int typeCode)
 	else if (typeCode == WCSimTruthSummary::kNCDIS)
 		return true;
 	else if (typeCode == WCSimTruthSummary::kNCCoh)
+		return true;
+	else if (typeCode == WCSimTruthSummary::kNCMEC)
 		return true;
 	else
 		return false;
@@ -272,6 +276,34 @@ bool WCSimTruthSummary::TypeIsCohEvent(int typeCode)
 	if (typeCode == WCSimTruthSummary::kCCCoh)
 		return true;
 	else if (typeCode == WCSimTruthSummary::kNCCoh)
+		return true;
+	else
+		return false;
+}
+
+bool WCSimTruthSummary::IsMECEvent() const
+{
+	return TypeIsMECEvent(fInteractionMode);
+}
+
+bool WCSimTruthSummary::TypeIsMECEvent(int typeCode)
+{
+	if (typeCode == WCSimTruthSummary::kCCMEC)
+		return true;
+	else if (typeCode == WCSimTruthSummary::kNCMEC)
+		return true;
+	else
+		return false;
+}
+
+bool WCSimTruthSummary::IsIMDEvent() const
+{
+	return TypeIsMECEvent(fInteractionMode);
+}
+
+bool WCSimTruthSummary::TypeIsIMDEvent(int typeCode)
+{
+	if (typeCode == WCSimTruthSummary::kIMD)
 		return true;
 	else
 		return false;
