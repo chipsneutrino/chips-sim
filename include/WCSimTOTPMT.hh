@@ -12,7 +12,7 @@ public:
 	~WCSimTOTPMT();
 
 	// Calculate the charge from pe photoelectrons on the cathode
-	double CalculateCharge(double totalPe, std::string PMTName);
+	double CalculateCharge(int totalPe, std::string PMTName);
 
 private:
 	TRandom3 fRand;
