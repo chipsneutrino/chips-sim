@@ -184,15 +184,11 @@ void WCSimEmissionProfileMaker::FillEvent(G4TrajectoryContainer *trajCont, WCSim
 	}
 
 	TVector3 meanDirection = AverageVector(fPhotonVertices).Unit();
-	std::cout << "Mean direction:" << std::endl;
-	meanDirection.Print();
 
 	// Now loop through and fill the histograms
 	assert(fPhotonDirections.size() == fPhotonVertices.size());
 	std::vector<TVector3>::const_iterator vtxItr = fPhotonVertices.begin();
 	std::vector<TVector3>::const_iterator dirItr = fPhotonDirections.begin();
-	std::cout << "Primary vtx = " << std::endl;
-	primaryVtx.Print();
 	while (vtxItr != fPhotonVertices.end() && dirItr != fPhotonDirections.end())
 	{
 		float distance = (*vtxItr).Z();

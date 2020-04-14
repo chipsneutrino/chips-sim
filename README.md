@@ -43,3 +43,7 @@ To remove all artifacts and return to the base state run...
 ```
 $ source sim-tidy.sh
 ```
+
+## Creating emission profiles
+
+You can create photon emission files that describe how cherenkov photons are emitted from a primary particle using the example macro file at ./config/example/emission_profiles.mac with the geofile ./config/example/emission_geo.mac
