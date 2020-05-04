@@ -35,11 +35,12 @@ public:
 		kNCNuBarPtoNuBarNPiPlus = 14,
 		kNCNuBarNtoNuBarNPiZero = 15,
 		kNCNuBarNtoNuBarPPiMinus = 16,
-		kOtherResonant = 17,
+		kCCOtherResonant = 17,
+		kNCOtherResonant = 18,
 		// Others
-		kCCMEC = 18,
-		kNCMEC = 19, 
-		kIMD = 20,
+		kCCMEC = 19,
+		kNCMEC = 20, 
+		kIMD = 21,
 		kCCDIS = 91,
 		kNCDIS = 92,
 		kNCCoh = 96, // No idea why NC is first here, but that's what it says.

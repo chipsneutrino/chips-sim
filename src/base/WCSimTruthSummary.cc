@@ -152,6 +152,8 @@ bool WCSimTruthSummary::TypeIsCCEvent(int typeCode)
 		return true;
 	else if (typeCode == WCSimTruthSummary::kCCNuBarPtoLPPiMinus)
 		return true;
+	else if (typeCode == WCSimTruthSummary::kCCOtherResonant)
+		return true;
 	else if (typeCode == WCSimTruthSummary::kCCDIS)
 		return true;
 	else if (typeCode == WCSimTruthSummary::kCCCoh)
@@ -186,6 +188,8 @@ bool WCSimTruthSummary::TypeIsNCEvent(int typeCode)
 	else if (typeCode == WCSimTruthSummary::kNCNuBarNtoNuBarNPiZero)
 		return true;
 	else if (typeCode == WCSimTruthSummary::kNCNuBarNtoNuBarPPiMinus)
+		return true;
+	else if (typeCode == WCSimTruthSummary::kNCOtherResonant)
 		return true;
 	else if (typeCode == WCSimTruthSummary::kNCDIS)
 		return true;
@@ -247,6 +251,10 @@ bool WCSimTruthSummary::TypeIsResEvent(int typeCode)
 		return true;
 	else if (typeCode == WCSimTruthSummary::kNCNuBarNtoNuBarPPiMinus)
 		return true;
+	else if (typeCode == WCSimTruthSummary::kCCOtherResonant)
+		return true;
+	else if (typeCode == WCSimTruthSummary::kNCOtherResonant)
+		return true;
 	else
 		return false;
 }
@@ -298,7 +306,7 @@ bool WCSimTruthSummary::TypeIsMECEvent(int typeCode)
 
 bool WCSimTruthSummary::IsIMDEvent() const
 {
-	return TypeIsMECEvent(fInteractionMode);
+	return TypeIsIMDEvent(fInteractionMode);
 }
 
 bool WCSimTruthSummary::TypeIsIMDEvent(int typeCode)
