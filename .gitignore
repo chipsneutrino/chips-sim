@@ -34,3 +34,5 @@ WCSimRootDict.cxx
 cmake_install.cmake
 libWCSimRootDict.rootmap
 libWCSimRootDict_rdict.pcm
+
+config/geant4/

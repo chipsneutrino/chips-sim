@@ -87,3 +87,174 @@ target_link_libraries(geometryHelper ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} Gui E
 #---Add the simDisplay executable and link to all the required libraries
 add_executable(simDisplay src/apps/simDisplay.cc ${sources} ${headers})
 target_link_libraries(simDisplay ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} Gui EG WCSimRoot Tree)
+
+#---Download large data files to the config directory
+if(EXISTS $ENV{CHIPSSIM}/config/geant4/G4NDL4.5)
+  message(STATUS "Already have G4NDL4.5")
+else()
+  message(STATUS "Downloading G4NDL4.5")
+  file(DOWNLOAD http://geant4-data.web.cern.ch/geant4-data/datasets/G4NDL.4.5.tar.gz 
+    $ENV{CHIPSSIM}/config/geant4/G4NDL.4.5.tar.gz)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E 
+    tar xzf $ENV{CHIPSSIM}/config/geant4/G4NDL.4.5.tar.gz)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E 
+    rename G4NDL4.5 $ENV{CHIPSSIM}/config/geant4/G4NDL4.5)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E 
+    rm $ENV{CHIPSSIM}/config/geant4/G4NDL.4.5.tar.gz)
+endif()
+
+if(EXISTS $ENV{CHIPSSIM}/config/geant4/G4EMLOW7.7)
+  message(STATUS "Already have G4EMLOW7.7")
+else()
+  message(STATUS "Downloading G4EMLOW7.7")
+  file(DOWNLOAD http://geant4-data.web.cern.ch/geant4-data/datasets/G4EMLOW.7.7.tar.gz 
+    $ENV{CHIPSSIM}/config/geant4/G4EMLOW.7.7.tar.gz)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E 
+    tar xzf $ENV{CHIPSSIM}/config/geant4/G4EMLOW.7.7.tar.gz)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E 
+    rename G4EMLOW7.7 $ENV{CHIPSSIM}/config/geant4/G4EMLOW7.7)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E 
+    rm $ENV{CHIPSSIM}/config/geant4/G4EMLOW.7.7.tar.gz)
+endif()
+
+if(EXISTS $ENV{CHIPSSIM}/config/geant4/G4PhotonEvaporation5.3)
+  message(STATUS "Already have G4PhotonEvaporation5.3")
+else()
+  message(STATUS "Downloading G4PhotonEvaporation5.3")
+  file(DOWNLOAD http://geant4-data.web.cern.ch/geant4-data/datasets/G4PhotonEvaporation.5.3.tar.gz 
+    $ENV{CHIPSSIM}/config/geant4/G4PhotonEvaporation.5.3.tar.gz)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E 
+    tar xzf $ENV{CHIPSSIM}/config/geant4/G4PhotonEvaporation.5.3.tar.gz)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E 
+    rename PhotonEvaporation5.3 $ENV{CHIPSSIM}/config/geant4/PhotonEvaporation5.3)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E 
+    rm $ENV{CHIPSSIM}/config/geant4/G4PhotonEvaporation.5.3.tar.gz)
+endif()
+
+if(EXISTS $ENV{CHIPSSIM}/config/geant4/G4RadioactiveDecay5.3)
+  message(STATUS "Already have G4RadioactiveDecay5.3")
+else()
+  message(STATUS "Downloading G4RadioactiveDecay5.3")
+  file(DOWNLOAD http://geant4-data.web.cern.ch/geant4-data/datasets/G4RadioactiveDecay.5.3.tar.gz 
+    $ENV{CHIPSSIM}/config/geant4/G4RadioactiveDecay.5.3.tar.gz)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E 
+    tar xzf $ENV{CHIPSSIM}/config/geant4/G4RadioactiveDecay.5.3.tar.gz)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E 
+    rename RadioactiveDecay5.3 $ENV{CHIPSSIM}/config/geant4/RadioactiveDecay5.3)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E 
+    rm $ENV{CHIPSSIM}/config/geant4/G4RadioactiveDecay.5.3.tar.gz)
+endif()
+
+if(EXISTS $ENV{CHIPSSIM}/config/geant4/G4SAIDDATA2.0)
+  message(STATUS "Already have G4SAIDDATA2.0")
+else()
+  message(STATUS "Downloading G4SAIDDATA2.0")
+  file(DOWNLOAD http://geant4-data.web.cern.ch/geant4-data/datasets/G4SAIDDATA.2.0.tar.gz 
+    $ENV{CHIPSSIM}/config/geant4/G4SAIDDATA.2.0.tar.gz)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E 
+    tar xzf $ENV{CHIPSSIM}/config/geant4/G4SAIDDATA.2.0.tar.gz)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E 
+    rename G4SAIDDATA2.0 $ENV{CHIPSSIM}/config/geant4/G4SAIDDATA2.0)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E 
+    rm $ENV{CHIPSSIM}/config/geant4/G4SAIDDATA.2.0.tar.gz)
+endif()
+
+if(EXISTS $ENV{CHIPSSIM}/config/geant4/G4PARTICLEXS1.1)
+  message(STATUS "Already have G4PARTICLEXS1.1")
+else()
+  message(STATUS "Downloading G4PARTICLEXS1.1")
+  file(DOWNLOAD http://geant4-data.web.cern.ch/geant4-data/datasets/G4PARTICLEXS.1.1.tar.gz 
+    $ENV{CHIPSSIM}/config/geant4/G4PARTICLEXS.1.1.tar.gz)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E 
+    tar xzf $ENV{CHIPSSIM}/config/geant4/G4PARTICLEXS.1.1.tar.gz)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E 
+    rename G4PARTICLEXS1.1 $ENV{CHIPSSIM}/config/geant4/G4PARTICLEXS1.1)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E 
+    rm $ENV{CHIPSSIM}/config/geant4/G4PARTICLEXS.1.1.tar.gz)
+endif()
+
+if(EXISTS $ENV{CHIPSSIM}/config/geant4/G4ABLA3.1)
+  message(STATUS "Already have G4ABLA3.1")
+else()
+  message(STATUS "Downloading G4ABLA3.1")
+  file(DOWNLOAD http://geant4-data.web.cern.ch/geant4-data/datasets/G4ABLA.3.1.tar.gz 
+    $ENV{CHIPSSIM}/config/geant4/G4ABLA.3.1.tar.gz)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E 
+    tar xzf $ENV{CHIPSSIM}/config/geant4/G4ABLA.3.1.tar.gz)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E 
+    rename G4ABLA3.1 $ENV{CHIPSSIM}/config/geant4/G4ABLA3.1)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E 
+    rm $ENV{CHIPSSIM}/config/geant4/G4ABLA.3.1.tar.gz)
+endif()
+
+if(EXISTS $ENV{CHIPSSIM}/config/geant4/G4INCL1.0)
+  message(STATUS "Already have G4INCL1.0")
+else()
+  message(STATUS "Downloading G4INCL1.0")
+  file(DOWNLOAD http://geant4-data.web.cern.ch/geant4-data/datasets/G4INCL.1.0.tar.gz 
+    $ENV{CHIPSSIM}/config/geant4/G4INCL.1.0.tar.gz)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E 
+    tar xzf $ENV{CHIPSSIM}/config/geant4/G4INCL.1.0.tar.gz)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E 
+    rename G4INCL1.0 $ENV{CHIPSSIM}/config/geant4/G4INCL1.0)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E 
+    rm $ENV{CHIPSSIM}/config/geant4/G4INCL.1.0.tar.gz)
+endif()
+
+if(EXISTS $ENV{CHIPSSIM}/config/geant4/G4PII1.3)
+  message(STATUS "Already have G4PII1.3")
+else()
+  message(STATUS "Downloading G4PII1.3")
+  file(DOWNLOAD http://geant4-data.web.cern.ch/geant4-data/datasets/G4PII.1.3.tar.gz 
+    $ENV{CHIPSSIM}/config/geant4/G4PII.1.3.tar.gz)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E 
+    tar xzf $ENV{CHIPSSIM}/config/geant4/G4PII.1.3.tar.gz)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E 
+    rename G4PII1.3 $ENV{CHIPSSIM}/config/geant4/G4PII1.3)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E 
+    rm $ENV{CHIPSSIM}/config/geant4/G4PII.1.3.tar.gz)
+endif()
+
+if(EXISTS $ENV{CHIPSSIM}/config/geant4/G4ENSDFSTATE2.2)
+  message(STATUS "Already have G4ENSDFSTATE2.2")
+else()
+  message(STATUS "Downloading G4ENSDFSTATE2.2")
+  file(DOWNLOAD http://geant4-data.web.cern.ch/geant4-data/datasets/G4ENSDFSTATE.2.2.tar.gz 
+    $ENV{CHIPSSIM}/config/geant4/G4ENSDFSTATE.2.2.tar.gz)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E 
+    tar xzf $ENV{CHIPSSIM}/config/geant4/G4ENSDFSTATE.2.2.tar.gz)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E 
+    rename G4ENSDFSTATE2.2 $ENV{CHIPSSIM}/config/geant4/G4ENSDFSTATE2.2)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E 
+    rm $ENV{CHIPSSIM}/config/geant4/G4ENSDFSTATE.2.2.tar.gz)
+endif()
+
+if(EXISTS $ENV{CHIPSSIM}/config/geant4/G4RealSurface2.1.1)
+  message(STATUS "Already have G4RealSurface2.1.1")
+else()
+  message(STATUS "Downloading G4RealSurface2.1.1")
+  file(DOWNLOAD http://geant4-data.web.cern.ch/geant4-data/datasets/G4RealSurface.2.1.1.tar.gz 
+    $ENV{CHIPSSIM}/config/geant4/G4RealSurface.2.1.1.tar.gz)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E 
+    tar xzf $ENV{CHIPSSIM}/config/geant4/G4RealSurface.2.1.1.tar.gz)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E 
+    rename RealSurface2.1.1 $ENV{CHIPSSIM}/config/geant4/RealSurface2.1.1)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E 
+    rm $ENV{CHIPSSIM}/config/geant4/G4RealSurface.2.1.1.tar.gz)
+endif()
+
+if(EXISTS $ENV{CHIPSSIM}/config/geant4/G4TENDL1.3.2)
+  message(STATUS "Already have G4TENDL1.3.2")
+else()
+  message(STATUS "Downloading G4TENDL1.3.2")
+  file(DOWNLOAD http://geant4-data.web.cern.ch/geant4-data/datasets/G4TENDL.1.3.2.tar.gz 
+    $ENV{CHIPSSIM}/config/geant4/G4TENDL.1.3.2.tar.gz)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E 
+    tar xzf $ENV{CHIPSSIM}/config/geant4/G4TENDL.1.3.2.tar.gz)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E 
+    rename G4TENDL1.3.2 $ENV{CHIPSSIM}/config/geant4/G4TENDL1.3.2)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E 
+    rm $ENV{CHIPSSIM}/config/geant4/G4TENDL.1.3.2.tar.gz)
+endif()
+
+
