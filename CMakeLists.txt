@@ -76,17 +76,17 @@ include(${Geant4_USE_FILE})
 file(GLOB sources ${PROJECT_SOURCE_DIR}/src/base/*.cc)
 file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh)
 
-#---Add the WCSim executable and link to all the required libraries
-add_executable(WCSim src/apps/WCSim.cc ${sources} ${headers} WCSimRootDict.cxx)
-target_link_libraries(WCSim ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} Gui EG WCSimRoot Tree)
+#---Add the chipssim executable and link to all the required libraries
+add_executable(chipssim src/apps/chipssim.cc ${sources} ${headers} WCSimRootDict.cxx)
+target_link_libraries(chipssim ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} Gui EG WCSimRoot Tree)
 
-#---Add the geometryHelper executable and link to all the required libraries
-add_executable(geometryHelper src/apps/geometryHelper.cc ${sources} ${headers})
-target_link_libraries(geometryHelper ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} Gui EG WCSimRoot Tree)
+#---Add the geomhelper executable and link to all the required libraries
+add_executable(geomhelper src/apps/geomhelper.cc ${sources} ${headers})
+target_link_libraries(geomhelper ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} Gui EG WCSimRoot Tree)
 
-#---Add the simDisplay executable and link to all the required libraries
-add_executable(simDisplay src/apps/simDisplay.cc ${sources} ${headers})
-target_link_libraries(simDisplay ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} Gui EG WCSimRoot Tree)
+#---Add the simdisplay executable and link to all the required libraries
+add_executable(simdisplay src/apps/simdisplay.cc ${sources} ${headers})
+target_link_libraries(simdisplay ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} Gui EG WCSimRoot Tree)
 
 #---Download large data files to the config directory
 if(EXISTS $ENV{CHIPSSIM}/config/geant4/G4NDL4.5)
@@ -117,10 +117,10 @@ else()
     rm $ENV{CHIPSSIM}/config/geant4/G4EMLOW.7.7.tar.gz)
 endif()
 
-if(EXISTS $ENV{CHIPSSIM}/config/geant4/G4PhotonEvaporation5.3)
-  message(STATUS "Already have G4PhotonEvaporation5.3")
+if(EXISTS $ENV{CHIPSSIM}/config/geant4/PhotonEvaporation5.3)
+  message(STATUS "Already have PhotonEvaporation5.3")
 else()
-  message(STATUS "Downloading G4PhotonEvaporation5.3")
+  message(STATUS "Downloading PhotonEvaporation5.3")
   file(DOWNLOAD http://geant4-data.web.cern.ch/geant4-data/datasets/G4PhotonEvaporation.5.3.tar.gz 
     $ENV{CHIPSSIM}/config/geant4/G4PhotonEvaporation.5.3.tar.gz)
   execute_process(COMMAND ${CMAKE_COMMAND} -E 
@@ -131,10 +131,10 @@ else()
     rm $ENV{CHIPSSIM}/config/geant4/G4PhotonEvaporation.5.3.tar.gz)
 endif()
 
-if(EXISTS $ENV{CHIPSSIM}/config/geant4/G4RadioactiveDecay5.3)
-  message(STATUS "Already have G4RadioactiveDecay5.3")
+if(EXISTS $ENV{CHIPSSIM}/config/geant4/RadioactiveDecay5.3)
+  message(STATUS "Already have RadioactiveDecay5.3")
 else()
-  message(STATUS "Downloading G4RadioactiveDecay5.3")
+  message(STATUS "Downloading RadioactiveDecay5.3")
   file(DOWNLOAD http://geant4-data.web.cern.ch/geant4-data/datasets/G4RadioactiveDecay.5.3.tar.gz 
     $ENV{CHIPSSIM}/config/geant4/G4RadioactiveDecay.5.3.tar.gz)
   execute_process(COMMAND ${CMAKE_COMMAND} -E 
@@ -229,10 +229,10 @@ else()
     rm $ENV{CHIPSSIM}/config/geant4/G4ENSDFSTATE.2.2.tar.gz)
 endif()
 
-if(EXISTS $ENV{CHIPSSIM}/config/geant4/G4RealSurface2.1.1)
-  message(STATUS "Already have G4RealSurface2.1.1")
+if(EXISTS $ENV{CHIPSSIM}/config/geant4/RealSurface2.1.1)
+  message(STATUS "Already have RealSurface2.1.1")
 else()
-  message(STATUS "Downloading G4RealSurface2.1.1")
+  message(STATUS "Downloading RealSurface2.1.1")
   file(DOWNLOAD http://geant4-data.web.cern.ch/geant4-data/datasets/G4RealSurface.2.1.1.tar.gz 
     $ENV{CHIPSSIM}/config/geant4/G4RealSurface.2.1.1.tar.gz)
   execute_process(COMMAND ${CMAKE_COMMAND} -E 
