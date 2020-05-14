@@ -8,16 +8,15 @@
 *.so
 *.a
 *___*
-.*
 *.root
 *_.cxx
 *.pyc
 *~
 geoSetup*
 
-simDisplay
-WCSim
-geometryHelper
+simdisplay
+chipssim
+geomhelper
 src/WCSimRootDict.*
 geofile.txt
 setupWCSim.sh
@@ -35,4 +34,7 @@ cmake_install.cmake
 libWCSimRootDict.rootmap
 libWCSimRootDict_rdict.pcm
 
-config/geant4/
+config/geant4/G4*
+config/geant4/PhotonEvaporation5.3
+config/geant4/RadioactiveDecay5.3
+config/geant4/RealSurface2.1.1
