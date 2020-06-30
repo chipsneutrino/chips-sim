@@ -60,5 +60,5 @@
 /random/setSeeds 12 11
 
 # Number of events to generate
-/run/beamOn 10
+/run/beamOn 100
 #exit

@@ -161,7 +161,7 @@ void WCSimEventAction::EndOfEventAction(const G4Event *evt)
 		}
 	}
 
-	G4cout << " Filling Root Event " << G4endl;
+	G4cout << "Filling Root Event: " << event_id << G4endl;
 
 	if (GetRunAction()->GetSaveRootFile())
 	{
@@ -283,7 +283,7 @@ void WCSimEventAction::FillRootEvent(G4int event_id, G4TrajectoryContainer *TC, 
 	G4DigiManager *DMman = G4DigiManager::GetDMpointer();
 	WCSimWCDigitizer *WCDM = (WCSimWCDigitizer *)DMman->FindDigitizerModule("WCReadout");
 	int ngates = WCDM->NumberOfGatesInThisEvent();
-	G4cout << "ngates =  " << ngates << "\n";
+	//G4cout << "ngates =  " << ngates << "\n";
 	for (int index = 0; index < ngates; index++)
 	{
 		if (index >= 1)
@@ -652,7 +652,7 @@ void WCSimEventAction::FillRootEvent(G4int event_id, G4TrajectoryContainer *TC, 
 	for (int i = 0; i < wcsimrootsuperevent->GetNumberOfEvents(); i++)
 	{
 		wcsimrootevent = wcsimrootsuperevent->GetTrigger(i);
-		G4cout << ">>>Root event " << std::setw(5) << wcsimrootevent->GetHeader()->GetEvtNum() << "\n";
+		//G4cout << ">>>Root event " << std::setw(5) << wcsimrootevent->GetHeader()->GetEvtNum() << "\n";
 	}
 
 #ifdef _SAVE_RAW_HITS

@@ -144,7 +144,7 @@ void WCSimWCDigitizer::FindTriggerWindows(WCSimWCHitsCollection *hits)
 
 	for (unsigned int t = 0; t < TriggerTimes.size(); ++t)
 	{
-		std::cout << "- Trigger time = " << TriggerTimes[t] << std::endl;
+		std::cout << "Trigger time = " << TriggerTimes[t] << std::endl;
 	}
 }
 

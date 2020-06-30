@@ -170,7 +170,7 @@ void WCSimPrimaryGeneratorAction::GeneratePrimaries(G4Event *anEvent)
 						// that leave the nucleus, tagged by "0"
 
 						// G4cout << "Token[6] = " << token[6] << std::endl;
-						if (token[6] == "0")
+						if (token[6] == "0" && token[3] != "-999")
 						{
 							// Leigh Hack for Coh events with the nucleus in the final state
 							if (token[1] == "8016")
@@ -495,7 +495,7 @@ double WCSimPrimaryGeneratorAction::GetBeamSpillEventTime() const
 
 G4ThreeVector WCSimPrimaryGeneratorAction::GenerateRandomVertex() const
 {
-	std::cerr << " About to do the random vertex " << std::endl;
+	//std::cerr << " About to do the random vertex " << std::endl;
 	// Genie events are generates at (0,0,0) - we want to place them randomly in a
 	// box or cylinder
 	G4ThreeVector rdmVtx;
